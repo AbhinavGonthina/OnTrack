@@ -25,10 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Runs inside the Spring Security chain, after JwtAuthenticationFilter, so it
  * can key on the authenticated user when one is present.
  *
- * Endpoint-specific tighter limits (e.g. the Gemini fit-analysis endpoint)
- * should add their own bucket map here rather than replacing this one, since
- * this filter covers the general API ceiling from the spec's abuse-protection
- * section.
+ * The Gemini fit-analysis endpoint has its own, much tighter limit — see
+ * {@link GeminiRateLimiter} — but that one only fires on an actual cache
+ * miss (a real Gemini API call), so it lives in the service layer rather
+ * than here, where every request would count against it regardless of
+ * whether it actually cost anything.
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {

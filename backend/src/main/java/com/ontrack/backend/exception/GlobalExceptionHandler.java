@@ -1,5 +1,6 @@
 package com.ontrack.backend.exception;
 
+import com.ontrack.backend.ai.GeminiApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -37,6 +38,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidStatusEventException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidStatusEvent(InvalidStatusEventException ex) {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(MissingFitAnalysisInputException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingFitAnalysisInput(MissingFitAnalysisInputException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(GeminiApiException.class)
+    public ResponseEntity<Map<String, Object>> handleGeminiApiError(GeminiApiException ex) {
+        return error(HttpStatus.BAD_GATEWAY, "The AI service is temporarily unavailable. Please try again shortly.");
+    }
+
+    @ExceptionHandler(GeminiRateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleGeminiRateLimitExceeded(GeminiRateLimitExceededException ex) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
