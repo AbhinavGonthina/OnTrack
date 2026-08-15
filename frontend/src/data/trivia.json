@@ -1,0 +1,364 @@
+[
+  {
+    "question": "What is the average time complexity of searching in a balanced binary search tree?",
+    "choices": ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    "correctIndex": 1,
+    "explanation": "A balanced BST halves the search space at each step, giving O(log n)."
+  },
+  {
+    "question": "Which data structure is the natural fit for implementing a LRU cache?",
+    "choices": ["A stack", "A hash map alone", "A hash map + doubly linked list", "A binary heap"],
+    "correctIndex": 2,
+    "explanation": "The hash map gives O(1) lookup; the doubly linked list gives O(1) reordering to track recency."
+  },
+  {
+    "question": "What does the CAP theorem say a distributed system must sacrifice during a network partition?",
+    "choices": ["Consistency or availability", "Security or speed", "Cost or scale", "Latency or throughput"],
+    "correctIndex": 0,
+    "explanation": "CAP: you can't have Consistency, Availability, and Partition tolerance all at once during a partition."
+  },
+  {
+    "question": "What is the time complexity of quicksort in the worst case?",
+    "choices": ["O(n log n)", "O(n)", "O(n^2)", "O(log n)"],
+    "correctIndex": 2,
+    "explanation": "Worst case (e.g. already-sorted input with a naive pivot) degrades to O(n^2)."
+  },
+  {
+    "question": "Which HTTP status code means 'rate limited, try again later'?",
+    "choices": ["503", "429", "409", "401"],
+    "correctIndex": 1,
+    "explanation": "429 Too Many Requests is the standard rate-limiting status code."
+  },
+  {
+    "question": "In a hash table, what causes a 'collision'?",
+    "choices": [
+      "Two keys with different hash codes",
+      "Two different keys hashing to the same bucket",
+      "The table running out of memory",
+      "A key being deleted twice"
+    ],
+    "correctIndex": 1,
+    "explanation": "Collisions happen when distinct keys map to the same slot; chaining or open addressing resolve them."
+  },
+  {
+    "question": "What does 'idempotent' mean for an HTTP method?",
+    "choices": [
+      "It always returns the same response body",
+      "Calling it multiple times has the same effect as calling it once",
+      "It never modifies server state",
+      "It requires authentication"
+    ],
+    "correctIndex": 1,
+    "explanation": "PUT and DELETE are idempotent - repeating the request doesn't change the outcome further."
+  },
+  {
+    "question": "Which sorting algorithm is guaranteed O(n log n) in all cases and stable?",
+    "choices": ["Quicksort", "Heapsort", "Merge sort", "Selection sort"],
+    "correctIndex": 2,
+    "explanation": "Merge sort is stable and O(n log n) worst-case, at the cost of O(n) extra space."
+  },
+  {
+    "question": "What's the main advantage of a B-tree over a binary search tree for database indexes?",
+    "choices": [
+      "It uses less memory per node",
+      "It's easier to implement",
+      "It minimizes disk reads by keeping the tree shallow and wide",
+      "It doesn't require balancing"
+    ],
+    "correctIndex": 2,
+    "explanation": "B-trees have high fanout, so they stay shallow - fewer disk seeks per lookup, which matters when nodes live on disk."
+  },
+  {
+    "question": "What problem does a Bloom filter solve?",
+    "choices": [
+      "Exact membership testing with zero false positives",
+      "Space-efficient probabilistic membership testing (false positives possible, no false negatives)",
+      "Sorting large datasets in place",
+      "Compressing strings losslessly"
+    ],
+    "correctIndex": 1,
+    "explanation": "Bloom filters trade a small false-positive rate for huge space savings versus storing the actual set."
+  },
+  {
+    "question": "In REST API design, which HTTP method is typically NOT idempotent?",
+    "choices": ["GET", "PUT", "DELETE", "POST"],
+    "correctIndex": 3,
+    "explanation": "POST usually creates a new resource each time - call it twice, get two resources."
+  },
+  {
+    "question": "What is 'thrashing' in the context of an operating system?",
+    "choices": [
+      "A CPU running at 100% doing useful work",
+      "Excessive paging causing more time spent swapping than executing",
+      "A deadlock between two processes",
+      "A race condition in shared memory"
+    ],
+    "correctIndex": 1,
+    "explanation": "Thrashing happens when the system spends more time paging memory in/out than doing actual work."
+  },
+  {
+    "question": "What does 'amortized O(1)' mean for dynamic array append?",
+    "choices": [
+      "Every single append is O(1)",
+      "Appends are O(1) on average over a sequence of operations, even though occasional resizes are O(n)",
+      "It only applies to arrays smaller than 1000 elements",
+      "It means the array never needs resizing"
+    ],
+    "correctIndex": 1,
+    "explanation": "Occasional O(n) resizes are 'spread out' over many O(1) appends, averaging to O(1) per operation."
+  },
+  {
+    "question": "Which of these is a common way to horizontally scale a relational database?",
+    "choices": ["Vertical indexing", "Sharding", "Garbage collection tuning", "Increasing connection pool size"],
+    "correctIndex": 1,
+    "explanation": "Sharding splits data across multiple database instances by some key, spreading load horizontally."
+  },
+  {
+    "question": "What's the key difference between a process and a thread?",
+    "choices": [
+      "Threads have their own memory space, processes share memory",
+      "Processes have their own memory space; threads within a process share it",
+      "There is no difference",
+      "Threads can only run on one CPU core"
+    ],
+    "correctIndex": 1,
+    "explanation": "Threads within the same process share memory/resources; processes are isolated from each other."
+  },
+  {
+    "question": "What does 'eventual consistency' mean in a distributed system?",
+    "choices": [
+      "Writes are never visible to any reader",
+      "Given no new updates, all replicas will converge to the same value over time",
+      "The system guarantees strong consistency after exactly 1 second",
+      "It only applies to single-node systems"
+    ],
+    "correctIndex": 1,
+    "explanation": "Eventual consistency allows temporary divergence between replicas, which converge once updates stop."
+  },
+  {
+    "question": "What is the purpose of a load balancer's health check?",
+    "choices": [
+      "To encrypt traffic between servers",
+      "To detect and stop routing traffic to unhealthy backend instances",
+      "To compress response payloads",
+      "To cache static assets"
+    ],
+    "correctIndex": 1,
+    "explanation": "Health checks let the load balancer route around instances that are down or misbehaving."
+  },
+  {
+    "question": "Which data structure would you use to implement a priority queue efficiently?",
+    "choices": ["Linked list", "Binary heap", "Hash set", "Stack"],
+    "correctIndex": 1,
+    "explanation": "A binary heap gives O(log n) insert and O(log n) extract-min/max, the standard priority queue backing."
+  },
+  {
+    "question": "What does 'N+1 query problem' refer to in backend development?",
+    "choices": [
+      "Running one query to fetch a list, then one additional query per item to fetch related data",
+      "A SQL syntax error involving addition",
+      "A caching bug that returns stale data",
+      "An off-by-one error in pagination"
+    ],
+    "correctIndex": 0,
+    "explanation": "Classic ORM pitfall: fetching a list then lazily querying each item's relations one at a time instead of joining/batching."
+  },
+  {
+    "question": "What is the primary benefit of using an index on a database column?",
+    "choices": [
+      "It reduces the storage size of the table",
+      "It speeds up lookups/filters on that column at the cost of extra write overhead",
+      "It automatically validates data types",
+      "It encrypts the column's data"
+    ],
+    "correctIndex": 1,
+    "explanation": "Indexes trade write-time cost and storage for much faster reads/filters on the indexed column."
+  },
+  {
+    "question": "In Big-O notation, what does O(1) describe?",
+    "choices": [
+      "An algorithm that always takes exactly 1 millisecond",
+      "Constant time - the operation's cost doesn't grow with input size",
+      "An algorithm with exactly one loop",
+      "The best possible algorithm for any problem"
+    ],
+    "correctIndex": 1,
+    "explanation": "O(1) means the runtime is constant regardless of how large the input gets."
+  },
+  {
+    "question": "What's the main difference between authentication and authorization?",
+    "choices": [
+      "They mean the same thing",
+      "Authentication verifies who you are; authorization determines what you're allowed to do",
+      "Authorization happens before authentication always",
+      "Authentication only applies to APIs, not websites"
+    ],
+    "correctIndex": 1,
+    "explanation": "Authentication = identity verification. Authorization = permission checking, which comes after."
+  },
+  {
+    "question": "Why might you choose a message queue (like SQS or Kafka) between two services?",
+    "choices": [
+      "To make requests synchronous and blocking",
+      "To decouple producers and consumers and smooth out traffic spikes",
+      "To reduce the number of servers needed to zero",
+      "To eliminate the need for a database"
+    ],
+    "correctIndex": 1,
+    "explanation": "Queues let a slow/unavailable consumer not block the producer, and absorb bursts of traffic."
+  },
+  {
+    "question": "What does 'garbage collection' do in languages like Java or Python?",
+    "choices": [
+      "Deletes unused files from disk",
+      "Automatically reclaims memory no longer referenced by the program",
+      "Removes dead code at compile time",
+      "Clears the terminal output"
+    ],
+    "correctIndex": 1,
+    "explanation": "GC frees heap memory for objects that are no longer reachable, so developers don't manually free() them."
+  },
+  {
+    "question": "What's a race condition?",
+    "choices": [
+      "A bug where the outcome depends on the unpredictable timing/ordering of concurrent operations",
+      "A performance test comparing two algorithms",
+      "An infinite loop",
+      "A memory leak caused by unclosed file handles"
+    ],
+    "correctIndex": 0,
+    "explanation": "Race conditions occur when shared state is accessed concurrently without proper synchronization."
+  },
+  {
+    "question": "In Git, what does 'rebase' do differently from 'merge'?",
+    "choices": [
+      "Rebase deletes the branch afterward",
+      "Rebase rewrites commit history to sit on top of another branch instead of creating a merge commit",
+      "Rebase only works on the main branch",
+      "There's no functional difference"
+    ],
+    "correctIndex": 1,
+    "explanation": "Rebase replays your commits onto a new base, producing a linear history instead of a merge commit."
+  },
+  {
+    "question": "What is a 'deadlock'?",
+    "choices": [
+      "When two or more processes each hold a resource the other needs, and neither can proceed",
+      "A server crash caused by too much traffic",
+      "A type of memory corruption bug",
+      "An unresponsive UI thread"
+    ],
+    "correctIndex": 0,
+    "explanation": "Classic deadlock: process A holds lock 1 and waits for lock 2; process B holds lock 2 and waits for lock 1."
+  },
+  {
+    "question": "Which of these best describes 'microservices architecture'?",
+    "choices": [
+      "One large codebase deployed as a single unit",
+      "Splitting an application into small, independently deployable services that communicate over a network",
+      "Running all code inside a single database",
+      "A frontend-only architectural pattern"
+    ],
+    "correctIndex": 1,
+    "explanation": "Microservices trade some operational complexity for independent scaling, deployment, and team ownership."
+  },
+  {
+    "question": "What does 'DNS' stand for and do?",
+    "choices": [
+      "Domain Name System - translates human-readable domain names into IP addresses",
+      "Data Node Storage - a database replication protocol",
+      "Dynamic Network Security - a firewall standard",
+      "Distributed Node Sync - a consensus algorithm"
+    ],
+    "correctIndex": 0,
+    "explanation": "DNS is essentially the internet's phone book, mapping domains like example.com to IP addresses."
+  },
+  {
+    "question": "What's the difference between a 'stack' and a 'queue'?",
+    "choices": [
+      "Stack is FIFO, queue is LIFO",
+      "Stack is LIFO (last in, first out); queue is FIFO (first in, first out)",
+      "They are identical data structures",
+      "A queue can only store numbers"
+    ],
+    "correctIndex": 1,
+    "explanation": "Think of a stack of plates (LIFO) versus a checkout line (FIFO)."
+  },
+  {
+    "question": "What is 'SQL injection'?",
+    "choices": [
+      "A performance optimization technique for SQL queries",
+      "An attack where untrusted input is used to construct SQL queries, letting attackers run arbitrary SQL",
+      "A method for backing up databases",
+      "A type of database index"
+    ],
+    "correctIndex": 1,
+    "explanation": "SQL injection exploits unsanitized input concatenated into queries; parameterized queries prevent it."
+  },
+  {
+    "question": "In a system design interview, what does 'vertical scaling' mean?",
+    "choices": [
+      "Adding more machines to handle load",
+      "Adding more power (CPU/RAM) to a single existing machine",
+      "Splitting a database by column",
+      "Reducing the number of API endpoints"
+    ],
+    "correctIndex": 1,
+    "explanation": "Vertical scaling = bigger machine. Horizontal scaling = more machines."
+  },
+  {
+    "question": "What does a 'CDN' (Content Delivery Network) primarily do?",
+    "choices": [
+      "Encrypts database backups",
+      "Caches and serves static content from servers geographically close to users",
+      "Manages user authentication",
+      "Compiles frontend JavaScript"
+    ],
+    "correctIndex": 1,
+    "explanation": "CDNs reduce latency by serving cached content from edge locations near the requesting user."
+  },
+  {
+    "question": "What is 'normalization' in relational database design?",
+    "choices": [
+      "Converting all text to lowercase",
+      "Organizing tables to reduce data redundancy and improve integrity",
+      "Compressing the database file",
+      "Adding an index to every column"
+    ],
+    "correctIndex": 1,
+    "explanation": "Normalization splits data into related tables to avoid duplicating the same information repeatedly."
+  },
+  {
+    "question": "Why would you use a `HashSet` instead of a `List` to check 'does this item exist'?",
+    "choices": [
+      "HashSet lookups are O(1) average vs O(n) for scanning a list",
+      "HashSet preserves insertion order better",
+      "List cannot store duplicate-free data",
+      "There's no performance difference"
+    ],
+    "correctIndex": 0,
+    "explanation": "Hash-based lookup avoids scanning every element, unlike a linear list search."
+  },
+  {
+    "question": "What does 'REST' stand for?",
+    "choices": [
+      "Rapid Execution State Transfer",
+      "Representational State Transfer",
+      "Remote Endpoint Service Transport",
+      "Reliable Extensible Service Type"
+    ],
+    "correctIndex": 1,
+    "explanation": "REST is an architectural style built around resources and standard HTTP verbs/status codes."
+  },
+  {
+    "question": "What is a common cause of 'cache invalidation' being called one of the two hard problems in CS?",
+    "choices": [
+      "Caches are always too small",
+      "Knowing exactly when cached data becomes stale is genuinely hard to get right",
+      "Caches only work with integers",
+      "It's a joke with no real technical basis"
+    ],
+    "correctIndex": 1,
+    "explanation": "Phil Karlton's quip: 'There are only two hard things in CS: cache invalidation and naming things.'"
+  }
+]
