@@ -3,12 +3,14 @@ package com.ontrack.backend.controller;
 import com.ontrack.backend.config.SecurityConfig;
 import com.ontrack.backend.dto.ApplicationResponse;
 import com.ontrack.backend.dto.FitAnalysisResponse;
+import com.ontrack.backend.dto.StatsResponse;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.enums.ApplicationStatus;
 import com.ontrack.backend.repository.UserRepository;
 import com.ontrack.backend.security.JwtService;
 import com.ontrack.backend.service.ApplicationService;
 import com.ontrack.backend.service.FitAnalysisService;
+import com.ontrack.backend.service.StatsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,9 @@ class DemoControllerTest {
     private FitAnalysisService fitAnalysisService;
 
     @MockitoBean
+    private StatsService statsService;
+
+    @MockitoBean
     private JwtService jwtService;
 
     private User demoUser;
@@ -81,6 +86,16 @@ class DemoControllerTest {
         mockMvc.perform(get("/api/demo/applications/" + appId + "/fit-analysis"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cached").value(true));
+    }
+
+    @Test
+    void statsWorksWithoutAuthentication() throws Exception {
+        StatsResponse response = new StatsResponse(12, 83.3, 58.3, 25.0, 8.3, 9.7, List.of());
+        when(statsService.computeStats(demoUser.getId())).thenReturn(response);
+
+        mockMvc.perform(get("/api/demo/stats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalApplications").value(12));
     }
 
     @Test

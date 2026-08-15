@@ -3,11 +3,13 @@ package com.ontrack.backend.controller;
 import com.ontrack.backend.dto.ApplicationDetailResponse;
 import com.ontrack.backend.dto.ApplicationResponse;
 import com.ontrack.backend.dto.FitAnalysisResponse;
+import com.ontrack.backend.dto.StatsResponse;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.exception.DemoReadOnlyException;
 import com.ontrack.backend.repository.UserRepository;
 import com.ontrack.backend.service.ApplicationService;
 import com.ontrack.backend.service.FitAnalysisService;
+import com.ontrack.backend.service.StatsService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,14 +37,17 @@ public class DemoController {
     private final UserRepository userRepository;
     private final ApplicationService applicationService;
     private final FitAnalysisService fitAnalysisService;
+    private final StatsService statsService;
 
     public DemoController(
             UserRepository userRepository,
             ApplicationService applicationService,
-            FitAnalysisService fitAnalysisService) {
+            FitAnalysisService fitAnalysisService,
+            StatsService statsService) {
         this.userRepository = userRepository;
         this.applicationService = applicationService;
         this.fitAnalysisService = fitAnalysisService;
+        this.statsService = statsService;
     }
 
     @GetMapping("/applications")
@@ -59,6 +64,11 @@ public class DemoController {
     public FitAnalysisResponse fitAnalysis(@PathVariable UUID id) {
         // Always a cache hit against the seeded FitAnalysis rows - never calls Gemini.
         return fitAnalysisService.getOrCreate(demoUser(), id);
+    }
+
+    @GetMapping("/stats")
+    public StatsResponse stats() {
+        return statsService.computeStats(demoUser().getId());
     }
 
     @PostMapping("/applications")
