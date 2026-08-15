@@ -55,6 +55,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
+    @ExceptionHandler(DemoReadOnlyException.class)
+    public ResponseEntity<Map<String, Object>> handleDemoReadOnly(DemoReadOnlyException ex) {
+        return error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
