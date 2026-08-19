@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ApiError, deleteApplication, getApplications } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
+import { STATUS_LABELS } from "@/lib/statusLabels";
 import type { ApplicationResponse } from "@/lib/types";
 
 export default function ApplicationsPage() {
@@ -94,7 +95,7 @@ export default function ApplicationsPage() {
                   {app.role} · {app.company}
                 </p>
                 <p className="text-xs text-black/50 dark:text-white/50">
-                  {app.currentStatus} · applied {app.dateApplied}
+                  {STATUS_LABELS[app.currentStatus]} · applied {app.dateApplied}
                 </p>
               </Link>
               <div className="flex shrink-0 items-center gap-3 text-sm">

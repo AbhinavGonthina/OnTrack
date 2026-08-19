@@ -23,16 +23,27 @@ function randomIndex(exclude?: number): number {
 }
 
 export function TriviaQuiz() {
-  const [questionIndex, setQuestionIndex] = useState(() => randomIndex());
+  // Starts at a fixed index so server and client render the same question on
+  // hydration (Math.random() during the initial render would mismatch between
+  // SSR and the client); the effect below picks a random one right after mount.
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
   useEffect(() => {
+    const pickInitial = setTimeout(() => {
+      setQuestionIndex((current) => randomIndex(current));
+    }, 0);
+
     const interval = setInterval(() => {
       setQuestionIndex((current) => randomIndex(current));
       setSelected(null);
     }, ROTATE_INTERVAL_MS);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearTimeout(pickInitial);
+      clearInterval(interval);
+    };
   }, []);
 
   const question = QUESTIONS[questionIndex];

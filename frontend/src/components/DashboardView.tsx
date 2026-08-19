@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 import { StatTile } from "@/components/StatTile";
 import { SankeyChart } from "@/components/SankeyChart";
+import { STATUS_LABELS } from "@/lib/statusLabels";
 
 interface Props {
   stats: StatsResponse;
@@ -61,7 +62,7 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
                   <span className="text-black dark:text-white">
                     {app.role} · {app.company}
                   </span>
-                  <span className="text-black/50 dark:text-white/50">{app.currentStatus}</span>
+                  <span className="text-black/50 dark:text-white/50">{STATUS_LABELS[app.currentStatus]}</span>
                 </Link>
               </li>
             ))}

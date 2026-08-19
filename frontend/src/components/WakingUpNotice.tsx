@@ -8,7 +8,7 @@ export function WakingUpNotice({ isSlow }: { isSlow: boolean }) {
           Waking up the server&hellip;
         </h1>
         <p className="mt-2 max-w-md text-sm text-black/70 dark:text-white/70">
-          OnTrack runs on free-tier hosting, so the backend naps after 15 minutes idle. It's
+          OnTrack runs on free-tier hosting, so the backend naps after 15 minutes idle. It&apos;s
           starting back up now — this usually takes under a minute.
         </p>
         {isSlow && (

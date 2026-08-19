@@ -13,8 +13,12 @@ export function AppNav() {
   }
 
   function handleLogout() {
+    // Every authenticated page has its own "redirect to /login if logged out"
+    // guard effect. router.push is an async transition, so that guard can
+    // still fire (and win) before it resolves - pointing this at the same
+    // /login destination instead of "/" means the race no longer matters.
     logout();
-    router.push("/");
+    router.push("/login");
   }
 
   return (
