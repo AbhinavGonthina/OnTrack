@@ -58,8 +58,8 @@ export function TriviaQuiz() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-left dark:border-white/15 dark:bg-black">
-      <div className="mb-4 flex items-center justify-between text-xs text-black/50 dark:text-white/50">
+    <div className="card w-full max-w-md p-6 text-left shadow-sm">
+      <div className="mb-4 flex items-center justify-between text-xs text-muted">
         <span>CS/SWE trivia while we wait</span>
         {score.total > 0 && (
           <span>
@@ -67,12 +67,12 @@ export function TriviaQuiz() {
           </span>
         )}
       </div>
-      <p className="mb-4 text-sm font-medium text-black dark:text-white">{question.question}</p>
+      <p className="mb-4 text-sm font-medium text-foreground">{question.question}</p>
       <div className="flex flex-col gap-2">
         {question.choices.map((choice, index) => {
           const isCorrect = index === question.correctIndex;
           const isSelected = index === selected;
-          let stateClasses = "border-black/10 dark:border-white/15";
+          let stateClasses = "border-surface-border";
           if (selected !== null) {
             if (isCorrect) {
               stateClasses = "border-green-600 bg-green-50 dark:bg-green-950";
@@ -86,8 +86,8 @@ export function TriviaQuiz() {
               type="button"
               onClick={() => selectAnswer(index)}
               disabled={selected !== null}
-              className={`rounded-lg border px-3 py-2 text-left text-sm text-black transition-colors dark:text-white ${stateClasses} ${
-                selected === null ? "hover:bg-black/5 dark:hover:bg-white/10" : ""
+              className={`rounded-lg border px-3 py-2 text-left text-sm text-foreground transition-colors ${stateClasses} ${
+                selected === null ? "hover:bg-brand/5" : ""
               }`}
             >
               {choice}
@@ -96,7 +96,7 @@ export function TriviaQuiz() {
         })}
       </div>
       {selected !== null && (
-        <p className="mt-4 text-xs text-black/70 dark:text-white/70">{question.explanation}</p>
+        <p className="mt-4 text-xs text-foreground/70">{question.explanation}</p>
       )}
     </div>
   );
