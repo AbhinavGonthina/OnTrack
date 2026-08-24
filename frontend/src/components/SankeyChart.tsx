@@ -31,7 +31,7 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
         y={y + height / 2}
         textAnchor={labelOnRight ? "start" : "end"}
         dominantBaseline="middle"
-        className="fill-[#0b0b0b] text-xs dark:fill-white"
+        className="fill-foreground text-xs"
       >
         {label}
       </text>
@@ -68,14 +68,14 @@ export function SankeyChart({ links }: Props) {
 
   if (links.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-black/10 bg-[#fcfcfb] text-sm text-black/50 dark:border-white/10 dark:bg-[#1a1a19] dark:text-white/50">
+      <div className="card flex h-64 items-center justify-center text-sm text-muted">
         Add an application and log a status update to see your pipeline here.
       </div>
     );
   }
 
   return (
-    <div className="relative rounded-xl border border-black/10 bg-[#fcfcfb] p-4 dark:border-white/10 dark:bg-[#1a1a19]">
+    <div className="card relative p-4">
       <ResponsiveContainer width="100%" height={320}>
         <Sankey
           data={data}
@@ -110,17 +110,17 @@ export function SankeyChart({ links }: Props) {
       </ResponsiveContainer>
       {tooltip && (
         <div
-          className="pointer-events-none absolute z-10 rounded-md border border-black/10 bg-white px-2 py-1 text-xs text-black shadow-sm dark:border-white/10 dark:bg-black dark:text-white"
+          className="card pointer-events-none absolute z-10 px-2 py-1 text-xs text-foreground shadow-sm"
           style={{ left: tooltip.x, top: tooltip.y, transform: "translate(-50%, -130%)" }}
         >
           {tooltip.value} application{tooltip.value === 1 ? "" : "s"}
         </div>
       )}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-black/60 dark:text-white/60">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1.5">
           <span
             className="h-2.5 w-2.5 rounded-full"
-            style={{ background: "linear-gradient(90deg, #86b6ef, #1c5cab)" }}
+            style={{ background: "linear-gradient(90deg, var(--pipeline-1), var(--pipeline-4))" }}
           />
           Pipeline stage (darker = further along)
         </span>

@@ -8,6 +8,14 @@
   --surface-border: rgba(11, 11, 11, 0.08);
   --brand: #7c3aed;
   --brand-secondary: #d946ef;
+
+  /* Sankey/status pipeline-progression ramp - validated via the dataviz
+     skill's validate_palette.js --ordinal (separate light/dark steps since
+     one hue can't clear both surfaces' contrast floors with the same steps). */
+  --pipeline-1: #a78bfa;
+  --pipeline-2: #8b5cf6;
+  --pipeline-3: #7c3aed;
+  --pipeline-4: #5b21b6;
 }
 
 @theme inline {
@@ -32,6 +40,11 @@
     --surface-border: rgba(255, 255, 255, 0.1);
     --brand: #a78bfa;
     --brand-secondary: #e879f9;
+
+    --pipeline-1: #c4b5fd;
+    --pipeline-2: #a78bfa;
+    --pipeline-3: #8b5cf6;
+    --pipeline-4: #6d28d9;
   }
 }
 

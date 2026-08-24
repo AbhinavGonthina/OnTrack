@@ -1,15 +1,15 @@
-// Colors here are pulled unchanged from the dataviz skill's validated reference
-// palette (references/palette.md) - ordinal blue ramp (steps 250/350/450/550,
-// validated via validate_palette.js --ordinal) for pipeline progress, and the
-// fixed status palette (good/critical) for the two terminal outcomes.
+// Pipeline-progress colors are the --pipeline-1..4 CSS vars (globals.css) - a
+// violet ordinal ramp validated via the dataviz skill's validate_palette.js
+// --ordinal (separate steps per light/dark mode). Status colors (good/critical)
+// are the skill's fixed, never-themed palette for the two terminal outcomes.
 
 const STAGE_ORDER = ["APPLIED", "OA", "PHONE_SCREEN", "ONSITE_FINAL", "OFFER"] as const;
 
 const PROGRESS_COLORS: Record<string, string> = {
-  APPLIED: "#86b6ef",
-  OA: "#5598e7",
-  PHONE_SCREEN: "#2a78d6",
-  ONSITE_FINAL: "#1c5cab",
+  APPLIED: "var(--pipeline-1)",
+  OA: "var(--pipeline-2)",
+  PHONE_SCREEN: "var(--pipeline-3)",
+  ONSITE_FINAL: "var(--pipeline-4)",
 };
 
 const STATUS_GOOD = "#0ca30c";

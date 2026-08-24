@@ -21,14 +21,14 @@ export const STATUS_ORDER: ApplicationStatus[] = [
 /** Stages a rejection can be attributed to - REJECTED itself is never a valid "from" stage. */
 export const REJECTABLE_STAGES: ApplicationStatus[] = ["APPLIED", "OA", "PHONE_SCREEN", "ONSITE_FINAL"];
 
-// Same validated hexes as sankeyColors.ts (dataviz skill reference palette) - kept
-// separate because this maps the plain enum, not the Sankey's rejected-from-stage
-// synthetic node names.
+// Same --pipeline-1..4 CSS vars as sankeyColors.ts (globals.css) - kept as a
+// separate map because this indexes by the plain enum, not the Sankey's
+// rejected-from-stage synthetic node names.
 const PROGRESS_COLORS: Record<string, string> = {
-  APPLIED: "#86b6ef",
-  OA: "#5598e7",
-  PHONE_SCREEN: "#2a78d6",
-  ONSITE_FINAL: "#1c5cab",
+  APPLIED: "var(--pipeline-1)",
+  OA: "var(--pipeline-2)",
+  PHONE_SCREEN: "var(--pipeline-3)",
+  ONSITE_FINAL: "var(--pipeline-4)",
 };
 const STATUS_GOOD = "#0ca30c";
 const STATUS_CRITICAL = "#d03b3b";

@@ -10,7 +10,7 @@ export function Badge({ label, color }: BadgeProps) {
   return (
     <span
       className="inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap"
-      style={{ backgroundColor: `${color}1a`, color }}
+      style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}
     >
       {label}
     </span>
