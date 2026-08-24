@@ -1,11 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { Logo } from "@/components/Logo";
+
+const LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/applications", label: "Applications" },
+  { href: "/profile", label: "Profile" },
+];
 
 export function AppNav() {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
 
   if (!isAuthenticated) {
@@ -22,31 +31,43 @@ export function AppNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-black/10 px-6 py-3 text-sm dark:border-white/10">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="font-semibold text-black dark:text-white">
-          OnTrack
+    <nav className="flex items-center justify-between border-b border-surface-border bg-surface px-6 py-3 text-sm">
+      <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="mr-2 flex items-center gap-2 font-display font-semibold text-foreground">
+          <Logo size={24} />
         </Link>
-        <Link href="/dashboard" className="text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white">
-          Dashboard
-        </Link>
-        <Link
-          href="/applications"
-          className="text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white"
-        >
-          Applications
-        </Link>
-        <Link href="/profile" className="text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white">
-          Profile
-        </Link>
+        {LINKS.map((link) => {
+          const isActive = pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
+                isActive
+                  ? "bg-brand/10 text-brand"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
-      <div className="flex items-center gap-4">
-        {user && <span className="hidden text-black/50 sm:inline dark:text-white/50">{user.email}</span>}
+      <div className="flex items-center gap-3">
+        {user && (
+          <span
+            title={user.email}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white"
+          >
+            {user.email[0].toUpperCase()}
+          </span>
+        )}
         <button
           onClick={handleLogout}
-          className="font-medium text-black underline dark:text-white"
+          title="Log out"
+          className="flex items-center gap-1.5 font-medium text-muted hover:text-foreground"
         >
-          Log out
+          <LogOut size={16} />
         </button>
       </div>
     </nav>
