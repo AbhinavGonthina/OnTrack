@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/Button";
+import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 import type { ApplicationInput } from "@/lib/api";
 
 interface Props {
@@ -11,9 +12,6 @@ interface Props {
   error: string | null;
   onSubmit: (input: ApplicationInput) => void;
 }
-
-const inputClassName =
-  "rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20 dark:bg-black";
 
 export function ApplicationForm({ initial, submitLabel, isSubmitting, error, onSubmit }: Props) {
   const [company, setCompany] = useState(initial?.company ?? "");
@@ -30,46 +28,46 @@ export function ApplicationForm({ initial, submitLabel, isSubmitting, error, onS
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm text-black dark:text-white">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Company
         <input
           required
           maxLength={255}
           value={company}
           onChange={(e) => setCompany(e.target.value)}
-          className={inputClassName}
+          className={FIELD_CLASSNAME}
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm text-black dark:text-white">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Role
         <input
           required
           maxLength={255}
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className={inputClassName}
+          className={FIELD_CLASSNAME}
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm text-black dark:text-white">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Date applied
         <input
           type="date"
           required
           value={dateApplied}
           onChange={(e) => setDateApplied(e.target.value)}
-          className={inputClassName}
+          className={FIELD_CLASSNAME}
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm text-black dark:text-white">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Job description
         <textarea
           rows={8}
           maxLength={20000}
           value={jobDescriptionText}
           onChange={(e) => setJobDescriptionText(e.target.value)}
-          className={inputClassName}
+          className={FIELD_CLASSNAME}
         />
-        <span className="text-xs text-black/50 dark:text-white/50">
+        <span className="text-xs text-muted">
           Optional, but needed for the AI resume/JD fit check.
         </span>
       </label>
