@@ -11,6 +11,7 @@ import { WakingUpNotice } from "@/components/WakingUpNotice";
 import { Button } from "@/components/Button";
 import { AuthInput } from "@/components/AuthInput";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -47,7 +48,10 @@ export default function SignupPage() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-16">
-      <div className="card w-full max-w-sm p-8 shadow-sm">
+      <div className="card relative w-full max-w-sm p-8 shadow-sm">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
         <Logo size={32} />
         <h1 className="mt-4 font-display text-2xl font-bold text-foreground">Sign up</h1>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">

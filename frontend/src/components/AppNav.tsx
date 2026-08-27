@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -54,6 +55,7 @@ export function AppNav() {
         })}
       </div>
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         {user && (
           <span
             title={user.email}

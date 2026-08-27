@@ -5,6 +5,7 @@ import { History, Workflow, Sparkles, ShieldCheck, type LucideIcon } from "lucid
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const FEATURES: { title: string; description: string; icon: LucideIcon; accent: "brand" | "brand-secondary" }[] = [
   {
@@ -47,13 +48,16 @@ export default function LandingPage() {
           <Logo />
           OnTrack
         </span>
-        <Link
-          href="/login"
-          onClick={startWaking}
-          className="text-sm font-medium text-muted hover:text-foreground"
-        >
-          Log In
-        </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link
+            href="/login"
+            onClick={startWaking}
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Log In
+          </Link>
+        </div>
       </nav>
 
       <section className="relative">

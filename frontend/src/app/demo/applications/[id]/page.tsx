@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ApiError, getDemoApplication, getDemoFitAnalysis } from "@/lib/api";
 import { ColdStartGate } from "@/components/ColdStartGate";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ApplicationDetailResponse } from "@/lib/types";
 
 function DemoApplicationDetailContent({ id }: { id: string }) {
@@ -30,9 +31,12 @@ function DemoApplicationDetailContent({ id }: { id: string }) {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-      <Link href="/demo" className="text-sm font-medium text-brand hover:underline">
-        ← Back to demo dashboard
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/demo" className="text-sm font-medium text-brand hover:underline">
+          ← Back to demo dashboard
+        </Link>
+        <ThemeToggle />
+      </div>
       <div className="mt-4">
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         {!error && !detail && <p className="text-sm text-muted">Loading…</p>}

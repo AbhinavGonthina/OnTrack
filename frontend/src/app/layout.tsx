@@ -3,8 +3,8 @@ import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { BackendWakeProvider } from "@/context/BackendWakeContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { AppNav } from "@/components/AppNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,13 +35,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <BackendWakeProvider>
-            <AppNav />
-            {children}
-            <ThemeToggle />
-          </BackendWakeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <BackendWakeProvider>
+              <AppNav />
+              {children}
+            </BackendWakeProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

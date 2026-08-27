@@ -3,10 +3,15 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppNav } from "./AppNav";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
 
 vi.mock("../context/AuthContext", () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock("../context/ThemeContext", () => ({
+  useTheme: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -23,6 +28,7 @@ describe("AppNav", () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
     vi.mocked(usePathname).mockReturnValue("/login");
     vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
 
@@ -39,6 +45,7 @@ describe("AppNav", () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
     vi.mocked(usePathname).mockReturnValue("/applications");
     vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
 
@@ -59,6 +66,7 @@ describe("AppNav", () => {
       login: vi.fn(),
       logout,
     });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
     vi.mocked(usePathname).mockReturnValue("/dashboard");
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
 

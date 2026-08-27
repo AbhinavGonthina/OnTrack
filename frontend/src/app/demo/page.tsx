@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ApiError, getDemoApplications, getDemoStats } from "@/lib/api";
 import { ColdStartGate } from "@/components/ColdStartGate";
 import { DashboardView } from "@/components/DashboardView";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 
 function DemoDashboardContent() {
@@ -32,10 +33,15 @@ function DemoDashboardContent() {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-foreground">Demo dashboard</h1>
-      <p className="mt-1 text-sm text-foreground/70">
-        Sample data - sign up to track your own job search.
-      </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">Demo dashboard</h1>
+          <p className="mt-1 text-sm text-foreground/70">
+            Sample data - sign up to track your own job search.
+          </p>
+        </div>
+        <ThemeToggle />
+      </div>
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {!error && (!stats || !applications) && (
         <p className="mt-4 text-sm text-muted">Loading…</p>
