@@ -59,7 +59,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6"
+          className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6"
         >
           <span className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-foreground">
             <Logo />
@@ -78,18 +78,35 @@ export default function LandingPage() {
         </motion.nav>
 
         <section className="relative">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(circle, var(--surface-border) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+              maskImage: "radial-gradient(ellipse 60% 55% at 50% 0%, black 40%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 60% 55% at 50% 0%, black 40%, transparent 100%)",
+            }}
+          />
           <motion.div
             aria-hidden
             initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 0.2, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-linear-to-br from-brand to-brand-secondary blur-3xl"
+            animate={{ opacity: [0, 0.55, 0.45, 0.55], scale: [0.85, 1, 1.05, 1] }}
+            transition={{
+              opacity: { duration: 8, times: [0, 0.15, 0.6, 1], repeat: Infinity, ease: "easeInOut" },
+              scale: { duration: 8, times: [0, 0.15, 0.6, 1], repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="pointer-events-none absolute top-6 left-1/2 h-[440px] w-[680px] -translate-x-1/2 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, var(--brand) 0%, var(--brand-secondary) 45%, transparent 72%)",
+            }}
           />
           <motion.div
             variants={heroContainer}
             initial="hidden"
             animate="show"
-            className="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 pb-20 pt-12 text-center"
+            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pb-20 pt-12 text-center"
           >
             <motion.h1
               variants={heroItem}
@@ -129,7 +146,7 @@ export default function LandingPage() {
           </motion.div>
         </section>
 
-        <section className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-6 pb-24 sm:grid-cols-2">
+        <section className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 pb-24 sm:grid-cols-2">
           {FEATURES.map((feature, index) => (
             <motion.div
               key={feature.title}
