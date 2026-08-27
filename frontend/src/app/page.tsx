@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { motion, MotionConfig, type Variants } from "motion/react";
-import { Check, History, Workflow, Sparkles, ShieldCheck, type LucideIcon } from "lucide-react";
+import {
+  Check,
+  History,
+  Workflow,
+  Sparkles,
+  ShieldCheck,
+  TrendingUp,
+  Target,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
@@ -49,6 +59,18 @@ const heroItem: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
+const FLOATING_ICONS: {
+  Icon: LucideIcon;
+  className: string;
+  delay: number;
+  accent: "brand" | "brand-secondary";
+}[] = [
+  { Icon: Sparkles, className: "top-6 left-[10%] h-7 w-7 -rotate-12", delay: 0.2, accent: "brand-secondary" },
+  { Icon: TrendingUp, className: "top-24 right-[12%] h-8 w-8 rotate-6", delay: 0.35, accent: "brand" },
+  { Icon: Target, className: "bottom-16 left-[15%] h-6 w-6 rotate-12", delay: 0.5, accent: "brand" },
+  { Icon: Zap, className: "bottom-4 right-[16%] h-6 w-6 -rotate-6", delay: 0.65, accent: "brand-secondary" },
+];
+
 export default function LandingPage() {
   const { startWaking } = useBackendWake();
 
@@ -88,11 +110,24 @@ export default function LandingPage() {
         </motion.nav>
 
         <section className="relative">
+          {FLOATING_ICONS.map(({ Icon, className, delay, accent }, i) => (
+            <motion.div
+              key={i}
+              aria-hidden
+              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+              animate={{ opacity: 0.3, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, delay, ease: "easeOut" }}
+              className={`pointer-events-none absolute hidden md:block ${className}`}
+              style={{ color: `var(--${accent})` }}
+            >
+              <Icon className="h-full w-full" strokeWidth={1.5} />
+            </motion.div>
+          ))}
           <motion.div
             variants={heroContainer}
             initial="hidden"
             animate="show"
-            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pt-12 pb-20 text-center"
+            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pt-20 pb-20 text-center"
           >
             <motion.h1
               variants={heroItem}
@@ -123,14 +158,14 @@ export default function LandingPage() {
                     transition={{ duration: 0.5, delay: 0.9, ease: "easeInOut" }}
                   />
                 </svg>
-              </motion.span>
-              <motion.span
-                initial={{ scale: 0, opacity: 0, rotate: -30 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                transition={{ duration: 0.4, delay: 1.35, ease: "backOut" }}
-                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary align-middle text-white"
-              >
-                <Check size={20} strokeWidth={3} />
+                <motion.span
+                  initial={{ scale: 0, opacity: 0, rotate: -30 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                  transition={{ duration: 0.4, delay: 1.35, ease: "backOut" }}
+                  className="absolute -top-2 -right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-secondary text-white sm:-top-3 sm:-right-3"
+                >
+                  <Check size={18} strokeWidth={3} />
+                </motion.span>
               </motion.span>
             </motion.h1>
             <motion.p variants={heroItem} className="max-w-xl text-lg text-foreground/70">
@@ -154,11 +189,19 @@ export default function LandingPage() {
           initial={{ opacity: 0, scaleX: 0.6 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="relative mx-auto mb-16 h-px w-full max-w-2xl"
+          className="mx-auto mb-20 flex max-w-2xl items-center gap-3 px-6"
         >
           <div
-            className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
-            style={{ background: "linear-gradient(90deg, transparent, var(--brand-secondary), transparent)" }}
+            className="h-px flex-1"
+            style={{ background: "linear-gradient(90deg, transparent, var(--surface-border))" }}
+          />
+          <div
+            className="h-2 w-2 shrink-0 rotate-45 rounded-[2px]"
+            style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-secondary))" }}
+          />
+          <div
+            className="h-px flex-1"
+            style={{ background: "linear-gradient(270deg, transparent, var(--surface-border))" }}
           />
         </motion.div>
 
@@ -191,6 +234,10 @@ export default function LandingPage() {
             </motion.div>
           ))}
         </section>
+
+        <footer className="relative border-t border-surface-border px-6 py-8 text-center text-sm text-muted">
+          © {new Date().getFullYear()} Abhinav Gonthina. All rights reserved.
+        </footer>
       </main>
     </MotionConfig>
   );
