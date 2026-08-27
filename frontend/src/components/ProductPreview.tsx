@@ -22,7 +22,7 @@ export function ProductPreview() {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-12 -top-6 -bottom-6 -z-10 rounded-[2rem] opacity-40 blur-3xl"
+        className="pointer-events-none absolute -inset-2 -z-10 rounded-[1.75rem] opacity-10 blur-md"
         style={{ background: "linear-gradient(120deg, var(--brand), var(--brand-secondary))" }}
       />
       <div className="overflow-hidden rounded-2xl border border-surface-border bg-surface shadow-2xl">
