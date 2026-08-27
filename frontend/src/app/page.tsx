@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, MotionConfig, type Variants } from "motion/react";
-import { History, Workflow, Sparkles, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Check, History, Workflow, Sparkles, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
@@ -54,7 +54,17 @@ export default function LandingPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="flex-1 overflow-hidden bg-background">
+      <main className="relative flex-1 overflow-hidden bg-background">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: "radial-gradient(circle, var(--surface-border) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+            maskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%)",
+            WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%)",
+          }}
+        />
         <motion.nav
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,24 +88,6 @@ export default function LandingPage() {
         </motion.nav>
 
         <section className="relative">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage: "radial-gradient(circle, var(--surface-border) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-              maskImage: "radial-gradient(ellipse 60% 55% at 50% 0%, black 40%, transparent 100%)",
-              WebkitMaskImage: "radial-gradient(ellipse 60% 55% at 50% 0%, black 40%, transparent 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute top-6 left-1/2 h-[380px] w-[600px] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, var(--brand) 0%, var(--brand-secondary) 45%, transparent 72%)",
-            }}
-          />
           <motion.div
             variants={heroContainer}
             initial="hidden"
@@ -132,7 +124,14 @@ export default function LandingPage() {
                   />
                 </svg>
               </motion.span>
-              .
+              <motion.span
+                initial={{ scale: 0, opacity: 0, rotate: -30 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                transition={{ duration: 0.4, delay: 1.35, ease: "backOut" }}
+                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary align-middle text-white"
+              >
+                <Check size={20} strokeWidth={3} />
+              </motion.span>
             </motion.h1>
             <motion.p variants={heroItem} className="max-w-xl text-lg text-foreground/70">
               OnTrack is a job application tracker built specifically for SWE/CS job searches —
@@ -147,15 +146,21 @@ export default function LandingPage() {
                 <Button variant="secondary">Sign Up Free</Button>
               </Link>
             </motion.div>
-            <motion.p
-              variants={heroItem}
-              className="mt-2 max-w-md rounded-full border border-surface-border bg-surface px-4 py-1.5 text-xs text-muted"
-            >
-              Running on free-tier hosting, so the server naps when idle — first load can take up to
-              a minute. We&apos;ll keep you entertained with some CS trivia while it wakes up.
-            </motion.p>
           </motion.div>
         </section>
+
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, scaleX: 0.6 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+          className="relative mx-auto mb-16 h-px w-full max-w-2xl"
+        >
+          <div
+            className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
+            style={{ background: "linear-gradient(90deg, transparent, var(--brand-secondary), transparent)" }}
+          />
+        </motion.div>
 
         <section className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 pb-24 sm:grid-cols-2">
           {FEATURES.map((feature, index) => (
@@ -165,8 +170,13 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
-              className="card p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="card relative overflow-hidden p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
             >
+              <div
+                aria-hidden
+                className="absolute top-0 left-0 h-1 w-full"
+                style={{ backgroundColor: `var(--${feature.accent})` }}
+              />
               <div
                 className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
                 style={{
