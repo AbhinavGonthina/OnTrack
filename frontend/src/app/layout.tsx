@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { BackendWakeProvider } from "@/context/BackendWakeContext";
 import { AppNav } from "@/components/AppNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <BackendWakeProvider>
             <AppNav />
             {children}
+            <ThemeToggle />
           </BackendWakeProvider>
         </AuthProvider>
       </body>

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light dark;
   --background: #f9f9f7;
   --foreground: #0b0b0b;
   --muted: #6b6a65;
@@ -31,8 +32,12 @@
   --font-display: var(--font-space-grotesk);
 }
 
+/* Dark values apply either from the OS preference (unless a manual toggle has
+   stamped an explicit "light" override) or from an explicit "dark" stamp
+   regardless of OS preference - see ThemeToggle.tsx. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0d0d0d;
     --foreground: #ffffff;
     --muted: #a3a29c;
@@ -46,6 +51,26 @@
     --pipeline-3: #8b5cf6;
     --pipeline-4: #6d28d9;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0d0d0d;
+  --foreground: #ffffff;
+  --muted: #a3a29c;
+  --surface: #1a1a19;
+  --surface-border: rgba(255, 255, 255, 0.1);
+  --brand: #a78bfa;
+  --brand-secondary: #e879f9;
+
+  --pipeline-1: #c4b5fd;
+  --pipeline-2: #a78bfa;
+  --pipeline-3: #8b5cf6;
+  --pipeline-4: #6d28d9;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
