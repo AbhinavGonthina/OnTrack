@@ -88,15 +88,9 @@ export default function LandingPage() {
               WebkitMaskImage: "radial-gradient(ellipse 60% 55% at 50% 0%, black 40%, transparent 100%)",
             }}
           />
-          <motion.div
+          <div
             aria-hidden
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: [0, 0.55, 0.45, 0.55], scale: [0.85, 1, 1.05, 1] }}
-            transition={{
-              opacity: { duration: 8, times: [0, 0.15, 0.6, 1], repeat: Infinity, ease: "easeInOut" },
-              scale: { duration: 8, times: [0, 0.15, 0.6, 1], repeat: Infinity, ease: "easeInOut" },
-            }}
-            className="pointer-events-none absolute top-6 left-1/2 h-[440px] w-[680px] -translate-x-1/2 blur-3xl"
+            className="pointer-events-none absolute top-6 left-1/2 h-[380px] w-[600px] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
             style={{
               background:
                 "radial-gradient(circle, var(--brand) 0%, var(--brand-secondary) 45%, transparent 72%)",
@@ -106,7 +100,7 @@ export default function LandingPage() {
             variants={heroContainer}
             initial="hidden"
             animate="show"
-            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pb-20 pt-12 text-center"
+            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pt-12 pb-20 text-center"
           >
             <motion.h1
               variants={heroItem}
@@ -114,12 +108,29 @@ export default function LandingPage() {
             >
               Keep your job search{" "}
               <motion.span
-                className="gradient-text inline-block"
+                className="gradient-text relative inline-block"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.55, ease: "backOut" }}
               >
                 on track
+                <svg
+                  aria-hidden
+                  viewBox="0 0 100 12"
+                  preserveAspectRatio="none"
+                  className="absolute -bottom-2 left-0 h-3 w-full"
+                >
+                  <motion.path
+                    d="M2 8 Q 25 3, 50 6 T 98 4"
+                    fill="none"
+                    stroke="var(--brand-secondary)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.9, ease: "easeInOut" }}
+                  />
+                </svg>
               </motion.span>
               .
             </motion.h1>
