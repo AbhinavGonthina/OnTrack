@@ -85,18 +85,18 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-      <Link href="/applications" className="text-sm font-medium text-black underline dark:text-white">
+      <Link href="/applications" className="text-sm font-medium text-brand hover:underline">
         ← Back to applications
       </Link>
       <div className="mt-4">
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && !detail && <p className="text-sm text-black/50 dark:text-white/50">Loading…</p>}
+        {!error && !detail && <p className="text-sm text-muted">Loading…</p>}
         {detail && (
           <>
             <div className="mb-4 flex justify-end">
               <Link
                 href={`/applications/${id}/edit`}
-                className="text-sm font-medium text-black underline dark:text-white"
+                className="text-sm font-medium text-brand hover:underline"
               >
                 Edit application
               </Link>

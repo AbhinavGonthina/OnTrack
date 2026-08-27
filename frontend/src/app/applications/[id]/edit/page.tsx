@@ -70,9 +70,9 @@ export default function EditApplicationPage({ params }: { params: Promise<{ id: 
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-6 py-10">
-      <h1 className="text-2xl font-semibold text-black dark:text-white">Edit application</h1>
+      <h1 className="font-display text-2xl font-bold text-foreground">Edit application</h1>
       <div className="mt-6">
-        {!initial && !error && <p className="text-sm text-black/50 dark:text-white/50">Loading…</p>}
+        {!initial && !error && <p className="text-sm text-muted">Loading…</p>}
         {initial && (
           <ApplicationForm
             initial={initial}

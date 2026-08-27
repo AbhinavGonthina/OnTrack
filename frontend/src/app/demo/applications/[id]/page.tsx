@@ -30,12 +30,12 @@ function DemoApplicationDetailContent({ id }: { id: string }) {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-      <Link href="/demo" className="text-sm font-medium text-black underline dark:text-white">
+      <Link href="/demo" className="text-sm font-medium text-brand hover:underline">
         ← Back to demo dashboard
       </Link>
       <div className="mt-4">
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && !detail && <p className="text-sm text-black/50 dark:text-white/50">Loading…</p>}
+        {!error && !detail && <p className="text-sm text-muted">Loading…</p>}
         {detail && (
           <ApplicationDetailView
             detail={detail}
