@@ -7,47 +7,57 @@ import {
   History,
   Workflow,
   Sparkles,
-  ShieldCheck,
+  StickyNote,
   Briefcase,
   FileText,
   Mail,
   Calendar,
   Building2,
   BarChart3,
+  ClipboardCheck,
+  Send,
+  Trophy,
+  Target,
+  Clock,
+  Search,
+  MessageSquare,
+  Award,
+  Rocket,
   type LucideIcon,
 } from "lucide-react";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
+import { ProductPreview } from "@/components/ProductPreview";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const FEATURES: { title: string; description: string; icon: LucideIcon; accent: "brand" | "brand-secondary" }[] = [
   {
-    title: "Event-sourced status pipeline",
+    title: "Track every application",
     description:
-      "Every status change is recorded as its own event, so your funnel history is never lost — see exactly when and where each application moved forward or fell off.",
+      "Log each stage as it happens — Applied, OA, Phone Screen, Onsite, Offer, or Rejected — and see exactly when and where every application moved.",
     icon: History,
     accent: "brand",
   },
   {
-    title: "Sankey funnel visualization",
+    title: "Visualize your whole pipeline",
     description:
-      "A single chart shows your whole search at a glance: how many applications reach OA, phone screen, onsite, and offer — and where rejections cluster.",
+      "One dashboard shows your whole search at a glance: how many applications reach OA, phone screen, onsite, and offer — and where rejections cluster.",
     icon: Workflow,
     accent: "brand-secondary",
   },
   {
-    title: "AI-powered fit analysis",
+    title: "Check your fit before you apply",
     description:
-      "Paste a job description and get a Gemini-backed fit score, missing keywords, and rewritten resume bullets — cached so you're never charged twice for the same check.",
+      "Paste a job description and get an AI fit score, missing keywords, and rewritten resume bullets tailored to that role.",
     icon: Sparkles,
     accent: "brand",
   },
   {
-    title: "Built like production software",
+    title: "Notes for every application",
     description:
-      "JWT auth, per-user rate limiting, and SQL-driven analytics under the hood — this isn't a spreadsheet with a UI on top.",
-    icon: ShieldCheck,
+      "Jot down recruiter calls, interview feedback, or next steps — attached to the right application, right next to its status history.",
+    icon: StickyNote,
     accent: "brand-secondary",
   },
 ];
@@ -69,12 +79,21 @@ const FLOATING_ICONS: {
   duration: number;
   accent: "brand" | "brand-secondary";
 }[] = [
-  { Icon: Briefcase, className: "top-8 left-[8%] h-7 w-7 -rotate-12", delay: 0.2, duration: 4.5, accent: "brand-secondary" },
-  { Icon: FileText, className: "top-32 right-[8%] h-6 w-6 rotate-6", delay: 0.35, duration: 5, accent: "brand" },
-  { Icon: Mail, className: "top-6 right-[22%] h-6 w-6 rotate-12", delay: 0.5, duration: 4.2, accent: "brand" },
-  { Icon: Calendar, className: "bottom-24 right-[6%] h-7 w-7 -rotate-6", delay: 0.65, duration: 4.8, accent: "brand-secondary" },
-  { Icon: Building2, className: "bottom-6 left-[16%] h-6 w-6 rotate-12", delay: 0.8, duration: 5.3, accent: "brand" },
-  { Icon: BarChart3, className: "top-44 left-[3%] h-6 w-6 -rotate-12", delay: 0.95, duration: 4.6, accent: "brand-secondary" },
+  { Icon: Briefcase, className: "top-[4%] left-[6%] h-7 w-7 -rotate-12", delay: 0.2, duration: 4.5, accent: "brand-secondary" },
+  { Icon: FileText, className: "top-[9%] right-[7%] h-6 w-6 rotate-6", delay: 0.35, duration: 5, accent: "brand" },
+  { Icon: Mail, className: "top-[3%] right-[24%] h-6 w-6 rotate-12", delay: 0.5, duration: 4.2, accent: "brand" },
+  { Icon: BarChart3, className: "top-[15%] left-[2%] h-6 w-6 -rotate-12", delay: 0.95, duration: 4.6, accent: "brand-secondary" },
+  { Icon: Calendar, className: "top-[24%] right-[4%] h-7 w-7 -rotate-6", delay: 0.65, duration: 4.8, accent: "brand-secondary" },
+  { Icon: Building2, className: "top-[27%] left-[5%] h-6 w-6 rotate-12", delay: 0.8, duration: 5.3, accent: "brand" },
+  { Icon: ClipboardCheck, className: "top-[46%] left-[4%] h-6 w-6 rotate-6", delay: 0.4, duration: 4.7, accent: "brand" },
+  { Icon: Send, className: "top-[50%] right-[5%] h-6 w-6 -rotate-12", delay: 0.55, duration: 5.1, accent: "brand-secondary" },
+  { Icon: Trophy, className: "top-[63%] left-[7%] h-7 w-7 rotate-12", delay: 0.25, duration: 4.4, accent: "brand-secondary" },
+  { Icon: Target, className: "top-[59%] right-[8%] h-6 w-6 -rotate-6", delay: 0.7, duration: 4.9, accent: "brand" },
+  { Icon: Clock, className: "top-[76%] left-[3%] h-6 w-6 rotate-12", delay: 0.45, duration: 5.2, accent: "brand" },
+  { Icon: Search, className: "top-[72%] right-[3%] h-6 w-6 -rotate-12", delay: 0.6, duration: 4.3, accent: "brand-secondary" },
+  { Icon: Rocket, className: "top-[19%] left-[10%] h-6 w-6 rotate-12", delay: 0.3, duration: 4.9, accent: "brand" },
+  { Icon: MessageSquare, className: "top-[38%] right-[3%] h-6 w-6 -rotate-6", delay: 0.5, duration: 4.6, accent: "brand-secondary" },
+  { Icon: Award, className: "top-[87%] left-[8%] h-7 w-7 rotate-6", delay: 0.4, duration: 5, accent: "brand" },
 ];
 
 export default function LandingPage() {
@@ -93,6 +112,24 @@ export default function LandingPage() {
             WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%)",
           }}
         />
+        {FLOATING_ICONS.map(({ Icon, className, delay, duration, accent }, i) => (
+          <motion.div
+            key={i}
+            aria-hidden
+            initial={{ opacity: 0, y: 10, scale: 0.8 }}
+            animate={{ opacity: 0.3, scale: 1, y: [10, -6, 10] }}
+            transition={{
+              opacity: { duration: 0.6, delay, ease: "easeOut" },
+              scale: { duration: 0.6, delay, ease: "easeOut" },
+              y: { duration, delay, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className={`pointer-events-none absolute hidden md:block ${className}`}
+            style={{ color: `var(--${accent})` }}
+          >
+            <Icon className="h-full w-full" strokeWidth={1.5} />
+          </motion.div>
+        ))}
+
         <motion.nav
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,28 +153,11 @@ export default function LandingPage() {
         </motion.nav>
 
         <section className="relative">
-          {FLOATING_ICONS.map(({ Icon, className, delay, duration, accent }, i) => (
-            <motion.div
-              key={i}
-              aria-hidden
-              initial={{ opacity: 0, y: 10, scale: 0.8 }}
-              animate={{ opacity: 0.3, scale: 1, y: [10, -6, 10] }}
-              transition={{
-                opacity: { duration: 0.6, delay, ease: "easeOut" },
-                scale: { duration: 0.6, delay, ease: "easeOut" },
-                y: { duration, delay, repeat: Infinity, ease: "easeInOut" },
-              }}
-              className={`pointer-events-none absolute hidden md:block ${className}`}
-              style={{ color: `var(--${accent})` }}
-            >
-              <Icon className="h-full w-full" strokeWidth={1.5} />
-            </motion.div>
-          ))}
           <motion.div
             variants={heroContainer}
             initial="hidden"
             animate="show"
-            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pt-20 pb-20 text-center"
+            className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 pt-20 pb-14 text-center"
           >
             <motion.h1
               variants={heroItem}
@@ -194,12 +214,14 @@ export default function LandingPage() {
           </motion.div>
         </section>
 
+        <ProductPreview />
+
         <motion.div
           aria-hidden
           initial={{ opacity: 0, scaleX: 0.6 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="mx-auto mb-20 flex max-w-2xl items-center gap-3 px-6"
+          className="mx-auto my-16 flex max-w-2xl items-center gap-3 px-6"
         >
           <div
             className="h-px flex-1"
@@ -245,7 +267,7 @@ export default function LandingPage() {
           ))}
         </section>
 
-        <footer className="relative border-t border-surface-border px-6 py-8 text-center text-sm text-muted">
+        <footer className="relative px-6 py-8 text-center text-sm text-muted">
           © {new Date().getFullYear()} Abhinav Gonthina. All rights reserved.
         </footer>
       </main>
