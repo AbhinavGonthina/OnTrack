@@ -14,14 +14,9 @@ export function ProductPreview() {
 
   return (
     <div className="relative mx-auto w-full max-w-5xl px-6">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 rounded-[1.75rem] opacity-10 blur-md"
-        style={{ background: "linear-gradient(120deg, var(--brand), var(--brand-secondary))" }}
-      />
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ y: 24 }}
+        whileInView={{ y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
