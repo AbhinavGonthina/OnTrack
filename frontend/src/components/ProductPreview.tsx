@@ -37,8 +37,8 @@ export function ProductPreview() {
           <Image
             src={src}
             alt="OnTrack dashboard showing application stats and a status pipeline funnel chart"
-            width={1040}
-            height={600}
+            width={1104}
+            height={620}
             className="h-auto w-full"
           />
         </div>
