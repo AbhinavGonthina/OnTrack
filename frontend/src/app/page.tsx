@@ -8,9 +8,12 @@ import {
   Workflow,
   Sparkles,
   ShieldCheck,
-  TrendingUp,
-  Target,
-  Zap,
+  Briefcase,
+  FileText,
+  Mail,
+  Calendar,
+  Building2,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { useBackendWake } from "@/context/BackendWakeContext";
@@ -63,12 +66,15 @@ const FLOATING_ICONS: {
   Icon: LucideIcon;
   className: string;
   delay: number;
+  duration: number;
   accent: "brand" | "brand-secondary";
 }[] = [
-  { Icon: Sparkles, className: "top-6 left-[10%] h-7 w-7 -rotate-12", delay: 0.2, accent: "brand-secondary" },
-  { Icon: TrendingUp, className: "top-24 right-[12%] h-8 w-8 rotate-6", delay: 0.35, accent: "brand" },
-  { Icon: Target, className: "bottom-16 left-[15%] h-6 w-6 rotate-12", delay: 0.5, accent: "brand" },
-  { Icon: Zap, className: "bottom-4 right-[16%] h-6 w-6 -rotate-6", delay: 0.65, accent: "brand-secondary" },
+  { Icon: Briefcase, className: "top-8 left-[8%] h-7 w-7 -rotate-12", delay: 0.2, duration: 4.5, accent: "brand-secondary" },
+  { Icon: FileText, className: "top-32 right-[8%] h-6 w-6 rotate-6", delay: 0.35, duration: 5, accent: "brand" },
+  { Icon: Mail, className: "top-6 right-[22%] h-6 w-6 rotate-12", delay: 0.5, duration: 4.2, accent: "brand" },
+  { Icon: Calendar, className: "bottom-24 right-[6%] h-7 w-7 -rotate-6", delay: 0.65, duration: 4.8, accent: "brand-secondary" },
+  { Icon: Building2, className: "bottom-6 left-[16%] h-6 w-6 rotate-12", delay: 0.8, duration: 5.3, accent: "brand" },
+  { Icon: BarChart3, className: "top-44 left-[3%] h-6 w-6 -rotate-12", delay: 0.95, duration: 4.6, accent: "brand-secondary" },
 ];
 
 export default function LandingPage() {
@@ -110,13 +116,17 @@ export default function LandingPage() {
         </motion.nav>
 
         <section className="relative">
-          {FLOATING_ICONS.map(({ Icon, className, delay, accent }, i) => (
+          {FLOATING_ICONS.map(({ Icon, className, delay, duration, accent }, i) => (
             <motion.div
               key={i}
               aria-hidden
               initial={{ opacity: 0, y: 10, scale: 0.8 }}
-              animate={{ opacity: 0.3, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, delay, ease: "easeOut" }}
+              animate={{ opacity: 0.3, scale: 1, y: [10, -6, 10] }}
+              transition={{
+                opacity: { duration: 0.6, delay, ease: "easeOut" },
+                scale: { duration: 0.6, delay, ease: "easeOut" },
+                y: { duration, delay, repeat: Infinity, ease: "easeInOut" },
+              }}
               className={`pointer-events-none absolute hidden md:block ${className}`}
               style={{ color: `var(--${accent})` }}
             >
