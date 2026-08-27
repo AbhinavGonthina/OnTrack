@@ -43,6 +43,10 @@ export function ProductPreview() {
           />
         </div>
       </motion.div>
+      <p className="mt-5 text-center text-base font-medium text-foreground/80">
+        Your dashboard at a glance — response, OA, onsite, and offer rates, plus a funnel
+        showing exactly where applications stall.
+      </p>
     </div>
   );
 }

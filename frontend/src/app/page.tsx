@@ -237,8 +237,18 @@ export default function LandingPage() {
           />
         </motion.div>
 
-        <section className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 pb-24 sm:grid-cols-2">
-          {FEATURES.map((feature, index) => (
+        <section className="mx-auto max-w-6xl px-6 pb-24">
+          <motion.h2
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mb-10 text-center font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+          >
+            Everything you need to stay on track
+          </motion.h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {FEATURES.map((feature, index) => (
             <motion.div
               key={feature.title}
               initial={{ opacity: 0, y: 20 }}
@@ -261,10 +271,11 @@ export default function LandingPage() {
               >
                 <feature.icon size={20} />
               </div>
-              <h2 className="font-display text-base font-semibold text-foreground">{feature.title}</h2>
+              <h3 className="font-display text-base font-semibold text-foreground">{feature.title}</h3>
               <p className="mt-2 text-sm text-foreground/70">{feature.description}</p>
             </motion.div>
-          ))}
+            ))}
+          </div>
         </section>
 
         <footer className="relative px-6 py-8 text-center text-sm text-muted">
