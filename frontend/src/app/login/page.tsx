@@ -3,15 +3,25 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Briefcase, FileText, Calendar, Trophy, Search } from "lucide-react";
 import { ApiError, login } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { WakingUpNotice } from "@/components/WakingUpNotice";
 import { Button } from "@/components/Button";
 import { AuthInput } from "@/components/AuthInput";
+import { DotGridBackground } from "@/components/DotGridBackground";
+import { FloatingIcons, type FloatingIconConfig } from "@/components/FloatingIcons";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+
+const FLOATING_ICONS: FloatingIconConfig[] = [
+  { Icon: Briefcase, className: "top-[10%] left-[12%] h-7 w-7 -rotate-12", delay: 0.2, duration: 4.5, accent: "brand-secondary" },
+  { Icon: FileText, className: "top-[18%] right-[14%] h-6 w-6 rotate-6", delay: 0.35, duration: 5, accent: "brand" },
+  { Icon: Calendar, className: "bottom-[20%] right-[10%] h-6 w-6 -rotate-6", delay: 0.5, duration: 4.8, accent: "brand-secondary" },
+  { Icon: Trophy, className: "bottom-[14%] left-[10%] h-7 w-7 rotate-12", delay: 0.65, duration: 4.4, accent: "brand" },
+  { Icon: Search, className: "top-[45%] right-[6%] h-6 w-6 -rotate-12", delay: 0.4, duration: 5.1, accent: "brand-secondary" },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,7 +57,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-16">
+    <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-background px-6 py-16">
+      <DotGridBackground />
+      <FloatingIcons icons={FLOATING_ICONS} />
       <div className="card relative w-full max-w-sm p-8 shadow-sm">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
@@ -59,6 +71,7 @@ export default function LoginPage() {
             icon={Mail}
             label="Email"
             type="email"
+            placeholder="you@example.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -67,6 +80,7 @@ export default function LoginPage() {
             icon={Lock}
             label="Password"
             type="password"
+            placeholder="••••••••"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}

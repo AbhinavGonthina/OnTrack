@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
+import { DotGridBackground } from "@/components/DotGridBackground";
+import { FloatingIcons, type FloatingIconConfig } from "@/components/FloatingIcons";
 import { Logo } from "@/components/Logo";
 import { ProductPreview } from "@/components/ProductPreview";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -72,13 +74,7 @@ const heroItem: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
-const FLOATING_ICONS: {
-  Icon: LucideIcon;
-  className: string;
-  delay: number;
-  duration: number;
-  accent: "brand" | "brand-secondary";
-}[] = [
+const FLOATING_ICONS: FloatingIconConfig[] = [
   { Icon: Briefcase, className: "top-[4%] left-[6%] h-7 w-7 -rotate-12", delay: 0.2, duration: 4.5, accent: "brand-secondary" },
   { Icon: FileText, className: "top-[9%] right-[7%] h-6 w-6 rotate-6", delay: 0.35, duration: 5, accent: "brand" },
   { Icon: Mail, className: "top-[3%] right-[24%] h-6 w-6 rotate-12", delay: 0.5, duration: 4.2, accent: "brand" },
@@ -102,33 +98,8 @@ export default function LandingPage() {
   return (
     <MotionConfig reducedMotion="user">
       <main className="relative flex-1 overflow-hidden bg-background">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: "radial-gradient(circle, var(--surface-border) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-            maskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%)",
-            WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%)",
-          }}
-        />
-        {FLOATING_ICONS.map(({ Icon, className, delay, duration, accent }, i) => (
-          <motion.div
-            key={i}
-            aria-hidden
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={{ opacity: 0.3, scale: 1, y: [10, -6, 10] }}
-            transition={{
-              opacity: { duration: 0.6, delay, ease: "easeOut" },
-              scale: { duration: 0.6, delay, ease: "easeOut" },
-              y: { duration, delay, repeat: Infinity, ease: "easeInOut" },
-            }}
-            className={`pointer-events-none absolute hidden md:block ${className}`}
-            style={{ color: `var(--${accent})` }}
-          >
-            <Icon className="h-full w-full" strokeWidth={1.5} />
-          </motion.div>
-        ))}
+        <DotGridBackground />
+        <FloatingIcons icons={FLOATING_ICONS} />
 
         <motion.nav
           initial={{ opacity: 0, y: -8 }}
