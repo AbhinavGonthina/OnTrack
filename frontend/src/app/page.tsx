@@ -107,10 +107,13 @@ export default function LandingPage() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6"
         >
-          <span className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-foreground">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-foreground hover:opacity-80"
+          >
             <Logo />
             OnTrack
-          </span>
+          </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link

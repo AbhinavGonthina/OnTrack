@@ -57,15 +57,21 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-background px-6 py-16">
+    <main className="relative isolate flex flex-1 flex-col items-center justify-center overflow-hidden bg-background px-6 py-16">
       <DotGridBackground />
       <FloatingIcons icons={FLOATING_ICONS} />
+      <Link
+        href="/"
+        className="absolute top-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 font-display text-xl font-semibold tracking-tight text-foreground hover:opacity-80"
+      >
+        <Logo size={36} />
+        OnTrack
+      </Link>
       <div className="card relative w-full max-w-sm p-8 shadow-sm">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <Logo size={32} />
-        <h1 className="mt-4 font-display text-2xl font-bold text-foreground">Log in</h1>
+        <h1 className="font-display text-2xl font-bold text-foreground">Log in</h1>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <AuthInput
             icon={Mail}
