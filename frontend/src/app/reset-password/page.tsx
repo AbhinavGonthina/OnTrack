@@ -56,7 +56,7 @@ function ResetPasswordContent() {
           <Logo size={36} />
           OnTrack
         </Link>
-        <div className="h-0.5 w-28 rounded-full bg-linear-to-r from-brand to-brand-secondary" />
+        <div className="h-0.5 w-[248px] rounded-full bg-linear-to-r from-brand to-brand-secondary" />
       </div>
       <div className="card relative w-full max-w-sm p-8 shadow-sm">
         <div className="absolute top-4 right-4">
