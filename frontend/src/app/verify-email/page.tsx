@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Mail, XCircle } from "lucide-react";
@@ -20,12 +20,19 @@ function VerifyEmailContent() {
   const [status, setStatus] = useState<Status>("verifying");
   const [email, setEmail] = useState("");
   const [resent, setResent] = useState(false);
+  // Verifying consumes a single-use token, so it must only ever actually fire once per
+  // token - without this guard, React's dev-mode Strict Mode double-invokes this effect
+  // and races two real requests against the same token.
+  const requestedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) {
       const id = setTimeout(() => setStatus("error"), 0);
       return () => clearTimeout(id);
     }
+    if (requestedTokenRef.current === token) return;
+    requestedTokenRef.current = token;
+
     verifyEmail(token)
       .then(() => setStatus("success"))
       .catch(() => setStatus("error"));

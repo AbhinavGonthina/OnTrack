@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -84,6 +85,7 @@ public class AuthService {
         return new AuthResponse(token, user.getId(), user.getEmail());
     }
 
+    @Transactional
     public MessageResponse verifyEmail(String rawToken) {
         User user = tokenService.consume(rawToken, TokenType.EMAIL_VERIFICATION);
         user.setEmailVerified(true);
@@ -116,6 +118,7 @@ public class AuthService {
         return RESET_SENT_IF_EXISTS;
     }
 
+    @Transactional
     public MessageResponse resetPassword(String rawToken, String newPassword) {
         User user = tokenService.consume(rawToken, TokenType.PASSWORD_RESET);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
