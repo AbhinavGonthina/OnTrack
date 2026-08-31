@@ -2,10 +2,18 @@ package com.ontrack.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ontrack.backend.dto.AuthResponse;
+import com.ontrack.backend.dto.ForgotPasswordRequest;
 import com.ontrack.backend.dto.LoginRequest;
+import com.ontrack.backend.dto.MessageResponse;
+import com.ontrack.backend.dto.ResendVerificationRequest;
+import com.ontrack.backend.dto.ResetPasswordRequest;
 import com.ontrack.backend.dto.SignupRequest;
+import com.ontrack.backend.dto.VerifyEmailRequest;
 import com.ontrack.backend.exception.EmailAlreadyExistsException;
+import com.ontrack.backend.exception.EmailNotVerifiedException;
+import com.ontrack.backend.exception.EmailRateLimitExceededException;
 import com.ontrack.backend.exception.InvalidCredentialsException;
+import com.ontrack.backend.exception.InvalidOrExpiredTokenException;
 import com.ontrack.backend.repository.UserRepository;
 import com.ontrack.backend.security.JwtService;
 import com.ontrack.backend.service.AuthService;
@@ -19,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -45,16 +54,14 @@ class AuthControllerTest {
     private UserRepository userRepository;
 
     @Test
-    void signupWithValidBodyReturns201AndToken() throws Exception {
-        AuthResponse response = new AuthResponse("fake-jwt", UUID.randomUUID(), "person@example.com");
-        when(authService.signup(any(SignupRequest.class))).thenReturn(response);
+    void signupWithValidBodyReturns201() throws Exception {
+        when(authService.signup(any(SignupRequest.class))).thenReturn(new MessageResponse("Check your email"));
 
         mockMvc.perform(post("/api/auth/signup")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(new SignupRequest("person@example.com", "password123"))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.token").value("fake-jwt"))
-                .andExpect(jsonPath("$.email").value("person@example.com"));
+                .andExpect(jsonPath("$.message").value("Check your email"));
     }
 
     @Test
@@ -104,5 +111,93 @@ class AuthControllerTest {
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(new LoginRequest("person@example.com", "wrong"))))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void loginWithUnverifiedEmailReturns403() throws Exception {
+        when(authService.login(any(LoginRequest.class))).thenThrow(new EmailNotVerifiedException());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new LoginRequest("person@example.com", "password123"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void verifyEmailWithValidTokenReturns200() throws Exception {
+        when(authService.verifyEmail(anyString())).thenReturn(new MessageResponse("Email verified"));
+
+        mockMvc.perform(post("/api/auth/verify-email")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new VerifyEmailRequest("some-token"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void verifyEmailWithInvalidTokenReturns400() throws Exception {
+        when(authService.verifyEmail(anyString())).thenThrow(new InvalidOrExpiredTokenException());
+
+        mockMvc.perform(post("/api/auth/verify-email")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new VerifyEmailRequest("bad-token"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void resendVerificationReturns200() throws Exception {
+        when(authService.resendVerification(anyString())).thenReturn(new MessageResponse("Sent if eligible"));
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ResendVerificationRequest("person@example.com"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void resendVerificationRateLimitedReturns429() throws Exception {
+        when(authService.resendVerification(anyString())).thenThrow(new EmailRateLimitExceededException());
+
+        mockMvc.perform(post("/api/auth/resend-verification")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ResendVerificationRequest("person@example.com"))))
+                .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void forgotPasswordReturns200() throws Exception {
+        when(authService.forgotPassword(anyString())).thenReturn(new MessageResponse("Sent if exists"));
+
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ForgotPasswordRequest("person@example.com"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void resetPasswordWithValidTokenReturns200() throws Exception {
+        when(authService.resetPassword(anyString(), anyString())).thenReturn(new MessageResponse("Password reset"));
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ResetPasswordRequest("some-token", "newpassword123"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void resetPasswordWithInvalidTokenReturns400() throws Exception {
+        when(authService.resetPassword(anyString(), anyString())).thenThrow(new InvalidOrExpiredTokenException());
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ResetPasswordRequest("bad-token", "newpassword123"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void resetPasswordWithShortPasswordReturns400() throws Exception {
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ResetPasswordRequest("some-token", "short"))))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -1,6 +1,7 @@
 package com.ontrack.backend.exception;
 
 import com.ontrack.backend.ai.GeminiApiException;
+import com.ontrack.backend.email.EmailDeliveryException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -58,6 +59,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DemoReadOnlyException.class)
     public ResponseEntity<Map<String, Object>> handleDemoReadOnly(DemoReadOnlyException ex) {
         return error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        return error(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidOrExpiredTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidOrExpiredToken(InvalidOrExpiredTokenException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailRateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailRateLimitExceeded(EmailRateLimitExceededException ex) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailDeliveryError(EmailDeliveryException ex) {
+        return error(HttpStatus.BAD_GATEWAY, "Couldn't send the email. Please try again shortly.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

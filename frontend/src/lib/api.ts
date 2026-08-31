@@ -5,6 +5,7 @@ import type {
   ApplicationStatus,
   AuthResponse,
   FitAnalysisResponse,
+  MessageResponse,
   NoteResponse,
   StatsResponse,
   UserResponse,
@@ -60,12 +61,28 @@ export function checkHealth(): Promise<void> {
 
 // --- Auth ---
 
-export function signup(email: string, password: string): Promise<AuthResponse> {
+export function signup(email: string, password: string): Promise<MessageResponse> {
   return request("/api/auth/signup", { method: "POST", body: { email, password } });
 }
 
 export function login(email: string, password: string): Promise<AuthResponse> {
   return request("/api/auth/login", { method: "POST", body: { email, password } });
+}
+
+export function verifyEmail(token: string): Promise<MessageResponse> {
+  return request("/api/auth/verify-email", { method: "POST", body: { token } });
+}
+
+export function resendVerification(email: string): Promise<MessageResponse> {
+  return request("/api/auth/resend-verification", { method: "POST", body: { email } });
+}
+
+export function forgotPassword(email: string): Promise<MessageResponse> {
+  return request("/api/auth/forgot-password", { method: "POST", body: { email } });
+}
+
+export function resetPassword(token: string, newPassword: string): Promise<MessageResponse> {
+  return request("/api/auth/reset-password", { method: "POST", body: { token, newPassword } });
 }
 
 // --- User / profile ---

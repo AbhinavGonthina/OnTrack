@@ -12,6 +12,10 @@ export interface AuthResponse {
   email: string;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
 export interface UserResponse {
   id: string;
   email: string;
