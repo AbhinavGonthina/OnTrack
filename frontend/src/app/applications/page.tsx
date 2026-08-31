@@ -7,6 +7,7 @@ import { Inbox } from "lucide-react";
 import { ApiError, deleteApplication, getApplications } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
+import { Spinner } from "@/components/Spinner";
 import { StatusBadge } from "@/components/Badge";
 import type { ApplicationResponse } from "@/lib/types";
 
@@ -75,7 +76,7 @@ export default function ApplicationsPage() {
       </div>
 
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {!error && !applications && <p className="mt-4 text-sm text-muted">Loading…</p>}
+      {!error && !applications && <Spinner label="Loading…" className="mt-4" />}
       {applications && applications.length === 0 && (
         <div className="card mt-6 flex flex-col items-center gap-3 p-10 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">

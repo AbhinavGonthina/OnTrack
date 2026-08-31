@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { BackendWakeProvider } from "@/context/BackendWakeContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AppNav } from "@/components/AppNav";
+import { NavigationProgressBar } from "@/components/NavigationProgressBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider>
           <AuthProvider>
             <BackendWakeProvider>
+              <NavigationProgressBar />
               <AppNav />
               {children}
             </BackendWakeProvider>

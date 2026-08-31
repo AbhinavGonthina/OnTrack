@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, getProfile, updateResume } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
+import { Spinner } from "@/components/Spinner";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 
 export default function ProfilePage() {
@@ -76,7 +77,7 @@ export default function ProfilePage() {
         Paste your resume text here - the AI fit-analysis feature compares it against each job description.
       </p>
       {isLoading ? (
-        <p className="mt-6 text-sm text-muted">Loading…</p>
+        <Spinner label="Loading…" className="mt-6" />
       ) : (
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm text-foreground">

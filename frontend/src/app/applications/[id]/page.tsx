@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
+import { Spinner } from "@/components/Spinner";
 import type { ApplicationDetailResponse, ApplicationStatus } from "@/lib/types";
 
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -90,7 +91,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
       </Link>
       <div className="mt-4">
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && !detail && <p className="text-sm text-muted">Loading…</p>}
+        {!error && !detail && <Spinner label="Loading…" />}
         {detail && (
           <>
             <div className="mb-4 flex justify-end">

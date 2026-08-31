@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, getApplications, getStats } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { DashboardView } from "@/components/DashboardView";
+import { Spinner } from "@/components/Spinner";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -55,9 +56,7 @@ export default function DashboardPage() {
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
       <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {!error && (!stats || !applications) && (
-        <p className="mt-4 text-sm text-muted">Loading…</p>
-      )}
+      {!error && (!stats || !applications) && <Spinner label="Loading…" className="mt-4" />}
       {stats && applications && (
         <div className="mt-6">
           <DashboardView stats={stats} applications={applications} readOnly={false} />

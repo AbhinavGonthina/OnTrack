@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, getApplication, updateApplication, type ApplicationInput } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { ApplicationForm } from "@/components/ApplicationForm";
+import { Spinner } from "@/components/Spinner";
 
 export default function EditApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -72,7 +73,7 @@ export default function EditApplicationPage({ params }: { params: Promise<{ id: 
     <main className="mx-auto w-full max-w-lg flex-1 px-6 py-10">
       <h1 className="font-display text-2xl font-bold text-foreground">Edit application</h1>
       <div className="mt-6">
-        {!initial && !error && <p className="text-sm text-muted">Loading…</p>}
+        {!initial && !error && <Spinner label="Loading…" />}
         {initial && (
           <ApplicationForm
             initial={initial}

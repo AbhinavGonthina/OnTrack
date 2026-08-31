@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ApiError, getDemoApplication, getDemoFitAnalysis } from "@/lib/api";
 import { ColdStartGate } from "@/components/ColdStartGate";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
+import { Spinner } from "@/components/Spinner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ApplicationDetailResponse } from "@/lib/types";
 
@@ -39,7 +40,7 @@ function DemoApplicationDetailContent({ id }: { id: string }) {
       </div>
       <div className="mt-4">
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && !detail && <p className="text-sm text-muted">Loading…</p>}
+        {!error && !detail && <Spinner label="Loading…" />}
         {detail && (
           <ApplicationDetailView
             detail={detail}

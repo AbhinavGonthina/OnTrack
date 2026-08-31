@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ApiError, getDemoApplications, getDemoStats } from "@/lib/api";
 import { ColdStartGate } from "@/components/ColdStartGate";
 import { DashboardView } from "@/components/DashboardView";
+import { Spinner } from "@/components/Spinner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 
@@ -43,9 +44,7 @@ function DemoDashboardContent() {
         <ThemeToggle />
       </div>
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {!error && (!stats || !applications) && (
-        <p className="mt-4 text-sm text-muted">Loading…</p>
-      )}
+      {!error && (!stats || !applications) && <Spinner label="Loading…" className="mt-4" />}
       {stats && applications && (
         <div className="mt-6">
           <DashboardView stats={stats} applications={applications} readOnly />
