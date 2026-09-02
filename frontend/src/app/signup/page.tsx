@@ -1,17 +1,17 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { Mail, Lock, MailCheck } from "lucide-react";
 import { ApiError, resendVerification, signup } from "@/lib/api";
 import { useBackendWake } from "@/context/BackendWakeContext";
-import { WakingUpNotice } from "@/components/WakingUpNotice";
+import { WakingUpNoticeContent } from "@/components/WakingUpNotice";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/Button";
 import { AuthInput } from "@/components/AuthInput";
 
 export default function SignupPage() {
-  const { isSlow, waitUntilAwake } = useBackendWake();
+  const { status, isSlow, startWaking, waitUntilAwake } = useBackendWake();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,10 +21,19 @@ export default function SignupPage() {
   const [submitted, setSubmitted] = useState(false);
   const [resent, setResent] = useState(false);
 
+  useEffect(() => {
+    // Start the health check as soon as this page mounts (not just on submit), so a
+    // backend that's already awake by the time the user finishes typing never needs the
+    // full-screen WakingUpNotice swap - it only shows for a genuine cold start.
+    startWaking();
+  }, [startWaking]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setIsWaiting(true);
+    if (status !== "awake") {
+      setIsWaiting(true);
+    }
     await waitUntilAwake();
     setIsWaiting(false);
     setIsSubmitting(true);
@@ -48,13 +57,11 @@ export default function SignupPage() {
     }
   }
 
-  if (isWaiting) {
-    return <WakingUpNotice isSlow={isSlow} />;
-  }
-
   return (
     <AuthLayout>
-      {submitted ? (
+      {isWaiting ? (
+        <WakingUpNoticeContent isSlow={isSlow} />
+      ) : submitted ? (
         <>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
             <MailCheck size={20} />

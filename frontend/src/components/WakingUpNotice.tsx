@@ -1,9 +1,12 @@
 import { TriviaQuiz } from "@/components/TriviaQuiz";
 import { Logo } from "@/components/Logo";
 
-export function WakingUpNotice({ isSlow }: { isSlow: boolean }) {
+// The inner content on its own, with no page-level wrapper - lets the auth pages render this
+// as AuthLayout's children during a cold start instead of swapping AuthLayout out entirely,
+// so the card and floating icons stay mounted (no unmount/remount replaying their entrance).
+export function WakingUpNoticeContent({ isSlow }: { isSlow: boolean }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-background px-6 py-16 text-center">
+    <div className="flex flex-col items-center gap-6 text-center">
       <div className="flex flex-col items-center">
         <Logo size={32} />
         <h1 className="mt-4 font-display text-xl font-bold text-foreground">
@@ -20,6 +23,14 @@ export function WakingUpNotice({ isSlow }: { isSlow: boolean }) {
         )}
       </div>
       <TriviaQuiz />
+    </div>
+  );
+}
+
+export function WakingUpNotice({ isSlow }: { isSlow: boolean }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-16">
+      <WakingUpNoticeContent isSlow={isSlow} />
     </div>
   );
 }

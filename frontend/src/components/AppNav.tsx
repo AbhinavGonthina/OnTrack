@@ -36,45 +36,49 @@ export function AppNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-surface-border bg-surface px-6 py-3 text-sm">
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard" className="mr-2 flex items-center gap-2 font-display font-semibold text-foreground">
-          <Logo size={24} />
-        </Link>
-        {LINKS.map((link) => {
-          const isActive = pathname.startsWith(link.href);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
-                isActive
-                  ? "bg-brand/10 text-brand"
-                  : "text-muted hover:text-foreground"
-              }`}
+    <nav className="border-b border-surface-border bg-surface text-sm">
+      {/* Matches the landing page's own header (max-w-6xl, px-6, py-6) so the logo and
+          nav items land in the same horizontal/vertical position a user already saw there. */}
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="mr-2 flex items-center gap-2 font-display font-semibold text-foreground">
+            <Logo size={24} />
+          </Link>
+          {LINKS.map((link) => {
+            const isActive = pathname.startsWith(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
+                  isActive
+                    ? "bg-brand/10 text-brand"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          {user && (
+            <span
+              title={user.email}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white"
             >
-              {link.label}
-            </Link>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-3">
-        <ThemeToggle />
-        {user && (
-          <span
-            title={user.email}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white"
+              {user.email[0].toUpperCase()}
+            </span>
+          )}
+          <button
+            onClick={handleLogout}
+            title="Log out"
+            className="flex items-center gap-1.5 font-medium text-muted hover:text-foreground"
           >
-            {user.email[0].toUpperCase()}
-          </span>
-        )}
-        <button
-          onClick={handleLogout}
-          title="Log out"
-          className="flex items-center gap-1.5 font-medium text-muted hover:text-foreground"
-        >
-          <LogOut size={16} />
-        </button>
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </nav>
   );
