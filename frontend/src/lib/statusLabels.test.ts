@@ -3,11 +3,11 @@ import { getStatusColor } from "./statusLabels";
 
 describe("getStatusColor", () => {
   test("returns the fixed status-good color for OFFER", () => {
-    expect(getStatusColor("OFFER")).toBe("#0ca30c");
+    expect(getStatusColor("OFFER")).toBe("#059669");
   });
 
   test("returns the fixed status-critical color for REJECTED", () => {
-    expect(getStatusColor("REJECTED")).toBe("#d03b3b");
+    expect(getStatusColor("REJECTED")).toBe("#e11d48");
   });
 
   test("returns the pipeline-ramp CSS variable for in-progress stages", () => {

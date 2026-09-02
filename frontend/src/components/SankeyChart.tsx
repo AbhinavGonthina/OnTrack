@@ -4,7 +4,15 @@ import { useMemo, useState } from "react";
 import { Sankey, ResponsiveContainer } from "recharts";
 import type { LinkProps, NodeProps } from "recharts/types/chart/Sankey";
 import type { SankeyLink } from "@/lib/types";
-import { getNodeColor, getNodeLabel, orderNodeNames } from "@/lib/sankeyColors";
+import { useTheme } from "@/context/ThemeContext";
+import {
+  getNodeColor,
+  getNodeLabel,
+  isRejectedNode,
+  orderNodeNames,
+  STATUS_CRITICAL,
+  STATUS_GOOD,
+} from "@/lib/sankeyColors";
 
 interface Props {
   links: SankeyLink[];
@@ -21,6 +29,22 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
   const name = payload.name as string;
   const color = getNodeColor(name);
   const label = getNodeLabel(name);
+  const isTerminal = name === "APPLIED" || name === "OFFER" || isRejectedNode(name);
+
+  // Interior stage nodes (OA, Phone Screen, Onsite) are narrow and packed close together
+  // with no side margin reserved for a label - placed above instead of beside so longer
+  // labels never get clipped against a neighboring column's node or ribbon.
+  if (!isTerminal) {
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />
+        <text x={x + width / 2} y={y - 6} textAnchor="middle" className="fill-foreground text-xs font-semibold">
+          {label}
+        </text>
+      </g>
+    );
+  }
+
   const labelOnRight = x < 60;
 
   return (
@@ -31,7 +55,7 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
         y={y + height / 2}
         textAnchor={labelOnRight ? "start" : "end"}
         dominantBaseline="middle"
-        className="fill-foreground text-xs"
+        className="fill-foreground text-xs font-semibold"
       >
         {label}
       </text>
@@ -45,6 +69,7 @@ function buildLinkPath(props: LinkProps): string {
 }
 
 export function SankeyChart({ links }: Props) {
+  const { theme } = useTheme();
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const data = useMemo(() => {
@@ -66,14 +91,6 @@ export function SankeyChart({ links }: Props) {
     };
   }, [links]);
 
-  if (links.length === 0) {
-    return (
-      <div className="card flex h-64 items-center justify-center text-sm text-muted">
-        Add an application and log a status update to see your pipeline here.
-      </div>
-    );
-  }
-
   return (
     <div className="card relative p-4">
       <ResponsiveContainer width="100%" height={320}>
@@ -90,7 +107,8 @@ export function SankeyChart({ links }: Props) {
                 fill="none"
                 stroke={color}
                 strokeWidth={linkProps.linkWidth}
-                strokeOpacity={isActive ? 0.75 : 0.45}
+                strokeOpacity={isActive ? 0.65 : 0.38}
+                style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
                 onMouseEnter={() =>
                   setTooltip({
                     index: linkProps.index,
@@ -105,7 +123,7 @@ export function SankeyChart({ links }: Props) {
           }}
           nodePadding={24}
           nodeWidth={12}
-          margin={{ top: 8, right: 110, bottom: 8, left: 110 }}
+          margin={{ top: 26, right: 110, bottom: 8, left: 110 }}
         />
       </ResponsiveContainer>
       {tooltip && (
@@ -125,11 +143,11 @@ export function SankeyChart({ links }: Props) {
           Pipeline stage (darker = further along)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#0ca30c" }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_GOOD }} />
           Offer
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#d03b3b" }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_CRITICAL }} />
           Rejected
         </span>
       </div>

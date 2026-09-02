@@ -15,12 +15,12 @@ describe("isRejectedNode", () => {
 
 describe("getNodeColor", () => {
   test("offer gets the fixed status-good color", () => {
-    expect(getNodeColor("OFFER")).toBe("#0ca30c");
+    expect(getNodeColor("OFFER")).toBe("#059669");
   });
 
   test("any rejected node gets the fixed status-critical color", () => {
-    expect(getNodeColor("REJECTED_OA")).toBe("#d03b3b");
-    expect(getNodeColor("REJECTED_ONSITE_FINAL")).toBe("#d03b3b");
+    expect(getNodeColor("REJECTED_OA")).toBe("#e11d48");
+    expect(getNodeColor("REJECTED_ONSITE_FINAL")).toBe("#e11d48");
   });
 
   test("progress stages get their pipeline-ramp CSS variable", () => {

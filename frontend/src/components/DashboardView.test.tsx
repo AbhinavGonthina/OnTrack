@@ -40,10 +40,30 @@ describe("DashboardView", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
-  test("shows an empty-state message with no applications", () => {
+  test("shows an empty-state message with an 'Add one now' link when no applications", () => {
     render(<DashboardView stats={baseStats} applications={[]} readOnly={false} />);
 
-    expect(screen.getByText("No applications yet.")).toBeInTheDocument();
+    expect(screen.getByText(/No applications logged yet\./)).toBeInTheDocument();
+    expect(screen.getByText("Add one now")).toHaveAttribute("href", "/applications/new");
+  });
+
+  test("hides the 'Add one now' link in the applications empty state when read-only", () => {
+    render(<DashboardView stats={baseStats} applications={[]} readOnly />);
+
+    expect(screen.queryByText("Add one now")).not.toBeInTheDocument();
+  });
+
+  test("shows an 'Add First Application' CTA in the empty pipeline state when not read-only", () => {
+    render(<DashboardView stats={baseStats} applications={[]} readOnly={false} />);
+
+    const cta = screen.getByText("+ Add First Application");
+    expect(cta.closest("a")).toHaveAttribute("href", "/applications/new");
+  });
+
+  test("hides the 'Add First Application' CTA in the empty pipeline state when read-only", () => {
+    render(<DashboardView stats={baseStats} applications={[]} readOnly />);
+
+    expect(screen.queryByText("+ Add First Application")).not.toBeInTheDocument();
   });
 
   test("lists applications with their status badge", () => {

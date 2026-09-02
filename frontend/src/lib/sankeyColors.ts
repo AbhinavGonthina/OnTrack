@@ -12,8 +12,13 @@ const PROGRESS_COLORS: Record<string, string> = {
   ONSITE_FINAL: "var(--pipeline-4)",
 };
 
-const STATUS_GOOD = "#0ca30c";
-const STATUS_CRITICAL = "#d03b3b";
+// Re-validated via the dataviz skill's validate_palette.js against both surfaces: this
+// pairing clears the lightness band on dark (unlike #10b981, which is too light there)
+// and has better CVD (deutan) separation than the colors it replaced (5.8 vs 4.1 dE) -
+// still below the ideal floor, but that's legal here since every node/badge using these
+// always ships with a text label too, never color alone.
+export const STATUS_GOOD = "#059669";
+export const STATUS_CRITICAL = "#e11d48";
 
 const STAGE_LABELS: Record<string, string> = {
   APPLIED: "Applied",

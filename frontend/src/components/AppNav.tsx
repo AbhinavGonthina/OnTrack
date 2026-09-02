@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
+import { PageContainer } from "@/components/PageContainer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const LINKS = [
@@ -36,24 +37,26 @@ export function AppNav() {
   }
 
   return (
-    <nav className="border-b border-surface-border bg-surface text-sm">
-      {/* Matches the landing page's own header (max-w-6xl, px-6, py-6) so the logo and
-          nav items land in the same horizontal/vertical position a user already saw there. */}
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="mr-2 flex items-center gap-2 font-display font-semibold text-foreground">
-            <Logo size={24} />
-          </Link>
+    <nav className="sticky top-0 z-50 w-full border-b border-surface-border bg-surface/80 text-sm backdrop-blur-md">
+      <PageContainer className="relative flex h-16 items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="flex cursor-pointer items-center gap-2 font-display text-lg font-bold text-foreground transition-opacity hover:opacity-90"
+        >
+          <Logo size={28} />
+          OnTrack
+        </Link>
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-6">
           {LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
+                className={`border-b-2 py-1.5 font-medium transition-colors ${
                   isActive
-                    ? "bg-brand/10 text-brand"
-                    : "text-muted hover:text-foreground"
+                    ? "border-brand text-foreground"
+                    : "border-transparent text-muted hover:text-foreground"
                 }`}
               >
                 {link.label}
@@ -66,7 +69,7 @@ export function AppNav() {
           {user && (
             <span
               title={user.email}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white ring-2 ring-brand/25"
             >
               {user.email[0].toUpperCase()}
             </span>
@@ -74,12 +77,12 @@ export function AppNav() {
           <button
             onClick={handleLogout}
             title="Log out"
-            className="flex items-center gap-1.5 font-medium text-muted hover:text-foreground"
+            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-white/5 hover:text-foreground"
           >
             <LogOut size={16} />
           </button>
         </div>
-      </div>
+      </PageContainer>
     </nav>
   );
 }

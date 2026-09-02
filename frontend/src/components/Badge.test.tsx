@@ -22,11 +22,11 @@ describe("StatusBadge", () => {
 
   test("renders the fixed status-good color for OFFER", () => {
     render(<StatusBadge status="OFFER" />);
-    expect(screen.getByText("Offer")).toHaveStyle({ color: "#0ca30c" });
+    expect(screen.getByText("Offer")).toHaveStyle({ color: "#059669" });
   });
 
   test("renders the fixed status-critical color for REJECTED", () => {
     render(<StatusBadge status="REJECTED" />);
-    expect(screen.getByText("Rejected")).toHaveStyle({ color: "#d03b3b" });
+    expect(screen.getByText("Rejected")).toHaveStyle({ color: "#e11d48" });
   });
 });

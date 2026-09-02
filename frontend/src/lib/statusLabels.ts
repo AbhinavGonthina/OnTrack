@@ -30,8 +30,10 @@ const PROGRESS_COLORS: Record<string, string> = {
   PHONE_SCREEN: "var(--pipeline-3)",
   ONSITE_FINAL: "var(--pipeline-4)",
 };
-const STATUS_GOOD = "#0ca30c";
-const STATUS_CRITICAL = "#d03b3b";
+// Kept in sync with sankeyColors.ts's STATUS_GOOD/CRITICAL - see that file for why these
+// specific shades (re-validated via the dataviz skill's validate_palette.js).
+const STATUS_GOOD = "#059669";
+const STATUS_CRITICAL = "#e11d48";
 
 export function getStatusColor(status: ApplicationStatus): string {
   if (status === "OFFER") return STATUS_GOOD;

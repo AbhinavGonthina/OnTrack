@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, getProfile, updateResume } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
+import { PageContainer } from "@/components/PageContainer";
 import { Spinner } from "@/components/Spinner";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 
@@ -71,34 +72,36 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 px-6 py-10">
-      <h1 className="font-display text-2xl font-bold text-foreground">Profile</h1>
-      <p className="mt-1 text-sm text-foreground/70">
-        Paste your resume text here - the AI fit-analysis feature compares it against each job description.
-      </p>
-      {isLoading ? (
-        <Spinner label="Loading…" className="mt-6" />
-      ) : (
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm text-foreground">
-            Resume text
-            <textarea
-              rows={16}
-              value={resumeText}
-              onChange={(e) => {
-                setResumeText(e.target.value);
-                setSaved(false);
-              }}
-              className={FIELD_CLASSNAME}
-            />
-          </label>
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-          {saved && !error && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
-          <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-fit">
-            {isSubmitting ? "Saving…" : "Save"}
-          </Button>
-        </form>
-      )}
+    <main className="w-full flex-1 py-10">
+      <PageContainer>
+        <h1 className="font-display text-2xl font-bold text-foreground">Profile</h1>
+        <p className="mt-1 text-sm text-foreground/70">
+          Paste your resume text here - the AI fit-analysis feature compares it against each job description.
+        </p>
+        {isLoading ? (
+          <Spinner label="Loading…" className="mt-6" />
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-6 flex max-w-lg flex-col gap-4">
+            <label className="flex flex-col gap-1 text-sm text-foreground">
+              Resume text
+              <textarea
+                rows={16}
+                value={resumeText}
+                onChange={(e) => {
+                  setResumeText(e.target.value);
+                  setSaved(false);
+                }}
+                className={FIELD_CLASSNAME}
+              />
+            </label>
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+            {saved && !error && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
+            <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-fit">
+              {isSubmitting ? "Saving…" : "Save"}
+            </Button>
+          </form>
+        )}
+      </PageContainer>
     </main>
   );
 }

@@ -69,7 +69,7 @@ function NavigationProgressBarContent() {
         <motion.div
           aria-hidden
           data-testid="navigation-progress-bar"
-          className="pointer-events-none fixed top-0 left-0 z-50 h-0.5 w-full origin-left bg-linear-to-r from-brand to-brand-secondary"
+          className="pointer-events-none fixed top-0 left-0 z-[60] h-0.5 w-full origin-left bg-linear-to-r from-brand to-brand-secondary"
           initial={{ scaleX: 0, opacity: 1 }}
           animate={{ scaleX: 0.85 }}
           exit={{ scaleX: 1, opacity: 0, transition: { duration: 0.3 } }}

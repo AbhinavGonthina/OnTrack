@@ -9,8 +9,12 @@ interface BadgeProps {
 export function Badge({ label, color }: BadgeProps) {
   return (
     <span
-      className="inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap"
-      style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}
+      className="inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap"
+      style={{
+        backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+        borderColor: `color-mix(in srgb, ${color} 30%, transparent)`,
+        color,
+      }}
     >
       {label}
     </span>

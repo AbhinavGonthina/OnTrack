@@ -69,8 +69,8 @@ describe("AppNav", () => {
     render(<AppNav />);
 
     expect(screen.getByText("P")).toBeInTheDocument();
-    expect(screen.getByText("Applications")).toHaveClass("bg-brand/10");
-    expect(screen.getByText("Dashboard")).not.toHaveClass("bg-brand/10");
+    expect(screen.getByText("Applications")).toHaveClass("border-brand");
+    expect(screen.getByText("Dashboard")).not.toHaveClass("border-brand");
   });
 
   test("logout clears auth state and navigates to the landing page", async () => {
