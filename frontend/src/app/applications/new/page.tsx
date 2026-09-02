@@ -15,7 +15,7 @@ export default function NewApplicationPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/login");
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
 

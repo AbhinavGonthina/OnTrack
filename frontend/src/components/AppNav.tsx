@@ -13,22 +13,26 @@ const LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
+// Login sets isAuthenticated synchronously, before the router.push transition to the
+// authenticated route actually completes - without this list, the nav bar would pop in
+// on top of the still-visible auth page for that brief window and shove its layout around.
+const AUTH_PATHS = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+
 export function AppNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || AUTH_PATHS.includes(pathname)) {
     return null;
   }
 
   function handleLogout() {
-    // Every authenticated page has its own "redirect to /login if logged out"
-    // guard effect. router.push is an async transition, so that guard can
-    // still fire (and win) before it resolves - pointing this at the same
-    // /login destination instead of "/" means the race no longer matters.
+    // Every authenticated page has its own "redirect if logged out" guard
+    // effect, which also points at "/" - matching that destination here
+    // means the async router.push race against that guard no longer matters.
     logout();
-    router.push("/login");
+    router.push("/");
   }
 
   return (

@@ -10,14 +10,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-linear-to-r from-brand to-brand-secondary text-white shadow-md shadow-brand/25 hover:shadow-lg hover:shadow-brand/30 hover:brightness-110 active:scale-95",
+    "bg-linear-to-r from-brand to-brand-secondary text-white shadow-md shadow-brand/25 hover:shadow-lg hover:shadow-brand/30 hover:brightness-110 hover:scale-[1.02] active:scale-95",
   secondary:
     "border border-brand/30 text-foreground hover:bg-brand/10 hover:border-brand/50 active:scale-95",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
   sm: "px-3.5 py-1.5 text-xs",
-  md: "px-5 py-2.5 text-sm",
+  md: "px-5 py-3 text-sm",
   lg: "px-7 py-3.5 text-base",
 };
 

@@ -4,6 +4,17 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+const PROGRAMMATIC_NAVIGATION_EVENT = "app:navigation-start";
+
+// For router.push() calls that don't originate from a rendered <a> click (e.g. redirecting
+// to the dashboard after a successful login), call this right before the push so the bar
+// still shows for that transition.
+export function startNavigationProgress() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(PROGRAMMATIC_NAVIGATION_EVENT));
+  }
+}
+
 function isInternalNavigationClick(e: MouseEvent): boolean {
   const anchor = (e.target as HTMLElement)?.closest("a");
   if (!anchor) return false;
@@ -35,8 +46,15 @@ function NavigationProgressBarContent() {
         setLoading(true);
       }
     }
+    function handleProgrammaticStart() {
+      setLoading(true);
+    }
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    window.addEventListener(PROGRAMMATIC_NAVIGATION_EVENT, handleProgrammaticStart);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      window.removeEventListener(PROGRAMMATIC_NAVIGATION_EVENT, handleProgrammaticStart);
+    };
   }, []);
 
   useEffect(() => {

@@ -37,6 +37,23 @@ describe("AppNav", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  test("renders nothing while still on the login page even once authenticated, before the redirect to /dashboard commits", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
+    vi.mocked(usePathname).mockReturnValue("/login");
+    vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
+
+    const { container } = render(<AppNav />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   test("shows the avatar initial and highlights the active route when authenticated", () => {
     vi.mocked(useAuth).mockReturnValue({
       token: "t",
@@ -56,7 +73,7 @@ describe("AppNav", () => {
     expect(screen.getByText("Dashboard")).not.toHaveClass("bg-brand/10");
   });
 
-  test("logout clears auth state and navigates to /login", async () => {
+  test("logout clears auth state and navigates to the landing page", async () => {
     const logout = vi.fn();
     const push = vi.fn();
     vi.mocked(useAuth).mockReturnValue({
@@ -76,6 +93,6 @@ describe("AppNav", () => {
     await user.click(screen.getByTitle("Log out"));
 
     expect(logout).toHaveBeenCalledTimes(1);
-    expect(push).toHaveBeenCalledWith("/login");
+    expect(push).toHaveBeenCalledWith("/");
   });
 });

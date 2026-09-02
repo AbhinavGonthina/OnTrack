@@ -14,13 +14,13 @@ export function AuthInput({ icon: Icon, label, className = "", type, ...props }:
   const resolvedType = isPassword ? (visible ? "text" : "password") : type;
 
   return (
-    <label className="flex flex-col gap-1 text-sm text-foreground">
+    <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
       {label}
       <div className="relative">
         <Icon size={16} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted" />
         <input
           type={resolvedType}
-          className={`w-full rounded-lg border border-surface-border bg-surface py-2 pl-9 ${isPassword ? "pr-9" : "pr-3"} text-sm text-foreground outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20 ${className}`}
+          className={`w-full rounded-lg border border-surface-border bg-surface py-2 pl-9 ${isPassword ? "pr-9" : "pr-3"} text-sm font-normal text-foreground outline-none transition-colors focus:border-brand focus:ring-4 focus:ring-brand/30 ${className}`}
           {...props}
         />
         {isPassword && (

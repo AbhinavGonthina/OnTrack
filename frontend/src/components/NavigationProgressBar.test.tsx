@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { NavigationProgressBar } from "./NavigationProgressBar";
+import { NavigationProgressBar, startNavigationProgress } from "./NavigationProgressBar";
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
@@ -50,6 +50,14 @@ describe("NavigationProgressBar", () => {
     expect(screen.queryByTestId("navigation-progress-bar")).not.toBeInTheDocument();
 
     document.body.removeChild(link);
+  });
+
+  test("shows the bar when startNavigationProgress() is called, e.g. before a router.push() redirect", async () => {
+    render(<NavigationProgressBar />);
+
+    startNavigationProgress();
+
+    await waitFor(() => expect(screen.getByTestId("navigation-progress-bar")).toBeInTheDocument());
   });
 
   test("ignores clicks on external links", async () => {

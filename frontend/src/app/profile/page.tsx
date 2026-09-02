@@ -20,7 +20,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/login");
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
 
@@ -38,7 +38,7 @@ export default function ProfilePage() {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           logout();
-          router.replace("/login");
+          router.replace("/");
           return;
         }
         setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
