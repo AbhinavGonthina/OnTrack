@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Tailwind's dark: variant defaults to the raw prefers-color-scheme media query, which
+   knows nothing about this app's own light/dark toggle (ThemeContext stamps data-theme on
+   <html>, independent of OS preference). Without this override, dark: classes silently
+   follow the OS setting even when the user has explicitly picked the other theme in-app. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   color-scheme: light dark;
   --background: #f9f9f7;

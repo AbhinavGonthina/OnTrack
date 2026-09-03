@@ -60,7 +60,7 @@ export default function SignupPage() {
   return (
     <AuthLayout>
       {isWaiting ? (
-        <WakingUpNoticeContent isSlow={isSlow} />
+        <WakingUpNoticeContent isSlow={isSlow} showLogo={false} />
       ) : submitted ? (
         <>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">

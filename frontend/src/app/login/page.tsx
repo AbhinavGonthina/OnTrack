@@ -80,7 +80,7 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       {isWaiting ? (
-        <WakingUpNoticeContent isSlow={isSlow} />
+        <WakingUpNoticeContent isSlow={isSlow} showLogo={false} />
       ) : (
         <>
           <h1 className="font-display text-2xl font-bold text-foreground">Log in</h1>

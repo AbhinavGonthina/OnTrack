@@ -4,12 +4,21 @@ import { Logo } from "@/components/Logo";
 // The inner content on its own, with no page-level wrapper - lets the auth pages render this
 // as AuthLayout's children during a cold start instead of swapping AuthLayout out entirely,
 // so the card and floating icons stay mounted (no unmount/remount replaying their entrance).
-export function WakingUpNoticeContent({ isSlow }: { isSlow: boolean }) {
+export function WakingUpNoticeContent({
+  isSlow,
+  showLogo = true,
+}: {
+  isSlow: boolean;
+  /** AuthLayout already pins its own "OnTrack" logo above the card, so the login/signup
+   * pages (which render this as AuthLayout's children during a cold start) pass false here
+   * to avoid a second logo stacked directly above this text. */
+  showLogo?: boolean;
+}) {
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <div className="flex flex-col items-center">
-        <Logo size={32} />
-        <h1 className="mt-4 font-display text-xl font-bold text-foreground">
+        {showLogo && <Logo size={32} />}
+        <h1 className={`font-display text-xl font-bold text-foreground ${showLogo ? "mt-4" : ""}`}>
           Waking up the server&hellip;
         </h1>
         <p className="mt-2 max-w-md text-sm text-foreground/70">
