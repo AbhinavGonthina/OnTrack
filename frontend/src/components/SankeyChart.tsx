@@ -5,17 +5,14 @@ import { Sankey, ResponsiveContainer } from "recharts";
 import type { LinkProps, NodeProps } from "recharts/types/chart/Sankey";
 import type { SankeyLink } from "@/lib/types";
 import { useTheme } from "@/context/ThemeContext";
-import {
-  getNodeColor,
-  getNodeLabel,
-  isRejectedNode,
-  orderNodeNames,
-  STATUS_CRITICAL,
-  STATUS_GOOD,
-} from "@/lib/sankeyColors";
+import { buildSankeyData, getNodeColor, getNodeLabel, isRejectedNode, STATUS_CRITICAL, STATUS_GOOD } from "@/lib/sankeyColors";
 
 interface Props {
   links: SankeyLink[];
+  /** Fills the parent's height instead of a fixed 320px - for the zero-scroll dashboard
+   * layout, where the parent wraps this in an explicit fixed-height box (e.g. h-[380px])
+   * so the chart's actual pixel height stays predictable regardless of viewport size. */
+  fillHeight?: boolean;
 }
 
 interface TooltipState {
@@ -45,13 +42,17 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
     );
   }
 
-  const labelOnRight = x < 60;
+  // Name-based, not x-coordinate-based: with a wide margin reserved on both edges, every
+  // terminal node's x sits well past any small pixel threshold, so a "< 60" check never
+  // reliably tells the leftmost (Applied) column apart from the rightmost (Offer/Rejected)
+  // one - it was silently placing every terminal label on the left, jammed against the bar.
+  const labelOnRight = name !== "APPLIED";
 
   return (
     <g>
       <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />
       <text
-        x={labelOnRight ? x + width + 8 : x - 8}
+        x={labelOnRight ? x + width + 8 : x - 12}
         y={y + height / 2}
         textAnchor={labelOnRight ? "start" : "end"}
         dominantBaseline="middle"
@@ -68,64 +69,49 @@ function buildLinkPath(props: LinkProps): string {
   return `M${sourceX},${sourceY} C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`;
 }
 
-export function SankeyChart({ links }: Props) {
+export function SankeyChart({ links, fillHeight = false }: Props) {
   const { theme } = useTheme();
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
-  const data = useMemo(() => {
-    const names = new Set<string>();
-    for (const link of links) {
-      names.add(link.source);
-      names.add(link.target);
-    }
-    const orderedNames = orderNodeNames(names);
-    const indexOf = new Map(orderedNames.map((name, i) => [name, i]));
-
-    return {
-      nodes: orderedNames.map((name) => ({ name })),
-      links: links.map((link) => ({
-        source: indexOf.get(link.source)!,
-        target: indexOf.get(link.target)!,
-        value: link.value,
-      })),
-    };
-  }, [links]);
+  const data = useMemo(() => buildSankeyData(links), [links]);
 
   return (
-    <div className="card relative p-4">
-      <ResponsiveContainer width="100%" height={320}>
-        <Sankey
-          data={data}
-          node={SankeyNode}
-          link={(linkProps: LinkProps) => {
-            const targetName = linkProps.payload.target.name as string;
-            const color = getNodeColor(targetName);
-            const isActive = tooltip?.index === linkProps.index;
-            return (
-              <path
-                d={buildLinkPath(linkProps)}
-                fill="none"
-                stroke={color}
-                strokeWidth={linkProps.linkWidth}
-                strokeOpacity={isActive ? 0.65 : 0.38}
-                style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
-                onMouseEnter={() =>
-                  setTooltip({
-                    index: linkProps.index,
-                    x: (linkProps.sourceX + linkProps.targetX) / 2,
-                    y: (linkProps.sourceY + linkProps.targetY) / 2,
-                    value: linkProps.payload.value,
-                  })
-                }
-                onMouseLeave={() => setTooltip(null)}
-              />
-            );
-          }}
-          nodePadding={24}
-          nodeWidth={12}
-          margin={{ top: 26, right: 110, bottom: 8, left: 110 }}
-        />
-      </ResponsiveContainer>
+    <div className={`card relative ${fillHeight ? "flex h-full flex-col p-6" : "p-4"}`}>
+      <div className={fillHeight ? "min-h-0 flex-1" : ""}>
+        <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320}>
+          <Sankey
+            data={data}
+            node={SankeyNode}
+            link={(linkProps: LinkProps) => {
+              const targetName = linkProps.payload.target.name as string;
+              const color = getNodeColor(targetName);
+              const isActive = tooltip?.index === linkProps.index;
+              return (
+                <path
+                  d={buildLinkPath(linkProps)}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={linkProps.linkWidth}
+                  strokeOpacity={isActive ? 0.5 : 0.25}
+                  style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
+                  onMouseEnter={() =>
+                    setTooltip({
+                      index: linkProps.index,
+                      x: (linkProps.sourceX + linkProps.targetX) / 2,
+                      y: (linkProps.sourceY + linkProps.targetY) / 2,
+                      value: linkProps.payload.value,
+                    })
+                  }
+                  onMouseLeave={() => setTooltip(null)}
+                />
+              );
+            }}
+            nodePadding={24}
+            nodeWidth={10}
+            margin={{ top: 26, right: 160, bottom: 8, left: 110 }}
+          />
+        </ResponsiveContainer>
+      </div>
       {tooltip && (
         <div
           className="card pointer-events-none absolute z-10 px-2 py-1 text-xs text-foreground shadow-sm"

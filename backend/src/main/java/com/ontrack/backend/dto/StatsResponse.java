@@ -6,7 +6,7 @@ public record StatsResponse(
         int totalApplications,
         double responseRate,
         double oaRate,
-        double onsiteRate,
+        double interviewRate,
         double offerRate,
         Double avgDaysToFirstResponse,
         List<SankeyLink> sankeyLinks

@@ -70,4 +70,12 @@ public class ApplicationController {
             @Valid @RequestBody StatusEventRequest request) {
         return applicationService.addStatusEvent(user.getId(), id, request);
     }
+
+    @DeleteMapping("/{id}/status/{eventId}")
+    public ApplicationResponse deleteStatusEvent(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id,
+            @PathVariable UUID eventId) {
+        return applicationService.deleteStatusEvent(user.getId(), id, eventId);
+    }
 }

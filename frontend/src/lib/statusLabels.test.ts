@@ -14,6 +14,6 @@ describe("getStatusColor", () => {
     expect(getStatusColor("APPLIED")).toBe("var(--pipeline-1)");
     expect(getStatusColor("OA")).toBe("var(--pipeline-2)");
     expect(getStatusColor("PHONE_SCREEN")).toBe("var(--pipeline-3)");
-    expect(getStatusColor("ONSITE_FINAL")).toBe("var(--pipeline-4)");
+    expect(getStatusColor("INTERVIEW")).toBe("var(--pipeline-4)");
   });
 });

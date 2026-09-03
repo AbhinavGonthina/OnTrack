@@ -1,15 +1,19 @@
 import Link from "next/link";
-import { Briefcase, TrendingUp, ClipboardCheck, Building2, Trophy, Clock } from "lucide-react";
+import { Briefcase, TrendingUp, ClipboardCheck, Building2, Trophy, Clock, ListChecks, FileText } from "lucide-react";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 import { StatTile } from "@/components/StatTile";
 import { SankeyChart } from "@/components/SankeyChart";
 import { StatusBadge } from "@/components/Badge";
 import { Button } from "@/components/Button";
+import { ReportProblemButton } from "@/components/ReportProblemButton";
 
 interface Props {
   stats: StatsResponse;
   applications: ApplicationResponse[];
   readOnly: boolean;
+  /** Renders the compact 12-column zero-scroll grid used by the real /dashboard page,
+   * instead of the normal stacked layout /demo's page (a plain scrolling page) still uses. */
+  fitViewport?: boolean;
 }
 
 function formatPercent(value: number): string {
@@ -39,44 +43,171 @@ function SankeySkeleton() {
   );
 }
 
-export function DashboardView({ stats, applications, readOnly }: Props) {
+function StatTiles({ stats, compact }: { stats: StatsResponse; compact: boolean }) {
+  return (
+    <>
+      <StatTile compact={compact} icon={Briefcase} label="Applications" value={String(stats.totalApplications)} />
+      <StatTile compact={compact} icon={TrendingUp} label="Response rate" value={formatPercent(stats.responseRate)} />
+      <StatTile compact={compact} icon={ClipboardCheck} label="OA rate" value={formatPercent(stats.oaRate)} />
+      <StatTile compact={compact} icon={Building2} label="Interview rate" value={formatPercent(stats.interviewRate)} />
+      <StatTile compact={compact} icon={Trophy} label="Offer rate" value={formatPercent(stats.offerRate)} />
+      <StatTile
+        compact={compact}
+        icon={Clock}
+        label="Avg. days to first response"
+        value={stats.avgDaysToFirstResponse !== null ? stats.avgDaysToFirstResponse.toFixed(1) : "—"}
+      />
+    </>
+  );
+}
+
+function PipelineEmptyState({ readOnly, fillHeight = false }: { readOnly: boolean; fillHeight?: boolean }) {
+  return (
+    <div
+      className={`relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-dashed border-surface-border bg-surface/40 p-10 text-center ${
+        fillHeight ? "h-full w-full" : ""
+      }`}
+    >
+      <SankeySkeleton />
+      <div className="relative flex flex-col items-center gap-3">
+        <Briefcase size={40} className="text-muted/40" />
+        <p className="text-sm text-muted">Add an application and log a status update to see your pipeline here.</p>
+        {!readOnly && (
+          <Link href="/applications/new">
+            <Button variant="secondary" className="mt-2">
+              + Add First Application
+            </Button>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ApplicationsList({
+  applications,
+  readOnly,
+  basePath,
+  limit,
+  compact = false,
+}: {
+  applications: ApplicationResponse[];
+  readOnly: boolean;
+  basePath: string;
+  limit: number;
+  compact?: boolean;
+}) {
+  if (applications.length === 0) {
+    return (
+      <p className="mt-2 text-sm text-muted">
+        No applications logged yet.{" "}
+        {!readOnly && (
+          <Link href="/applications/new" className="font-medium text-brand hover:underline">
+            Add one now
+          </Link>
+        )}
+      </p>
+    );
+  }
+
+  return (
+    <ul className={`divide-y divide-surface-border ${compact ? "mt-2" : "mt-4"}`}>
+      {applications.slice(0, limit).map((app) => (
+        <li key={app.id}>
+          <Link
+            href={`${basePath}/${app.id}`}
+            className={`flex items-center justify-between gap-3 text-sm hover:bg-brand/5 ${
+              compact ? "px-3 py-2" : "px-4 py-3"
+            }`}
+          >
+            <span className="min-w-0 truncate text-foreground">
+              {app.role} · {app.company}
+            </span>
+            <StatusBadge status={app.currentStatus} />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function DashboardView({ stats, applications, readOnly, fitViewport = false }: Props) {
   const basePath = readOnly ? "/demo/applications" : "/applications";
+  const applicationsHeading = readOnly ? "Sample applications" : "Your applications";
+
+  if (fitViewport) {
+    return (
+      <div className="grid grid-cols-12 gap-6 md:h-full">
+        <div className="col-span-12 flex flex-col gap-3 md:col-span-3 md:h-full">
+          <div className="grid grid-cols-2 gap-3">
+            <StatTiles stats={stats} compact />
+          </div>
+          {/* Fills the leftover height below the stats grid (the right column's Pipeline +
+              Applications cards are taller than 6 compact tiles) with something actually
+              useful, rather than stretching the tiles themselves into oversized boxes. */}
+          <div className="card flex flex-1 flex-col gap-2 p-4">
+            <h2 className="shrink-0 text-sm font-medium text-muted">Quick actions</h2>
+            <div className="flex flex-1 flex-col gap-3">
+              <Link
+                href="/applications"
+                className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]"
+              >
+                <ListChecks size={16} className="text-brand" />
+                View all applications
+              </Link>
+              <Link
+                href="/profile"
+                className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]"
+              >
+                <FileText size={16} className="text-brand" />
+                Update your resume
+              </Link>
+              <ReportProblemButton variant="action" />
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-12 flex flex-col gap-6 md:col-span-9 md:h-full">
+          {/* Proportional (flex-grow), not a fixed pixel height - a hardcoded height here
+              only ever fits the handful of screen sizes it was eyeballed against; this way
+              the two cards always divide whatever space the viewport actually has to give,
+              on any monitor, without either one ever getting clipped. */}
+          <div className="min-h-[220px] flex-[1.9] md:min-h-0">
+            {stats.sankeyLinks.length === 0 ? (
+              <PipelineEmptyState readOnly={readOnly} fillHeight />
+            ) : (
+              <SankeyChart links={stats.sankeyLinks} fillHeight />
+            )}
+          </div>
+
+          <div className="card flex min-h-[140px] flex-1 flex-col p-4 md:min-h-0">
+            <h2 className="shrink-0 text-sm font-medium text-muted">{applicationsHeading}</h2>
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <ApplicationsList
+                applications={applications}
+                readOnly={readOnly}
+                basePath={basePath}
+                limit={5}
+                compact
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <StatTile icon={Briefcase} label="Applications" value={String(stats.totalApplications)} />
-        <StatTile icon={TrendingUp} label="Response rate" value={formatPercent(stats.responseRate)} />
-        <StatTile icon={ClipboardCheck} label="OA rate" value={formatPercent(stats.oaRate)} />
-        <StatTile icon={Building2} label="Onsite rate" value={formatPercent(stats.onsiteRate)} />
-        <StatTile icon={Trophy} label="Offer rate" value={formatPercent(stats.offerRate)} />
-        <StatTile
-          icon={Clock}
-          label="Avg. days to first response"
-          value={stats.avgDaysToFirstResponse !== null ? stats.avgDaysToFirstResponse.toFixed(1) : "—"}
-        />
+        <StatTiles stats={stats} compact={false} />
       </div>
 
       <div>
         <h2 className="text-sm font-medium text-muted">Pipeline</h2>
         <div className="mt-2">
           {stats.sankeyLinks.length === 0 ? (
-            <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-dashed border-surface-border bg-surface/40 p-10 text-center">
-              <SankeySkeleton />
-              <div className="relative flex flex-col items-center gap-3">
-                <Briefcase size={40} className="text-muted/40" />
-                <p className="text-sm text-muted">
-                  Add an application and log a status update to see your pipeline here.
-                </p>
-                {!readOnly && (
-                  <Link href="/applications/new">
-                    <Button variant="secondary" className="mt-2">
-                      + Add First Application
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
+            <PipelineEmptyState readOnly={readOnly} />
           ) : (
             <SankeyChart links={stats.sankeyLinks} />
           )}
@@ -85,41 +216,14 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
 
       <div className="card p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-muted">
-            {readOnly ? "Sample applications" : "Your applications"}
-          </h2>
+          <h2 className="text-sm font-medium text-muted">{applicationsHeading}</h2>
           {!readOnly && (
             <Link href="/applications" className="text-sm font-medium text-brand hover:underline">
               View all
             </Link>
           )}
         </div>
-        {applications.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">
-            No applications logged yet.{" "}
-            {!readOnly && (
-              <Link href="/applications/new" className="font-medium text-brand hover:underline">
-                Add one now
-              </Link>
-            )}
-          </p>
-        ) : (
-          <ul className="mt-4 divide-y divide-surface-border">
-            {applications.slice(0, 8).map((app) => (
-              <li key={app.id}>
-                <Link
-                  href={`${basePath}/${app.id}`}
-                  className="flex items-center justify-between px-4 py-3 text-sm hover:bg-brand/5"
-                >
-                  <span className="text-foreground">
-                    {app.role} · {app.company}
-                  </span>
-                  <StatusBadge status={app.currentStatus} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ApplicationsList applications={applications} readOnly={readOnly} basePath={basePath} limit={8} />
       </div>
     </div>
   );

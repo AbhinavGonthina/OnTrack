@@ -2,9 +2,12 @@ export type ApplicationStatus =
   | "APPLIED"
   | "OA"
   | "PHONE_SCREEN"
-  | "ONSITE_FINAL"
+  | "INTERVIEW"
   | "OFFER"
   | "REJECTED";
+
+export type InterviewType = "TECHNICAL" | "BEHAVIORAL" | "BOTH";
+export type InterviewFormat = "ONLINE" | "IN_PERSON";
 
 export interface AuthResponse {
   token: string;
@@ -38,6 +41,9 @@ export interface StatusEventResponse {
   id: string;
   status: ApplicationStatus;
   rejectedFromStage: ApplicationStatus | null;
+  interviewRound: number | null;
+  interviewType: InterviewType | null;
+  interviewFormat: InterviewFormat | null;
   eventDate: string;
   createdAt: string;
 }
@@ -72,7 +78,7 @@ export interface StatsResponse {
   totalApplications: number;
   responseRate: number;
   oaRate: number;
-  onsiteRate: number;
+  interviewRate: number;
   offerRate: number;
   avgDaysToFirstResponse: number | null;
   sankeyLinks: SankeyLink[];

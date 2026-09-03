@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Inbox } from "lucide-react";
 import { ApiError, deleteApplication, getApplications } from "@/lib/api";
+import { cachedFetch, applicationsCacheKey, invalidateCache, statsCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
 import { PageContainer } from "@/components/PageContainer";
@@ -14,23 +15,23 @@ import type { ApplicationResponse } from "@/lib/types";
 
 export default function ApplicationsPage() {
   const router = useRouter();
-  const { token, isAuthenticated, logout } = useAuth();
+  const { token, isAuthenticated, isInitializing, logout } = useAuth();
 
   const [applications, setApplications] = useState<ApplicationResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isInitializing && !isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
 
-    getApplications(token)
+    cachedFetch(applicationsCacheKey(token), () => getApplications(token))
       .then((res) => {
         if (!cancelled) setApplications(res);
       })
@@ -55,6 +56,7 @@ export default function ApplicationsPage() {
     setDeletingId(id);
     try {
       await deleteApplication(token, id);
+      invalidateCache(applicationsCacheKey(token), statsCacheKey(token));
       setApplications((prev) => prev?.filter((app) => app.id !== id) ?? prev);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");

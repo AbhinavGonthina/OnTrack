@@ -151,13 +151,29 @@ class ApplicationControllerTest {
                 .thenReturn(response);
 
         String body = objectMapper.writeValueAsString(
-                new StatusEventRequest(ApplicationStatus.OA, null, LocalDate.now()));
+                new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now()));
 
         mockMvc.perform(post("/api/applications/" + appId + "/status")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType("application/json")
                         .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentStatus").value("OA"));
+    }
+
+    @Test
+    void deleteStatusEventReturnsUpdatedApplication() throws Exception {
+        UUID appId = UUID.randomUUID();
+        UUID eventId = UUID.randomUUID();
+        ApplicationResponse response = new ApplicationResponse(
+                appId, "Acme", "SWE Intern", "JD", LocalDate.now(),
+                ApplicationStatus.OA, null, null);
+        when(applicationService.deleteStatusEvent(user.getId(), appId, eventId)).thenReturn(response);
+
+        mockMvc.perform(delete("/api/applications/" + appId + "/status/" + eventId)
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentStatus").value("OA"));
     }

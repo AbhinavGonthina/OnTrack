@@ -1,6 +1,8 @@
 package com.ontrack.backend.entity;
 
 import com.ontrack.backend.enums.ApplicationStatus;
+import com.ontrack.backend.enums.InterviewFormat;
+import com.ontrack.backend.enums.InterviewType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,8 +26,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Append-only: rows are never updated, only inserted. This history is what
- * powers /api/stats and the Sankey funnel (see SPEC.md).
+ * Rows are normally only inserted, never edited - this history is what powers
+ * /api/stats and the Sankey funnel (see SPEC.md). A row can be deleted (so a user can
+ * correct a mistaken entry), which may also trigger a renumbering of the interviewRound
+ * on the remaining INTERVIEW rows for the same application - see
+ * ApplicationService#deleteStatusEvent.
  */
 @Entity
 @Table(name = "status_events")
@@ -51,6 +56,17 @@ public class StatusEvent {
     @Enumerated(EnumType.STRING)
     @Column(name = "rejected_from_stage", length = 20)
     private ApplicationStatus rejectedFromStage;
+
+    @Column(name = "interview_round")
+    private Integer interviewRound;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interview_type", length = 20)
+    private InterviewType interviewType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interview_format", length = 20)
+    private InterviewFormat interviewFormat;
 
     @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;

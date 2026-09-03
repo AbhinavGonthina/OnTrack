@@ -25,6 +25,7 @@ import {
   Rocket,
   type LucideIcon,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { useBackendWake } from "@/context/BackendWakeContext";
 import { Button } from "@/components/Button";
 import { DotGridBackground } from "@/components/DotGridBackground";
@@ -93,6 +94,7 @@ const FLOATING_ICONS: FloatingIconConfig[] = [
 ];
 
 export default function LandingPage() {
+  const { isAuthenticated } = useAuth();
   const { startWaking } = useBackendWake();
 
   return (
@@ -117,11 +119,11 @@ export default function LandingPage() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link
-              href="/login"
+              href={isAuthenticated ? "/dashboard" : "/login"}
               onClick={startWaking}
               className="text-sm font-medium text-muted hover:text-foreground"
             >
-              Log In
+              {isAuthenticated ? "Dashboard" : "Log In"}
             </Link>
           </div>
         </motion.nav>

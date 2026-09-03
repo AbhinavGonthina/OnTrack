@@ -3,21 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, createApplication, type ApplicationInput } from "@/lib/api";
+import { applicationsCacheKey, invalidateCache, statsCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
 import { ApplicationForm } from "@/components/ApplicationForm";
 
 export default function NewApplicationPage() {
   const router = useRouter();
-  const { token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated, isInitializing } = useAuth();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isInitializing && !isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isInitializing, isAuthenticated, router]);
 
   async function handleSubmit(input: ApplicationInput) {
     if (!token) return;
@@ -25,6 +26,7 @@ export default function NewApplicationPage() {
     setIsSubmitting(true);
     try {
       const created = await createApplication(token, input);
+      invalidateCache(applicationsCacheKey(token), statsCacheKey(token));
       router.push(`/applications/${created.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");

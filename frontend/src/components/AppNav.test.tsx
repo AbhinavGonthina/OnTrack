@@ -25,6 +25,7 @@ describe("AppNav", () => {
       token: null,
       user: null,
       isAuthenticated: false,
+      isInitializing: false,
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -42,6 +43,7 @@ describe("AppNav", () => {
       token: "t",
       user: { id: "1", email: "person@example.com" },
       isAuthenticated: true,
+      isInitializing: false,
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -59,6 +61,7 @@ describe("AppNav", () => {
       token: "t",
       user: { id: "1", email: "person@example.com" },
       isAuthenticated: true,
+      isInitializing: false,
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -80,6 +83,7 @@ describe("AppNav", () => {
       token: "t",
       user: { id: "1", email: "person@example.com" },
       isAuthenticated: true,
+      isInitializing: false,
       login: vi.fn(),
       logout,
     });

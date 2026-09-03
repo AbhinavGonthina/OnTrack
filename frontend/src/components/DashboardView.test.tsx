@@ -1,13 +1,24 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { DashboardView } from "./DashboardView";
+import { useAuth } from "../context/AuthContext";
+import { usePathname } from "next/navigation";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
+
+vi.mock("../context/AuthContext", () => ({
+  useAuth: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: vi.fn(),
+  useRouter: vi.fn(),
+}));
 
 const baseStats: StatsResponse = {
   totalApplications: 3,
   responseRate: 66.7,
   oaRate: 33.3,
-  onsiteRate: 0,
+  interviewRate: 0,
   offerRate: 0,
   avgDaysToFirstResponse: 5.2,
   sankeyLinks: [],
@@ -89,5 +100,21 @@ describe("DashboardView", () => {
 
     expect(screen.getByText("Your applications")).toBeInTheDocument();
     expect(screen.getByText("View all")).toHaveAttribute("href", "/applications");
+  });
+
+  test("the zero-scroll dashboard layout shows a 'Report a problem' quick action", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(usePathname).mockReturnValue("/dashboard");
+
+    render(<DashboardView stats={baseStats} applications={[]} readOnly={false} fitViewport />);
+
+    expect(screen.getByText("Report a problem")).toBeInTheDocument();
   });
 });

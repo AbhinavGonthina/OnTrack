@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,6 +102,26 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(new LoginRequest("person@example.com", "password123"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("fake-jwt"));
+    }
+
+    @Test
+    void loginSetsAnHttpOnlySessionCookieMatchingTheToken() throws Exception {
+        AuthResponse response = new AuthResponse("fake-jwt", UUID.randomUUID(), "person@example.com");
+        when(authService.login(any(LoginRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new LoginRequest("person@example.com", "password123"))))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value("ontrack_session", "fake-jwt"))
+                .andExpect(cookie().httpOnly("ontrack_session", true));
+    }
+
+    @Test
+    void logoutClearsTheSessionCookie() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("ontrack_session", 0));
     }
 
     @Test

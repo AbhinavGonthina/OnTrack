@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler({ApplicationNotFoundException.class, NoteNotFoundException.class})
+    @ExceptionHandler({ApplicationNotFoundException.class, NoteNotFoundException.class, StatusEventNotFoundException.class})
     public ResponseEntity<Map<String, Object>> handleNotFound(RuntimeException ex) {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }

@@ -41,7 +41,7 @@ public class StatsService {
                 total,
                 percentage(funnel.responded(), total),
                 percentage(funnel.reachedOa(), total),
-                percentage(funnel.reachedOnsite(), total),
+                percentage(funnel.reachedInterview(), total),
                 percentage(funnel.reachedOffer(), total),
                 avgDays,
                 links
@@ -55,7 +55,7 @@ public class StatsService {
         return count == null ? 0 : count;
     }
 
-    private record FunnelCounts(int responded, int reachedOa, int reachedOnsite, int reachedOffer) {
+    private record FunnelCounts(int responded, int reachedOa, int reachedInterview, int reachedOffer) {
     }
 
     /**
@@ -69,14 +69,14 @@ public class StatsService {
                 SELECT
                     COUNT(*) FILTER (WHERE has_response) AS responded,
                     COUNT(*) FILTER (WHERE reached_oa) AS reached_oa,
-                    COUNT(*) FILTER (WHERE reached_onsite) AS reached_onsite,
+                    COUNT(*) FILTER (WHERE reached_interview) AS reached_interview,
                     COUNT(*) FILTER (WHERE reached_offer) AS reached_offer
                 FROM (
                     SELECT
                         a.id,
                         EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status <> 'APPLIED') AS has_response,
-                        EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status IN ('OA','PHONE_SCREEN','ONSITE_FINAL','OFFER')) AS reached_oa,
-                        EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status IN ('ONSITE_FINAL','OFFER')) AS reached_onsite,
+                        EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status IN ('OA','PHONE_SCREEN','INTERVIEW','OFFER')) AS reached_oa,
+                        EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status IN ('INTERVIEW','OFFER')) AS reached_interview,
                         EXISTS (SELECT 1 FROM status_events se WHERE se.application_id = a.id AND se.status = 'OFFER') AS reached_offer
                     FROM applications a
                     WHERE a.user_id = :userId
@@ -85,7 +85,7 @@ public class StatsService {
         FunnelCounts result = jdbc.queryForObject(sql, params, (rs, rowNum) -> new FunnelCounts(
                 rs.getInt("responded"),
                 rs.getInt("reached_oa"),
-                rs.getInt("reached_onsite"),
+                rs.getInt("reached_interview"),
                 rs.getInt("reached_offer")
         ));
         return result == null ? new FunnelCounts(0, 0, 0, 0) : result;
@@ -110,30 +110,43 @@ public class StatsService {
     }
 
     /**
-     * One link per observed transition between consecutive StatusEvents for
-     * the same application (via LAG()), so this naturally captures both
-     * forward progress (e.g. OA -> PHONE_SCREEN) and rejections
-     * (e.g. OA -> REJECTED_OA) in one uniform pass, without needing to treat
-     * rejected_from_stage as a special case.
+     * One link per observed transition between consecutive StatusEvents for the same
+     * application (via LAG()), so this naturally captures both forward progress
+     * (e.g. OA -> PHONE_SCREEN) and rejections (e.g. OA -> REJECTED_OA) in one uniform
+     * pass, without needing to treat rejected_from_stage as a special case.
+     *
+     * Each INTERVIEW event is keyed by its global interview_round ("INTERVIEW_1",
+     * "INTERVIEW_2", ...) rather than the bare status, so distinct rounds become distinct,
+     * chronologically-ordered chart nodes - without this, an applicant with multiple
+     * interview rounds (e.g. Technical then Behavioral then Technical again) would produce
+     * both an INTERVIEW->INTERVIEW... transition and its reverse, a real cycle that crashes
+     * the Sankey chart (which can only render a DAG). A REJECTED target strips any round
+     * suffix from its source first, so rejections collapse into one "Rejected (Interview)"
+     * sink node rather than one per round - safe regardless, since a terminal sink node has
+     * no outgoing edges and so can never itself be part of a cycle.
      */
     private List<SankeyLink> computeSankeyLinks(MapSqlParameterSource params) {
         String sql = """
                 WITH ordered AS (
                     SELECT
-                        se.status,
-                        LAG(se.status) OVER (PARTITION BY se.application_id ORDER BY se.event_date, se.created_at) AS prev_status
+                        CASE WHEN se.status = 'INTERVIEW' THEN 'INTERVIEW_' || se.interview_round ELSE se.status END AS node_key,
+                        LAG(CASE WHEN se.status = 'INTERVIEW' THEN 'INTERVIEW_' || se.interview_round ELSE se.status END)
+                            OVER (PARTITION BY se.application_id ORDER BY se.event_date, se.created_at) AS prev_node_key
                     FROM status_events se
                     JOIN applications a ON a.id = se.application_id
                     WHERE a.user_id = :userId
                 )
                 SELECT
-                    prev_status AS source,
-                    CASE WHEN status = 'REJECTED' THEN 'REJECTED_' || prev_status ELSE status END AS target,
+                    prev_node_key AS source,
+                    CASE
+                        WHEN node_key = 'REJECTED' THEN 'REJECTED_' || regexp_replace(prev_node_key, '_[0-9]+$', '')
+                        ELSE node_key
+                    END AS target,
                     COUNT(*) AS value
                 FROM ordered
-                WHERE prev_status IS NOT NULL
-                GROUP BY prev_status, status
-                ORDER BY prev_status, status
+                WHERE prev_node_key IS NOT NULL
+                GROUP BY prev_node_key, node_key
+                ORDER BY prev_node_key, node_key
                 """;
         return jdbc.query(sql, params, (rs, rowNum) -> new SankeyLink(
                 rs.getString("source"),

@@ -8,8 +8,11 @@ import com.ontrack.backend.dto.ResendVerificationRequest;
 import com.ontrack.backend.dto.ResetPasswordRequest;
 import com.ontrack.backend.dto.SignupRequest;
 import com.ontrack.backend.dto.VerifyEmailRequest;
+import com.ontrack.backend.security.SessionCookie;
 import com.ontrack.backend.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final long jwtExpirationMs;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, @Value("${app.jwt.expiration-ms}") long jwtExpirationMs) {
         this.authService = authService;
+        this.jwtExpirationMs = jwtExpirationMs;
     }
 
     @PostMapping("/signup")
@@ -34,7 +39,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, SessionCookie.issue(response.token(), jwtExpirationMs).toString())
+                .body(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, SessionCookie.clear().toString())
+                .build();
     }
 
     @PostMapping("/verify-email")

@@ -35,7 +35,7 @@ class StatsServiceTest {
         assertThat(response.totalApplications()).isEqualTo(0);
         assertThat(response.responseRate()).isEqualTo(0.0);
         assertThat(response.oaRate()).isEqualTo(0.0);
-        assertThat(response.onsiteRate()).isEqualTo(0.0);
+        assertThat(response.interviewRate()).isEqualTo(0.0);
         assertThat(response.offerRate()).isEqualTo(0.0);
         assertThat(response.avgDaysToFirstResponse()).isNull();
         assertThat(response.sankeyLinks()).isEmpty();

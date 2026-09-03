@@ -5,6 +5,8 @@ import type {
   ApplicationStatus,
   AuthResponse,
   FitAnalysisResponse,
+  InterviewFormat,
+  InterviewType,
   MessageResponse,
   NoteResponse,
   StatsResponse,
@@ -15,10 +17,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export class ApiError extends Error {
   status: number;
+  /** Only set for 429s - how long the caller should wait before it's worth retrying at all. */
+  retryAfterSeconds?: number;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, retryAfterSeconds?: number) {
     super(message);
     this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -38,6 +43,10 @@ async function request<T>(
     method: options.method ?? "GET",
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    // Sends/receives the httpOnly session cookie (see AuthContext) - needed since the
+    // frontend and backend are on different origins, so the browser won't attach it by
+    // default the way it would for a same-origin request.
+    credentials: "include",
   });
 
   if (response.status === 204) {
@@ -49,7 +58,13 @@ async function request<T>(
 
   if (!response.ok) {
     const errorBody = data as ApiErrorBody | undefined;
-    throw new ApiError(response.status, errorBody?.error ?? "Something went wrong. Please try again.");
+    const retryAfterHeader = response.headers?.get("Retry-After");
+    const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : undefined;
+    throw new ApiError(
+      response.status,
+      errorBody?.error ?? "Something went wrong. Please try again.",
+      Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
+    );
   }
 
   return data as T;
@@ -57,6 +72,12 @@ async function request<T>(
 
 export function checkHealth(): Promise<void> {
   return request<void>("/actuator/health");
+}
+
+// --- Feedback ---
+
+export function submitFeedback(token: string, message: string, pageUrl: string): Promise<MessageResponse> {
+  return request("/api/feedback", { method: "POST", token, body: { message, pageUrl } });
 }
 
 // --- Auth ---
@@ -83,6 +104,17 @@ export function forgotPassword(email: string): Promise<MessageResponse> {
 
 export function resetPassword(token: string, newPassword: string): Promise<MessageResponse> {
   return request("/api/auth/reset-password", { method: "POST", body: { token, newPassword } });
+}
+
+export function logout(): Promise<void> {
+  return request("/api/auth/logout", { method: "POST" });
+}
+
+/** Exchanges the httpOnly session cookie (if still valid) for a fresh token - used once on
+ * app load to silently restore a session after a hard refresh. Rejects if there's no valid
+ * cookie, which just means "not logged in," not an error to show anyone. */
+export function getSession(): Promise<AuthResponse> {
+  return request("/api/session");
 }
 
 // --- User / profile ---
@@ -134,12 +166,18 @@ export function addStatusEvent(
   status: ApplicationStatus,
   eventDate: string,
   rejectedFromStage?: ApplicationStatus,
+  interviewType?: InterviewType,
+  interviewFormat?: InterviewFormat,
 ): Promise<ApplicationResponse> {
   return request(`/api/applications/${id}/status`, {
     method: "POST",
     token,
-    body: { status, eventDate, rejectedFromStage },
+    body: { status, eventDate, rejectedFromStage, interviewType, interviewFormat },
   });
+}
+
+export function deleteStatusEvent(token: string, id: string, eventId: string): Promise<ApplicationResponse> {
+  return request(`/api/applications/${id}/status/${eventId}`, { method: "DELETE", token });
 }
 
 // --- Notes ---

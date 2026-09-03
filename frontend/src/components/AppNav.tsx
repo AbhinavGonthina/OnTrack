@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { PageContainer } from "@/components/PageContainer";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReportProblemButton } from "@/components/ReportProblemButton";
 
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -66,6 +67,7 @@ export function AppNav() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <ReportProblemButton variant="icon" />
           {user && (
             <span
               title={user.email}

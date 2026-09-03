@@ -1,8 +1,22 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import type { ApplicationDetailResponse, ApplicationStatus, FitAnalysisResponse } from "@/lib/types";
-import { REJECTABLE_STAGES, STATUS_LABELS, STATUS_ORDER, getStatusColor } from "@/lib/statusLabels";
+import { FormEvent, useEffect, useState } from "react";
+import { ApiError } from "@/lib/api";
+import type {
+  ApplicationDetailResponse,
+  ApplicationStatus,
+  FitAnalysisResponse,
+  InterviewFormat,
+  InterviewType,
+} from "@/lib/types";
+import {
+  INTERVIEW_FORMAT_LABELS,
+  INTERVIEW_TYPE_LABELS,
+  LOGGABLE_STATUSES,
+  REJECTABLE_STAGES,
+  STATUS_LABELS,
+  getStatusColor,
+} from "@/lib/statusLabels";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 import { Button } from "@/components/Button";
 import { StatusBadge } from "@/components/Badge";
@@ -14,7 +28,10 @@ interface Props {
     status: ApplicationStatus,
     eventDate: string,
     rejectedFromStage?: ApplicationStatus,
+    interviewType?: InterviewType,
+    interviewFormat?: InterviewFormat,
   ) => Promise<void>;
+  onDeleteStatusEvent?: (eventId: string) => Promise<void>;
   onAddNote?: (text: string) => Promise<void>;
   onDeleteNote?: (noteId: string) => Promise<void>;
   onRunFitAnalysis?: () => Promise<FitAnalysisResponse>;
@@ -28,15 +45,30 @@ export function ApplicationDetailView({
   detail,
   readOnly,
   onAddStatusEvent,
+  onDeleteStatusEvent,
   onAddNote,
   onDeleteNote,
   onRunFitAnalysis,
 }: Props) {
-  const [statusValue, setStatusValue] = useState<ApplicationStatus>("APPLIED");
+  const [statusValue, setStatusValue] = useState<ApplicationStatus>("OA");
   const [rejectedFromStage, setRejectedFromStage] = useState<ApplicationStatus>("APPLIED");
+  const [interviewType, setInterviewType] = useState<InterviewType>("TECHNICAL");
+  const [interviewFormat, setInterviewFormat] = useState<InterviewFormat>("ONLINE");
   const [eventDate, setEventDate] = useState(todayIso());
   const [isSubmittingStatus, setIsSubmittingStatus] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [deletingStatusEventId, setDeletingStatusEventId] = useState<string | null>(null);
+  // After a 429, the button stays disabled for the server's own stated wait time - rapid
+  // re-clicking during a rate limit previously meant every click just fired its own request,
+  // and since the limiter's bucket refills continuously (not all at once), some of those
+  // clicks slipped through as separate, unintended submissions once the bucket recovered.
+  const [statusCooldownSeconds, setStatusCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (statusCooldownSeconds <= 0) return;
+    const id = setTimeout(() => setStatusCooldownSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [statusCooldownSeconds]);
 
   const [noteText, setNoteText] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
@@ -51,7 +83,7 @@ export function ApplicationDetailView({
 
   async function handleStatusSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!onAddStatusEvent) return;
+    if (!onAddStatusEvent || isSubmittingStatus || statusCooldownSeconds > 0) return;
     setStatusError(null);
     setIsSubmittingStatus(true);
     try {
@@ -59,11 +91,29 @@ export function ApplicationDetailView({
         statusValue,
         eventDate,
         statusValue === "REJECTED" ? rejectedFromStage : undefined,
+        statusValue === "INTERVIEW" ? interviewType : undefined,
+        statusValue === "INTERVIEW" ? interviewFormat : undefined,
       );
     } catch (err) {
       setStatusError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      if (err instanceof ApiError && err.status === 429) {
+        setStatusCooldownSeconds(err.retryAfterSeconds ?? 5);
+      }
     } finally {
       setIsSubmittingStatus(false);
+    }
+  }
+
+  async function handleDeleteStatusEvent(eventId: string) {
+    if (!onDeleteStatusEvent) return;
+    setStatusError(null);
+    setDeletingStatusEventId(eventId);
+    try {
+      await onDeleteStatusEvent(eventId);
+    } catch (err) {
+      setStatusError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setDeletingStatusEventId(null);
     }
   }
 
@@ -139,11 +189,29 @@ export function ApplicationDetailView({
                 className="absolute top-1/2 -left-[26px] h-2.5 w-2.5 -translate-y-1/2 rounded-full ring-2 ring-background"
                 style={{ background: getStatusColor(event.status) }}
               />
-              <span className="font-medium text-foreground">{STATUS_LABELS[event.status]}</span>
+              <span className="font-medium text-foreground">
+                {STATUS_LABELS[event.status]}
+                {event.interviewRound !== null && ` (Round ${event.interviewRound})`}
+              </span>
               {event.rejectedFromStage && (
                 <span className="text-muted">(from {STATUS_LABELS[event.rejectedFromStage]})</span>
               )}
+              {event.interviewType && (
+                <span className="text-muted">
+                  {INTERVIEW_TYPE_LABELS[event.interviewType]}
+                  {event.interviewFormat && ` · ${INTERVIEW_FORMAT_LABELS[event.interviewFormat]}`}
+                </span>
+              )}
               <span className="text-muted">{event.eventDate}</span>
+              {onDeleteStatusEvent && event.status !== "APPLIED" && (
+                <button
+                  onClick={() => handleDeleteStatusEvent(event.id)}
+                  disabled={deletingStatusEventId === event.id}
+                  className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+                >
+                  {deletingStatusEventId === event.id ? "Deleting…" : "Delete"}
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -157,7 +225,7 @@ export function ApplicationDetailView({
                 onChange={(e) => setStatusValue(e.target.value as ApplicationStatus)}
                 className={FIELD_CLASSNAME}
               >
-                {STATUS_ORDER.map((status) => (
+                {LOGGABLE_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {STATUS_LABELS[status]}
                   </option>
@@ -180,6 +248,38 @@ export function ApplicationDetailView({
                 </select>
               </label>
             )}
+            {statusValue === "INTERVIEW" && (
+              <>
+                <label className="flex flex-col gap-1 text-xs text-foreground">
+                  Interview type
+                  <select
+                    value={interviewType}
+                    onChange={(e) => setInterviewType(e.target.value as InterviewType)}
+                    className={FIELD_CLASSNAME}
+                  >
+                    {(Object.keys(INTERVIEW_TYPE_LABELS) as InterviewType[]).map((type) => (
+                      <option key={type} value={type}>
+                        {INTERVIEW_TYPE_LABELS[type]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-foreground">
+                  Format
+                  <select
+                    value={interviewFormat}
+                    onChange={(e) => setInterviewFormat(e.target.value as InterviewFormat)}
+                    className={FIELD_CLASSNAME}
+                  >
+                    {(Object.keys(INTERVIEW_FORMAT_LABELS) as InterviewFormat[]).map((format) => (
+                      <option key={format} value={format}>
+                        {INTERVIEW_FORMAT_LABELS[format]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
             <label className="flex flex-col gap-1 text-xs text-foreground">
               Date
               <input
@@ -189,8 +289,16 @@ export function ApplicationDetailView({
                 className={FIELD_CLASSNAME}
               />
             </label>
-            <Button type="submit" disabled={isSubmittingStatus} className="text-sm">
-              {isSubmittingStatus ? "Adding…" : "Add update"}
+            <Button
+              type="submit"
+              disabled={isSubmittingStatus || statusCooldownSeconds > 0}
+              className="text-sm"
+            >
+              {isSubmittingStatus
+                ? "Adding…"
+                : statusCooldownSeconds > 0
+                  ? `Try again in ${statusCooldownSeconds}s`
+                  : "Add update"}
             </Button>
           </form>
         ) : (

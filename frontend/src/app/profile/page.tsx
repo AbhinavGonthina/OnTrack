@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, getProfile, updateResume } from "@/lib/api";
+import { cachedFetch, invalidateCache, profileCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/Button";
 import { PageContainer } from "@/components/PageContainer";
@@ -11,7 +12,7 @@ import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { token, isAuthenticated, logout } = useAuth();
+  const { token, isAuthenticated, isInitializing, logout } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -20,16 +21,16 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isInitializing && !isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
 
-    getProfile(token)
+    cachedFetch(profileCacheKey(token), () => getProfile(token))
       .then((profile) => {
         if (cancelled) return;
         setResumeText(profile.resumeText ?? "");
@@ -59,6 +60,7 @@ export default function ProfilePage() {
     setIsSubmitting(true);
     try {
       await updateResume(token, resumeText);
+      invalidateCache(profileCacheKey(token));
       setSaved(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");

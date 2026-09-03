@@ -15,7 +15,7 @@ import { AuthInput } from "@/components/AuthInput";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, isAuthenticated, isInitializing } = useAuth();
   const { status, isSlow, startWaking, waitUntilAwake } = useBackendWake();
 
   const [email, setEmail] = useState("");
@@ -32,6 +32,15 @@ export default function LoginPage() {
     // full-screen WakingUpNotice swap - it only shows for a genuine cold start.
     startWaking();
   }, [startWaking]);
+
+  useEffect(() => {
+    // Landing here while an existing session is still valid (e.g. the "Log In" link was
+    // clicked before the session-rehydrate check resolved, or the page was reached directly)
+    // should go straight into the app rather than showing the form again.
+    if (!isInitializing && isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isInitializing, isAuthenticated, router]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -9,10 +9,15 @@ public class EmailService {
 
     private final ResendClient resendClient;
     private final String frontendUrl;
+    private final String feedbackRecipientEmail;
 
-    public EmailService(ResendClient resendClient, @Value("${app.frontend-url}") String frontendUrl) {
+    public EmailService(
+            ResendClient resendClient,
+            @Value("${app.frontend-url}") String frontendUrl,
+            @Value("${app.feedback.recipient-email}") String feedbackRecipientEmail) {
         this.resendClient = resendClient;
         this.frontendUrl = frontendUrl;
+        this.feedbackRecipientEmail = feedbackRecipientEmail;
     }
 
     public void sendVerificationEmail(String toEmail, String rawToken) {
@@ -32,5 +37,16 @@ public class EmailService {
                 "We received a request to reset your OnTrack password. Open this link to choose a new one:\n\n"
                         + link
                         + "\n\nThis link expires in 30 minutes. If you didn't request this, you can ignore this email.");
+    }
+
+    /**
+     * The recipient is a fixed address read from config (never sent to or hardcoded in the
+     * frontend) so reporters can't see who actually receives these.
+     */
+    public void sendFeedbackEmail(String reporterEmail, String message, String pageUrl) {
+        resendClient.send(
+                feedbackRecipientEmail,
+                "OnTrack feedback from " + reporterEmail,
+                "From: " + reporterEmail + "\nPage: " + pageUrl + "\n\n" + message);
     }
 }
