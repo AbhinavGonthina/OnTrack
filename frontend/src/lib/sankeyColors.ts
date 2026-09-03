@@ -5,7 +5,7 @@
 
 import type { SankeyLink } from "@/lib/types";
 
-const STAGE_ORDER = ["APPLIED", "OA", "PHONE_SCREEN", "INTERVIEW", "OFFER"] as const;
+const STAGE_ORDER = ["APPLIED", "OA", "PHONE_SCREEN", "INTERVIEW", "OFFER", "ACCEPTED", "DECLINED"] as const;
 
 const PROGRESS_COLORS: Record<string, string> = {
   APPLIED: "var(--pipeline-1)",
@@ -21,6 +21,11 @@ const PROGRESS_COLORS: Record<string, string> = {
 // always ships with a text label too, never color alone.
 export const STATUS_GOOD = "#059669";
 export const STATUS_CRITICAL = "#e11d48";
+// Declining an offer isn't a loss the way a rejection is - it's the applicant's own call -
+// so it gets a deliberately desaturated gray rather than red or green. The validator's
+// chroma-floor check doesn't apply to a lone status color (it's scoped to categorical
+// palettes); WCAG contrast against both surfaces is what was actually checked here.
+export const STATUS_NEUTRAL = "#71717a";
 
 const STAGE_LABELS: Record<string, string> = {
   APPLIED: "Applied",
@@ -28,6 +33,8 @@ const STAGE_LABELS: Record<string, string> = {
   PHONE_SCREEN: "Phone Screen",
   INTERVIEW: "Interview",
   OFFER: "Offer",
+  ACCEPTED: "Accepted",
+  DECLINED: "Declined",
 };
 
 const INTERVIEW_ROUND_PATTERN = /^INTERVIEW_(\d+)$/;
@@ -43,7 +50,8 @@ export function isRejectedNode(name: string): boolean {
 }
 
 export function getNodeColor(name: string): string {
-  if (name === "OFFER") return STATUS_GOOD;
+  if (name === "OFFER" || name === "ACCEPTED") return STATUS_GOOD;
+  if (name === "DECLINED") return STATUS_NEUTRAL;
   if (isRejectedNode(name)) return STATUS_CRITICAL;
   if (interviewRoundOf(name) !== null) return PROGRESS_COLORS.INTERVIEW;
   return PROGRESS_COLORS[name] ?? "#898781";

@@ -13,6 +13,7 @@ import {
   INTERVIEW_FORMAT_LABELS,
   INTERVIEW_TYPE_LABELS,
   LOGGABLE_STATUSES,
+  OFFER_RESPONSE_STATUSES,
   REJECTABLE_STAGES,
   STATUS_LABELS,
   getStatusColor,
@@ -20,6 +21,7 @@ import {
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 import { Button } from "@/components/Button";
 import { StatusBadge } from "@/components/Badge";
+import { OfferCelebration } from "@/components/OfferCelebration";
 
 interface Props {
   detail: ApplicationDetailResponse;
@@ -50,7 +52,18 @@ export function ApplicationDetailView({
   onDeleteNote,
   onRunFitAnalysis,
 }: Props) {
-  const [statusValue, setStatusValue] = useState<ApplicationStatus>("OA");
+  const [statusValue, setStatusValue] = useState<ApplicationStatus>(
+    detail.currentStatus === "OFFER" ? "ACCEPTED" : "OA",
+  );
+  // Once an Offer is logged, Accepted/Declined are the only legal next statuses - this keeps
+  // the dropdown's selected value in sync (via the "adjust state during render" pattern,
+  // rather than an effect) so it never silently points at an option that's no longer in the
+  // now-narrower list.
+  const [statusValueTrackedStatus, setStatusValueTrackedStatus] = useState(detail.currentStatus);
+  if (detail.currentStatus !== statusValueTrackedStatus) {
+    setStatusValueTrackedStatus(detail.currentStatus);
+    setStatusValue(detail.currentStatus === "OFFER" ? "ACCEPTED" : "OA");
+  }
   const [rejectedFromStage, setRejectedFromStage] = useState<ApplicationStatus>("APPLIED");
   const [interviewType, setInterviewType] = useState<InterviewType>("TECHNICAL");
   const [interviewFormat, setInterviewFormat] = useState<InterviewFormat>("ONLINE");
@@ -63,6 +76,7 @@ export function ApplicationDetailView({
   // and since the limiter's bucket refills continuously (not all at once), some of those
   // clicks slipped through as separate, unintended submissions once the bucket recovered.
   const [statusCooldownSeconds, setStatusCooldownSeconds] = useState(0);
+  const [showOfferCelebration, setShowOfferCelebration] = useState(false);
 
   useEffect(() => {
     if (statusCooldownSeconds <= 0) return;
@@ -94,6 +108,9 @@ export function ApplicationDetailView({
         statusValue === "INTERVIEW" ? interviewType : undefined,
         statusValue === "INTERVIEW" ? interviewFormat : undefined,
       );
+      if (statusValue === "OFFER") {
+        setShowOfferCelebration(true);
+      }
     } catch (err) {
       setStatusError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       if (err instanceof ApiError && err.status === 429) {
@@ -159,6 +176,7 @@ export function ApplicationDetailView({
 
   return (
     <div className="flex flex-col gap-8">
+      {showOfferCelebration && <OfferCelebration onDone={() => setShowOfferCelebration(false)} />}
       {readOnly && (
         <p className="rounded-lg bg-brand/10 px-3 py-2 text-xs text-brand">
           You&apos;re viewing a sample application. Sign up to track your own.
@@ -225,7 +243,7 @@ export function ApplicationDetailView({
                 onChange={(e) => setStatusValue(e.target.value as ApplicationStatus)}
                 className={FIELD_CLASSNAME}
               >
-                {LOGGABLE_STATUSES.map((status) => (
+                {(detail.currentStatus === "OFFER" ? OFFER_RESPONSE_STATUSES : LOGGABLE_STATUSES).map((status) => (
                   <option key={status} value={status}>
                     {STATUS_LABELS[status]}
                   </option>

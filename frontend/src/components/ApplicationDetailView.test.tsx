@@ -118,6 +118,36 @@ describe("ApplicationDetailView", () => {
     expect(screen.getByText(/Technical.*Online/)).toBeInTheDocument();
   });
 
+  test("submitting an OFFER status shows the offer celebration", async () => {
+    const onAddStatusEvent = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
+
+    await user.selectOptions(screen.getByLabelText("New status"), "OFFER");
+    await user.click(screen.getByText("Add update"));
+
+    await waitFor(() => expect(screen.getByText("Congratulations on your offer!")).toBeInTheDocument());
+  });
+
+  test("the New status dropdown only offers Accepted/Declined once the application is at Offer", () => {
+    const offeredDetail: ApplicationDetailResponse = { ...detail, currentStatus: "OFFER" };
+    render(<ApplicationDetailView detail={offeredDetail} readOnly={false} onAddStatusEvent={vi.fn()} />);
+
+    const options = screen.getAllByRole("option").map((option) => option.textContent);
+    expect(options).toEqual(["Accepted", "Declined"]);
+  });
+
+  test("submitting Accepted once at Offer calls onAddStatusEvent", async () => {
+    const onAddStatusEvent = vi.fn().mockResolvedValue(undefined);
+    const offeredDetail: ApplicationDetailResponse = { ...detail, currentStatus: "OFFER" };
+    const user = userEvent.setup();
+    render(<ApplicationDetailView detail={offeredDetail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
+
+    await user.click(screen.getByText("Add update"));
+
+    expect(onAddStatusEvent.mock.calls[0][0]).toBe("ACCEPTED");
+  });
+
   test("shows an error message if the status update fails", async () => {
     const onAddStatusEvent = vi.fn().mockRejectedValue(new Error("Rate limit exceeded"));
     const user = userEvent.setup();

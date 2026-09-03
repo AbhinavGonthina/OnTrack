@@ -183,8 +183,8 @@ export default function LandingPage() {
               <Link href="/demo" onClick={startWaking}>
                 <Button variant="primary">Try Demo</Button>
               </Link>
-              <Link href="/signup" onClick={startWaking}>
-                <Button variant="secondary">Sign Up Free</Button>
+              <Link href={isAuthenticated ? "/dashboard" : "/signup"} onClick={startWaking}>
+                <Button variant="secondary">{isAuthenticated ? "View Dashboard" : "Sign Up Free"}</Button>
               </Link>
             </motion.div>
           </motion.div>

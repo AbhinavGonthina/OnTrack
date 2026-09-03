@@ -37,6 +37,14 @@ describe("getNodeColor", () => {
   test("falls back to a neutral color for an unrecognized name", () => {
     expect(getNodeColor("SOMETHING_UNEXPECTED")).toBe("#898781");
   });
+
+  test("accepted gets the same fixed status-good color as offer", () => {
+    expect(getNodeColor("ACCEPTED")).toBe("#059669");
+  });
+
+  test("declined gets the fixed status-neutral color", () => {
+    expect(getNodeColor("DECLINED")).toBe("#71717a");
+  });
 });
 
 describe("getNodeLabel", () => {
@@ -61,6 +69,11 @@ describe("orderNodeNames", () => {
   test("orders progress stages before their rejected variants, funnel-order", () => {
     const names = new Set(["REJECTED_OA", "OFFER", "APPLIED", "OA"]);
     expect(orderNodeNames(names)).toEqual(["APPLIED", "OA", "OFFER", "REJECTED_OA"]);
+  });
+
+  test("orders Accepted/Declined right after Offer", () => {
+    const names = new Set(["OFFER", "DECLINED", "ACCEPTED", "APPLIED"]);
+    expect(orderNodeNames(names)).toEqual(["APPLIED", "OFFER", "ACCEPTED", "DECLINED"]);
   });
 
   test("expands round-numbered interview nodes in numeric order, between Phone Screen and Offer", () => {

@@ -6,5 +6,7 @@ public enum ApplicationStatus {
     PHONE_SCREEN,
     INTERVIEW,
     OFFER,
+    ACCEPTED,
+    DECLINED,
     REJECTED
 }

@@ -5,7 +5,15 @@ import { Sankey, ResponsiveContainer } from "recharts";
 import type { LinkProps, NodeProps } from "recharts/types/chart/Sankey";
 import type { SankeyLink } from "@/lib/types";
 import { useTheme } from "@/context/ThemeContext";
-import { buildSankeyData, getNodeColor, getNodeLabel, isRejectedNode, STATUS_CRITICAL, STATUS_GOOD } from "@/lib/sankeyColors";
+import {
+  buildSankeyData,
+  getNodeColor,
+  getNodeLabel,
+  isRejectedNode,
+  STATUS_CRITICAL,
+  STATUS_GOOD,
+  STATUS_NEUTRAL,
+} from "@/lib/sankeyColors";
 
 interface Props {
   links: SankeyLink[];
@@ -15,18 +23,12 @@ interface Props {
   fillHeight?: boolean;
 }
 
-interface TooltipState {
-  index: number;
-  x: number;
-  y: number;
-  value: number;
-}
-
 function SankeyNode({ x, y, width, height, payload }: NodeProps) {
   const name = payload.name as string;
   const color = getNodeColor(name);
   const label = getNodeLabel(name);
-  const isTerminal = name === "APPLIED" || name === "OFFER" || isRejectedNode(name);
+  const isTerminal =
+    name === "APPLIED" || name === "OFFER" || name === "ACCEPTED" || name === "DECLINED" || isRejectedNode(name);
 
   // Interior stage nodes (OA, Phone Screen, Onsite) are narrow and packed close together
   // with no side margin reserved for a label - placed above instead of beside so longer
@@ -71,13 +73,14 @@ function buildLinkPath(props: LinkProps): string {
 
 export function SankeyChart({ links, fillHeight = false }: Props) {
   const { theme } = useTheme();
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const data = useMemo(() => buildSankeyData(links), [links]);
 
   return (
     <div className={`card relative ${fillHeight ? "flex h-full flex-col p-6" : "p-4"}`}>
-      <div className={fillHeight ? "min-h-0 flex-1" : ""}>
+      <h2 className="shrink-0 text-sm font-medium text-muted">Pipeline</h2>
+      <div className={fillHeight ? "mt-3 min-h-0 flex-1" : "mt-3"}>
         <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320}>
           <Sankey
             data={data}
@@ -85,25 +88,49 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
             link={(linkProps: LinkProps) => {
               const targetName = linkProps.payload.target.name as string;
               const color = getNodeColor(targetName);
-              const isActive = tooltip?.index === linkProps.index;
+              const isActive = activeIndex === linkProps.index;
+              const value = linkProps.payload.value as number;
+
+              // Nodes render on top of links (recharts draws all links, then all nodes), so
+              // a label sitting at the raw geometric midpoint of a link that skips one or
+              // more columns (e.g. an OA -> Offer flow skipping Phone Screen/Interview) would
+              // land directly behind one of those columns' opaque bars and disappear. Hugging
+              // the target end instead keeps it in the gap right before the target's own bar,
+              // which no other column ever occupies.
+              const spansMultipleColumns = linkProps.payload.target.depth - linkProps.payload.source.depth > 1;
+              const labelX = spansMultipleColumns ? linkProps.targetX - 14 : (linkProps.sourceX + linkProps.targetX) / 2;
+              const labelY = spansMultipleColumns ? linkProps.targetY : (linkProps.sourceY + linkProps.targetY) / 2;
+
               return (
-                <path
-                  d={buildLinkPath(linkProps)}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={linkProps.linkWidth}
-                  strokeOpacity={isActive ? 0.5 : 0.25}
-                  style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
-                  onMouseEnter={() =>
-                    setTooltip({
-                      index: linkProps.index,
-                      x: (linkProps.sourceX + linkProps.targetX) / 2,
-                      y: (linkProps.sourceY + linkProps.targetY) / 2,
-                      value: linkProps.payload.value,
-                    })
-                  }
-                  onMouseLeave={() => setTooltip(null)}
-                />
+                <g
+                  onMouseEnter={() => setActiveIndex(linkProps.index)}
+                  onMouseLeave={() => setActiveIndex(null)}
+                >
+                  <path
+                    d={buildLinkPath(linkProps)}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={linkProps.linkWidth}
+                    strokeOpacity={isActive ? 0.5 : 0.25}
+                    style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
+                  />
+                  <text
+                    x={labelX}
+                    y={labelY}
+                    textAnchor={spansMultipleColumns ? "end" : "middle"}
+                    dominantBaseline="middle"
+                    paintOrder="stroke"
+                    // A fixed dark outline (not var(--surface), which is near-white in light
+                    // mode and made a white fill blend into it) so the label stays legible
+                    // over both the pale ribbon tint light mode renders and the darker one
+                    // dark mode renders, without depending on which theme is active.
+                    stroke="#18181b"
+                    strokeWidth={3}
+                    className="pointer-events-none fill-white text-[11px] font-semibold"
+                  >
+                    {value}
+                  </text>
+                </g>
               );
             }}
             nodePadding={24}
@@ -112,14 +139,6 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
           />
         </ResponsiveContainer>
       </div>
-      {tooltip && (
-        <div
-          className="card pointer-events-none absolute z-10 px-2 py-1 text-xs text-foreground shadow-sm"
-          style={{ left: tooltip.x, top: tooltip.y, transform: "translate(-50%, -130%)" }}
-        >
-          {tooltip.value} application{tooltip.value === 1 ? "" : "s"}
-        </div>
-      )}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1.5">
           <span
@@ -130,7 +149,11 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_GOOD }} />
-          Offer
+          Offer / Accepted
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_NEUTRAL }} />
+          Declined
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_CRITICAL }} />

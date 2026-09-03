@@ -68,6 +68,7 @@ function PipelineEmptyState({ readOnly, fillHeight = false }: { readOnly: boolea
         fillHeight ? "h-full w-full" : ""
       }`}
     >
+      <h2 className="absolute top-4 left-4 text-sm font-medium text-muted">Pipeline</h2>
       <SankeySkeleton />
       <div className="relative flex flex-col items-center gap-3">
         <Briefcase size={40} className="text-muted/40" />
@@ -116,7 +117,7 @@ function ApplicationsList({
         <li key={app.id}>
           <Link
             href={`${basePath}/${app.id}`}
-            className={`flex items-center justify-between gap-3 text-sm hover:bg-brand/5 ${
+            className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg text-sm transition-colors hover:bg-white/[0.02] ${
               compact ? "px-3 py-2" : "px-4 py-3"
             }`}
           >
@@ -160,7 +161,7 @@ export function DashboardView({ stats, applications, readOnly, fitViewport = fal
                 className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]"
               >
                 <FileText size={16} className="text-brand" />
-                Update your resume
+                Check your resume fit
               </Link>
               <ReportProblemButton variant="action" />
             </div>
@@ -204,14 +205,11 @@ export function DashboardView({ stats, applications, readOnly, fitViewport = fal
       </div>
 
       <div>
-        <h2 className="text-sm font-medium text-muted">Pipeline</h2>
-        <div className="mt-2">
-          {stats.sankeyLinks.length === 0 ? (
-            <PipelineEmptyState readOnly={readOnly} />
-          ) : (
-            <SankeyChart links={stats.sankeyLinks} />
-          )}
-        </div>
+        {stats.sankeyLinks.length === 0 ? (
+          <PipelineEmptyState readOnly={readOnly} />
+        ) : (
+          <SankeyChart links={stats.sankeyLinks} />
+        )}
       </div>
 
       <div className="card p-6">

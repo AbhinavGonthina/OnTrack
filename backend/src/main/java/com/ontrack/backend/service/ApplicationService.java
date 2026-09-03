@@ -42,8 +42,10 @@ public class ApplicationService {
 
     // A new status event's tier must never be lower than the application's current tier -
     // that's the "never backward" rule. Skipping stages forward is fine (real hiring
-    // processes sometimes skip a stage), and REJECTED is handled separately since it's a
-    // valid terminal branch from any non-terminal stage, not part of this ordering.
+    // processes sometimes skip a stage). REJECTED and the two offer-response statuses
+    // (ACCEPTED/DECLINED) are handled separately from this generic forward check - see
+    // validateStatusEvent - but they're still given a tier here so the date-hierarchy check
+    // below (which is generic over every status) has something to compare against.
     private static final Map<ApplicationStatus, Integer> STAGE_TIER = new EnumMap<>(ApplicationStatus.class);
 
     static {
@@ -52,6 +54,8 @@ public class ApplicationService {
         STAGE_TIER.put(ApplicationStatus.PHONE_SCREEN, 2);
         STAGE_TIER.put(ApplicationStatus.INTERVIEW, 3);
         STAGE_TIER.put(ApplicationStatus.OFFER, 4);
+        STAGE_TIER.put(ApplicationStatus.ACCEPTED, 5);
+        STAGE_TIER.put(ApplicationStatus.DECLINED, 5);
     }
 
     private final ApplicationRepository applicationRepository;
@@ -208,7 +212,9 @@ public class ApplicationService {
 
     private void validateStatusEvent(Application application, StatusEventRequest request) {
         ApplicationStatus current = application.getCurrentStatus();
-        if (current == ApplicationStatus.OFFER || current == ApplicationStatus.REJECTED) {
+        if (current == ApplicationStatus.REJECTED
+                || current == ApplicationStatus.ACCEPTED
+                || current == ApplicationStatus.DECLINED) {
             throw new InvalidStatusEventException("This application has already reached a final stage");
         }
         if (request.status() == ApplicationStatus.APPLIED) {
@@ -216,7 +222,25 @@ public class ApplicationService {
                     "APPLIED is set automatically when the application is created and can't be logged again");
         }
 
-        if (request.status() == ApplicationStatus.REJECTED) {
+        boolean isOfferResponse = request.status() == ApplicationStatus.ACCEPTED
+                || request.status() == ApplicationStatus.DECLINED;
+
+        // An Offer is the one stage that isn't itself a dead end but also isn't just another
+        // rung on the forward ladder: from here the only two next moves are accepting or
+        // declining it, never a further hiring stage and never a fresh rejection.
+        if (current == ApplicationStatus.OFFER && !isOfferResponse) {
+            throw new InvalidStatusEventException("Once an Offer is logged, the only next step is Accepted or Declined");
+        }
+        if (isOfferResponse && current != ApplicationStatus.OFFER) {
+            throw new InvalidStatusEventException(request.status() + " can only be logged after an Offer");
+        }
+
+        if (isOfferResponse) {
+            if (request.rejectedFromStage() != null || request.interviewType() != null || request.interviewFormat() != null) {
+                throw new InvalidStatusEventException(
+                        "rejectedFromStage/interviewType/interviewFormat may only be set for their own statuses");
+            }
+        } else if (request.status() == ApplicationStatus.REJECTED) {
             if (request.rejectedFromStage() == null) {
                 throw new InvalidStatusEventException("rejectedFromStage is required when status is REJECTED");
             }
@@ -261,8 +285,8 @@ public class ApplicationService {
         // must have already happened first - e.g. an Offer dated before the Phone Screen
         // that led to it doesn't make sense. REJECTED is always treated as the last thing
         // to happen, chronologically, since it's a terminal branch off of whatever stage the
-        // application had actually reached. Existing OFFER/REJECTED events are impossible to
-        // see here since either one already blocks any further event via the check above.
+        // application had actually reached. Existing terminal-stage events are impossible to
+        // see here since reaching one already blocks any further event via the check above.
         for (StatusEvent existing : statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(
                 application.getId())) {
             boolean existingIsAtOrBeforeNewStage = request.status() == ApplicationStatus.REJECTED

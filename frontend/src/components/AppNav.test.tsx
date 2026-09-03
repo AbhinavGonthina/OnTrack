@@ -38,6 +38,24 @@ describe("AppNav", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  test("renders nothing on the landing page even when authenticated - navigating back there isn't a sign-out", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
+    vi.mocked(usePathname).mockReturnValue("/");
+    vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
+
+    const { container } = render(<AppNav />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   test("renders nothing while still on the login page even once authenticated, before the redirect to /dashboard commits", () => {
     vi.mocked(useAuth).mockReturnValue({
       token: "t",
@@ -74,6 +92,7 @@ describe("AppNav", () => {
     expect(screen.getByText("P")).toBeInTheDocument();
     expect(screen.getByText("Applications")).toHaveClass("border-brand");
     expect(screen.getByText("Dashboard")).not.toHaveClass("border-brand");
+    expect(screen.getByText("OnTrack").closest("a")).toHaveAttribute("href", "/");
   });
 
   test("logout clears auth state and navigates to the landing page", async () => {

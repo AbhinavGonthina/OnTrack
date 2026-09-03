@@ -439,4 +439,93 @@ class ApplicationServiceTest {
         assertThat(roundThree.getInterviewRound()).isEqualTo(1);
         verify(statusEventRepository).saveAll(List.of(roundThree));
     }
+
+    @Test
+    void addStatusEventAcceptedWithoutAnOfferThrows() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.INTERVIEW).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+
+        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
+                .isInstanceOf(InvalidStatusEventException.class);
+    }
+
+    @Test
+    void addStatusEventDeclinedWithoutAnOfferThrows() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.APPLIED).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+
+        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
+                .isInstanceOf(InvalidStatusEventException.class);
+    }
+
+    @Test
+    void addStatusEventOfferCannotMoveToRejectedThrows() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OFFER).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+
+        StatusEventRequest request =
+                new StatusEventRequest(ApplicationStatus.REJECTED, ApplicationStatus.OA, null, null, LocalDate.now());
+
+        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
+                .isInstanceOf(InvalidStatusEventException.class);
+    }
+
+    @Test
+    void addStatusEventAcceptedAfterOfferSucceeds() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OFFER).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+        when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+        ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
+
+        assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.ACCEPTED);
+    }
+
+    @Test
+    void addStatusEventDeclinedAfterOfferSucceeds() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OFFER).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+        when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+        ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
+
+        assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.DECLINED);
+    }
+
+    @Test
+    void addStatusEventOnceAcceptedThrows() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.ACCEPTED).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+
+        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
+                .isInstanceOf(InvalidStatusEventException.class);
+    }
+
+    @Test
+    void addStatusEventOnceDeclinedThrows() {
+        UUID appId = UUID.randomUUID();
+        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.DECLINED).build();
+        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+
+        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
+                .isInstanceOf(InvalidStatusEventException.class);
+    }
 }

@@ -15,17 +15,20 @@ const LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
-// Login sets isAuthenticated synchronously, before the router.push transition to the
-// authenticated route actually completes - without this list, the nav bar would pop in
-// on top of the still-visible auth page for that brief window and shove its layout around.
-const AUTH_PATHS = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+// These pages have their own public-facing header (or, for the auth pages, none at all) and
+// should never show the authenticated app nav, even for a signed-in user who navigates back
+// to one - e.g. the landing page. (Login also sets isAuthenticated synchronously, before the
+// router.push transition to the authenticated route actually completes - without "/login"
+// etc. here, the nav bar would pop in on top of the still-visible auth page for that brief
+// window and shove its layout around.)
+const PUBLIC_ONLY_PATHS = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
 
 export function AppNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
 
-  if (!isAuthenticated || AUTH_PATHS.includes(pathname)) {
+  if (!isAuthenticated || PUBLIC_ONLY_PATHS.includes(pathname)) {
     return null;
   }
 
@@ -41,7 +44,7 @@ export function AppNav() {
     <nav className="sticky top-0 z-50 w-full border-b border-surface-border bg-surface/80 text-sm backdrop-blur-md">
       <PageContainer className="relative flex h-16 items-center justify-between">
         <Link
-          href="/dashboard"
+          href="/"
           className="flex cursor-pointer items-center gap-2 font-display text-lg font-bold text-foreground transition-opacity hover:opacity-90"
         >
           <Logo size={28} />
