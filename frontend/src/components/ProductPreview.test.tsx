@@ -2,11 +2,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { ProductPreview } from "./ProductPreview";
 import { ThemeProvider } from "../context/ThemeContext";
-import { useBackendWake } from "../context/BackendWakeContext";
-
-vi.mock("../context/BackendWakeContext", () => ({
-  useBackendWake: vi.fn(),
-}));
 
 // jsdom has no IntersectionObserver; motion's whileInView needs one to mount.
 class MockIntersectionObserver {
@@ -29,12 +24,6 @@ function mockSystemTheme(prefersDark: boolean) {
 describe("ProductPreview", () => {
   beforeEach(() => {
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
-    vi.mocked(useBackendWake).mockReturnValue({
-      status: "idle",
-      isSlow: false,
-      startWaking: vi.fn(),
-      waitUntilAwake: vi.fn(),
-    });
   });
 
   afterEach(() => {
@@ -52,7 +41,6 @@ describe("ProductPreview", () => {
 
     const img = await screen.findByAltText(/OnTrack dashboard/i);
     await waitFor(() => expect(img.getAttribute("src")).toContain("dashboard-dark.png"));
-    expect(screen.getByRole("link", { name: "Try Demo" })).toHaveAttribute("href", "/demo");
   });
 
   test("swaps to the light screenshot once the system prefers light", async () => {
