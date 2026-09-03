@@ -69,4 +69,47 @@ class GeminiClientTest {
         assertThatThrownBy(() -> geminiClient.analyzeFit("resume", "jd"))
                 .isInstanceOf(GeminiApiException.class);
     }
+
+    @Test
+    void parsesNormalizedTextFromGeminiResponse() {
+        String geminiJson = """
+                {
+                  "candidates": [{
+                    "content": {
+                      "parts": [{"text": "{\\"normalizedText\\":\\"## Experience\\\\n- Did things\\"}"}]
+                    }
+                  }]
+                }
+                """;
+        mockServer.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=fake-api-key"))
+                .andExpect(method(POST))
+                .andRespond(withSuccess(geminiJson, MediaType.APPLICATION_JSON));
+
+        GeminiNormalizeResult result = geminiClient.normalizeResume("messy raw resume text");
+
+        assertThat(result.normalizedText()).isEqualTo("## Experience\n- Did things");
+        mockServer.verify();
+    }
+
+    @Test
+    void parsesStrengthScoreAndRecommendationsFromGeminiResponse() {
+        String geminiJson = """
+                {
+                  "candidates": [{
+                    "content": {
+                      "parts": [{"text": "{\\"score\\":72,\\"recommendations\\":[\\"Add metrics\\",\\"List top skills first\\"]}"}]
+                    }
+                  }]
+                }
+                """;
+        mockServer.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=fake-api-key"))
+                .andExpect(method(POST))
+                .andRespond(withSuccess(geminiJson, MediaType.APPLICATION_JSON));
+
+        GeminiStrengthResult result = geminiClient.scoreResumeStrength("resume text");
+
+        assertThat(result.score()).isEqualTo(72);
+        assertThat(result.recommendations()).containsExactly("Add metrics", "List top skills first");
+        mockServer.verify();
+    }
 }

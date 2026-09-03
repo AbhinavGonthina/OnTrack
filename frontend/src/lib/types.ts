@@ -28,6 +28,15 @@ export interface UserResponse {
   createdAt: string;
 }
 
+export interface ResumeTextResponse {
+  resumeText: string;
+}
+
+export interface ResumeStrengthResponse {
+  score: number;
+  recommendations: string[];
+}
+
 export interface ApplicationResponse {
   id: string;
   company: string;

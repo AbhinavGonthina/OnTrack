@@ -1,25 +1,33 @@
 package com.ontrack.backend.controller;
 
+import com.ontrack.backend.dto.ResumeStrengthResponse;
+import com.ontrack.backend.dto.ResumeTextResponse;
 import com.ontrack.backend.dto.ResumeUpdateRequest;
 import com.ontrack.backend.dto.UserResponse;
 import com.ontrack.backend.entity.User;
+import com.ontrack.backend.service.ResumeAnalysisService;
 import com.ontrack.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users/me")
 public class UserController {
 
     private final UserService userService;
+    private final ResumeAnalysisService resumeAnalysisService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ResumeAnalysisService resumeAnalysisService) {
         this.userService = userService;
+        this.resumeAnalysisService = resumeAnalysisService;
     }
 
     @GetMapping
@@ -30,5 +38,22 @@ public class UserController {
     @PutMapping("/resume")
     public UserResponse updateResume(@AuthenticationPrincipal User user, @Valid @RequestBody ResumeUpdateRequest request) {
         return userService.updateResume(user, request.resumeText());
+    }
+
+    /** Extracts text from an uploaded PDF/DOCX and normalizes it via Gemini - returns the
+     * result for review; the client still calls PUT /resume separately to actually save it. */
+    @PostMapping("/resume/upload")
+    public ResumeTextResponse uploadResume(@AuthenticationPrincipal User user, @RequestParam("file") MultipartFile file) {
+        return new ResumeTextResponse(resumeAnalysisService.uploadAndNormalize(user, file));
+    }
+
+    @PostMapping("/resume/normalize")
+    public ResumeTextResponse normalizeResume(@AuthenticationPrincipal User user, @Valid @RequestBody ResumeUpdateRequest request) {
+        return new ResumeTextResponse(resumeAnalysisService.normalize(user, request.resumeText()));
+    }
+
+    @PostMapping("/resume/strength")
+    public ResumeStrengthResponse resumeStrength(@AuthenticationPrincipal User user, @Valid @RequestBody ResumeUpdateRequest request) {
+        return resumeAnalysisService.scoreStrength(user, request.resumeText());
     }
 }

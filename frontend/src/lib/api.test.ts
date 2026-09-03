@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { ApiError, createApplication, getApplications, login } from "./api";
+import {
+  ApiError,
+  createApplication,
+  getApplications,
+  getResumeStrength,
+  login,
+  normalizeResumeText,
+  uploadResume,
+} from "./api";
 
 function mockFetchOnce(response: { status: number; body?: unknown; text?: string }) {
   const text =
@@ -70,6 +78,47 @@ describe("api request()", () => {
     await expect(getApplications("a-token")).rejects.toMatchObject(
       new ApiError(500, "Something went wrong. Please try again."),
     );
+  });
+});
+
+describe("resume AI endpoints", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("uploadResume sends multipart form data with no Content-Type header", async () => {
+    mockFetchOnce({ status: 200, body: { resumeText: "extracted text" } });
+    const file = new File(["irrelevant"], "resume.pdf", { type: "application/pdf" });
+
+    const result = await uploadResume("a-token", file);
+
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe("http://localhost:8080/api/users/me/resume/upload");
+    expect(init.headers["Content-Type"]).toBeUndefined();
+    expect(init.headers["Authorization"]).toBe("Bearer a-token");
+    expect(init.body).toBeInstanceOf(FormData);
+    expect(result).toEqual({ resumeText: "extracted text" });
+  });
+
+  test("normalizeResumeText posts the resume text as JSON", async () => {
+    mockFetchOnce({ status: 200, body: { resumeText: "normalized" } });
+
+    const result = await normalizeResumeText("a-token", "messy text");
+
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe("http://localhost:8080/api/users/me/resume/normalize");
+    expect(JSON.parse(init.body)).toEqual({ resumeText: "messy text" });
+    expect(result).toEqual({ resumeText: "normalized" });
+  });
+
+  test("getResumeStrength posts the resume text and returns score/recommendations", async () => {
+    mockFetchOnce({ status: 200, body: { score: 80, recommendations: ["Add metrics"] } });
+
+    const result = await getResumeStrength("a-token", "resume text");
+
+    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe("http://localhost:8080/api/users/me/resume/strength");
+    expect(result).toEqual({ score: 80, recommendations: ["Add metrics"] });
   });
 });
 

@@ -1,16 +1,19 @@
 package com.ontrack.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ontrack.backend.dto.ResumeStrengthResponse;
 import com.ontrack.backend.dto.ResumeUpdateRequest;
 import com.ontrack.backend.dto.UserResponse;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.repository.UserRepository;
 import com.ontrack.backend.security.JwtService;
+import com.ontrack.backend.service.ResumeAnalysisService;
 import com.ontrack.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,6 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +45,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private ResumeAnalysisService resumeAnalysisService;
 
     @MockitoBean
     private JwtService jwtService;
@@ -94,5 +102,48 @@ class UserControllerTest {
                         .contentType("application/json")
                         .content(body))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void uploadResumeReturnsExtractedAndNormalizedText() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", "irrelevant".getBytes());
+        when(resumeAnalysisService.uploadAndNormalize(eq(user), any())).thenReturn("## Experience\n- Cleaned up");
+
+        mockMvc.perform(multipart("/api/users/me/resume/upload")
+                        .file(file)
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resumeText").value("## Experience\n- Cleaned up"));
+    }
+
+    @Test
+    void normalizeResumeReturnsNormalizedText() throws Exception {
+        when(resumeAnalysisService.normalize(eq(user), eq("messy text"))).thenReturn("clean text");
+        String body = objectMapper.writeValueAsString(new ResumeUpdateRequest("messy text"));
+
+        mockMvc.perform(post("/api/users/me/resume/normalize")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resumeText").value("clean text"));
+    }
+
+    @Test
+    void resumeStrengthReturnsScoreAndRecommendations() throws Exception {
+        when(resumeAnalysisService.scoreStrength(eq(user), eq("resume text")))
+                .thenReturn(new ResumeStrengthResponse(75, List.of("Add metrics")));
+        String body = objectMapper.writeValueAsString(new ResumeUpdateRequest("resume text"));
+
+        mockMvc.perform(post("/api/users/me/resume/strength")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(75))
+                .andExpect(jsonPath("$.recommendations[0]").value("Add metrics"));
     }
 }

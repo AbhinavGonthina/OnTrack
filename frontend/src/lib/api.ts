@@ -9,6 +9,8 @@ import type {
   InterviewType,
   MessageResponse,
   NoteResponse,
+  ResumeStrengthResponse,
+  ResumeTextResponse,
   StatsResponse,
   UserResponse,
 } from "./types";
@@ -25,6 +27,28 @@ export class ApiError extends Error {
     this.status = status;
     this.retryAfterSeconds = retryAfterSeconds;
   }
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : undefined;
+
+  if (!response.ok) {
+    const errorBody = data as ApiErrorBody | undefined;
+    const retryAfterHeader = response.headers?.get("Retry-After");
+    const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : undefined;
+    throw new ApiError(
+      response.status,
+      errorBody?.error ?? "Something went wrong. Please try again.",
+      Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
+    );
+  }
+
+  return data as T;
 }
 
 async function request<T>(
@@ -49,25 +73,7 @@ async function request<T>(
     credentials: "include",
   });
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : undefined;
-
-  if (!response.ok) {
-    const errorBody = data as ApiErrorBody | undefined;
-    const retryAfterHeader = response.headers?.get("Retry-After");
-    const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : undefined;
-    throw new ApiError(
-      response.status,
-      errorBody?.error ?? "Something went wrong. Please try again.",
-      Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
-    );
-  }
-
-  return data as T;
+  return parseResponse<T>(response);
 }
 
 export function checkHealth(): Promise<void> {
@@ -125,6 +131,30 @@ export function getProfile(token: string): Promise<UserResponse> {
 
 export function updateResume(token: string, resumeText: string): Promise<UserResponse> {
   return request("/api/users/me/resume", { method: "PUT", token, body: { resumeText } });
+}
+
+/** Extracts text from an uploaded PDF/DOCX and normalizes it via Gemini - the caller
+ * still calls updateResume() separately to actually persist the result. */
+export async function uploadResume(token: string, file: File): Promise<ResumeTextResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/api/users/me/resume/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+    credentials: "include",
+  });
+
+  return parseResponse<ResumeTextResponse>(response);
+}
+
+export function normalizeResumeText(token: string, resumeText: string): Promise<ResumeTextResponse> {
+  return request("/api/users/me/resume/normalize", { method: "POST", token, body: { resumeText } });
+}
+
+export function getResumeStrength(token: string, resumeText: string): Promise<ResumeStrengthResponse> {
+  return request("/api/users/me/resume/strength", { method: "POST", token, body: { resumeText } });
 }
 
 // --- Applications ---

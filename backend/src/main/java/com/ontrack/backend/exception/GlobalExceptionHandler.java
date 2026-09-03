@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -44,6 +45,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingFitAnalysisInputException.class)
     public ResponseEntity<Map<String, Object>> handleMissingFitAnalysisInput(MissingFitAnalysisInputException ex) {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidResumeFileException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidResumeFile(InvalidResumeFileException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        return error(HttpStatus.BAD_REQUEST, "File is too large - please upload a PDF or DOCX under 5MB");
     }
 
     @ExceptionHandler(GeminiApiException.class)

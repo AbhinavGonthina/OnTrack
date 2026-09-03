@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * Server-side-only Gemini client — the API key never reaches the frontend,
- * every call is proxied through this class from FitAnalysisService.
+ * every call is proxied through this class from FitAnalysisService/ResumeAnalysisService.
  */
 @Component
 public class GeminiClient {
@@ -28,7 +28,7 @@ public class GeminiClient {
     // of tree-serialized by RestClient's default message converter, since
     // this client's RestClient.Builder has none of Boot's Jackson
     // customization wired in. Plain collections avoid that ambiguity entirely.
-    private static final Map<String, Object> RESPONSE_SCHEMA = Map.of(
+    private static final Map<String, Object> FIT_SCHEMA = Map.of(
             "type", "OBJECT",
             "properties", Map.of(
                     "fitScore", Map.of("type", "INTEGER"),
@@ -36,6 +36,21 @@ public class GeminiClient {
                     "suggestedBullets", Map.of("type", "ARRAY", "items", Map.of("type", "STRING"))
             ),
             "required", List.of("fitScore", "missingKeywords", "suggestedBullets")
+    );
+
+    private static final Map<String, Object> NORMALIZE_SCHEMA = Map.of(
+            "type", "OBJECT",
+            "properties", Map.of("normalizedText", Map.of("type", "STRING")),
+            "required", List.of("normalizedText")
+    );
+
+    private static final Map<String, Object> STRENGTH_SCHEMA = Map.of(
+            "type", "OBJECT",
+            "properties", Map.of(
+                    "score", Map.of("type", "INTEGER"),
+                    "recommendations", Map.of("type", "ARRAY", "items", Map.of("type", "STRING"))
+            ),
+            "required", List.of("score", "recommendations")
     );
 
     private final RestClient restClient;
@@ -57,11 +72,23 @@ public class GeminiClient {
     }
 
     public GeminiFitResult analyzeFit(String resumeText, String jobDescriptionText) {
+        return call(buildFitPrompt(resumeText, jobDescriptionText), FIT_SCHEMA, GeminiFitResult.class);
+    }
+
+    public GeminiNormalizeResult normalizeResume(String rawText) {
+        return call(buildNormalizePrompt(rawText), NORMALIZE_SCHEMA, GeminiNormalizeResult.class);
+    }
+
+    public GeminiStrengthResult scoreResumeStrength(String resumeText) {
+        return call(buildStrengthPrompt(resumeText), STRENGTH_SCHEMA, GeminiStrengthResult.class);
+    }
+
+    private <T> T call(String prompt, Map<String, Object> responseSchema, Class<T> resultType) {
         Map<String, Object> requestBody = Map.of(
-                "contents", List.of(Map.of("parts", List.of(Map.of("text", buildPrompt(resumeText, jobDescriptionText))))),
+                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of(
                         "responseMimeType", "application/json",
-                        "responseSchema", RESPONSE_SCHEMA
+                        "responseSchema", responseSchema
                 )
         );
 
@@ -84,13 +111,13 @@ public class GeminiClient {
 
         String json = response.candidates().get(0).content().parts().get(0).text();
         try {
-            return objectMapper.readValue(json, GeminiFitResult.class);
+            return objectMapper.readValue(json, resultType);
         } catch (JsonProcessingException e) {
             throw new GeminiApiException("Failed to parse Gemini response as JSON: " + e.getMessage(), e);
         }
     }
 
-    private String buildPrompt(String resumeText, String jobDescriptionText) {
+    private String buildFitPrompt(String resumeText, String jobDescriptionText) {
         return """
                 You are a technical resume reviewer helping a software engineering candidate \
                 evaluate how well their resume matches a job description.
@@ -108,5 +135,44 @@ public class GeminiClient {
                 JOB DESCRIPTION:
                 %s
                 """.formatted(resumeText, jobDescriptionText);
+    }
+
+    private String buildNormalizePrompt(String rawText) {
+        return """
+                You are a resume formatting assistant. Clean up the following raw resume text, which was \
+                either pasted by hand or extracted from a PDF/DOCX file and may have inconsistent line \
+                breaks, spacing, or run-together words from that extraction.
+
+                Rules:
+                - Preserve all factual content (companies, dates, bullet content, skills) - never invent or \
+                remove information.
+                - Organize into standard resume sections using markdown headers (## Experience, ## Education, \
+                ## Skills, ## Projects, etc.) based on what's actually present in the input.
+                - Format each bullet point on its own line starting with "- ".
+                - Fix obvious extraction artifacts (broken words, duplicated whitespace) without changing wording.
+
+                Respond ONLY with JSON matching the required schema:
+                - normalizedText: the cleaned, reformatted resume text as a single markdown string.
+
+                RAW RESUME TEXT:
+                %s
+                """.formatted(rawText);
+    }
+
+    private String buildStrengthPrompt(String resumeText) {
+        return """
+                You are a resume reviewer for software engineering candidates. Analyze the following resume \
+                text and evaluate its overall strength.
+
+                Respond ONLY with JSON matching the required schema:
+                - score: an integer from 0 to 100 reflecting section completeness (Experience, Education, \
+                Skills present), use of quantified/measurable impact in bullets (numbers, percentages, scale), \
+                and use of strong active verbs rather than passive phrasing.
+                - recommendations: exactly 2 to 3 short, specific, actionable suggestions for improving this \
+                resume (e.g. "Add measurable outcomes to your Experience bullets").
+
+                RESUME:
+                %s
+                """.formatted(resumeText);
     }
 }
