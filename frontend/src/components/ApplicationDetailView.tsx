@@ -195,7 +195,7 @@ export function ApplicationDetailView({
           </h1>
           <StatusBadge status={detail.currentStatus} />
         </div>
-        <p className="mt-1 text-sm text-muted">applied {detail.dateApplied}</p>
+        <p className="mt-1 text-sm text-muted">Applied {detail.dateApplied}</p>
         {detail.jobDescriptionText && (
           <details className="mt-3 text-sm text-foreground/70">
             <summary className="cursor-pointer font-medium text-foreground">Job description</summary>

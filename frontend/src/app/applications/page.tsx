@@ -103,7 +103,7 @@ export default function ApplicationsPage() {
                   <p className="truncate text-sm font-medium text-foreground">
                     {app.role} · {app.company}
                   </p>
-                  <p className="mt-1 text-xs text-muted">applied {app.dateApplied}</p>
+                  <p className="mt-1 text-xs text-muted">Applied {app.dateApplied}</p>
                 </Link>
                 <div className="flex shrink-0 items-center gap-3 text-sm">
                   <StatusBadge status={app.currentStatus} />
