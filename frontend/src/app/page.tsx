@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useBackendWake } from "@/context/BackendWakeContext";
-import { Button } from "@/components/Button";
 import { DotGridBackground } from "@/components/DotGridBackground";
 import { FloatingIcons, type FloatingIconConfig } from "@/components/FloatingIcons";
 import { Logo } from "@/components/Logo";
@@ -174,17 +173,28 @@ export default function LandingPage() {
                 </motion.span>
               </motion.span>
             </motion.h1>
-            <motion.p variants={heroItem} className="max-w-xl text-lg text-foreground/70">
+            <motion.p
+              variants={heroItem}
+              className="max-w-xl text-base leading-relaxed font-normal text-muted sm:text-lg"
+            >
               OnTrack is a job application tracker built specifically for SWE/CS job searches —
               status-pipeline analytics, a funnel visualization, and an AI-powered resume/JD fit
               check, all in one place.
             </motion.p>
             <motion.div variants={heroItem} className="mt-2 flex flex-col items-center gap-3 sm:flex-row">
-              <Link href="/demo" onClick={startWaking}>
-                <Button variant="primary">Try Demo</Button>
+              <Link
+                href="/demo"
+                onClick={startWaking}
+                className="cursor-pointer rounded-full bg-brand px-6 py-2.5 font-medium text-white shadow-[0_0_24px_rgba(124,58,237,0.35)] transition-all hover:bg-brand/90"
+              >
+                Try Demo
               </Link>
-              <Link href={isAuthenticated ? "/dashboard" : "/signup"} onClick={startWaking}>
-                <Button variant="secondary">{isAuthenticated ? "View Dashboard" : "Sign Up Free"}</Button>
+              <Link
+                href={isAuthenticated ? "/dashboard" : "/signup"}
+                onClick={startWaking}
+                className="cursor-pointer rounded-full border border-zinc-700/60 bg-zinc-900/80 px-6 py-2.5 font-medium text-zinc-200 transition-all hover:bg-zinc-800/80"
+              >
+                {isAuthenticated ? "View Dashboard" : "Sign Up Free"}
               </Link>
             </motion.div>
           </motion.div>

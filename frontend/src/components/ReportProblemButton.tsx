@@ -58,7 +58,7 @@ export function ReportProblemButton({ variant = "icon" }: Props) {
       ) : (
         <button
           onClick={openModal}
-          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-left text-sm text-foreground transition-all hover:bg-white/[0.08]"
+          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] px-3.5 py-2.5 text-left text-sm text-foreground transition-all hover:bg-white/[0.08]"
         >
           <MessageSquareWarning size={16} className="text-brand" />
           Report a problem

@@ -38,6 +38,46 @@ describe("AppNav", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  test("shows a lightweight public nav on the demo pages when not authenticated", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: null,
+      user: null,
+      isAuthenticated: false,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
+    vi.mocked(usePathname).mockReturnValue("/demo");
+    vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
+
+    render(<AppNav />);
+
+    expect(screen.getByText("OnTrack").closest("a")).toHaveAttribute("href", "/");
+    expect(screen.getByText("Log In")).toHaveAttribute("href", "/login");
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Log out")).not.toBeInTheDocument();
+  });
+
+  test("shows the full authenticated nav on the demo pages when already signed in", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
+    vi.mocked(usePathname).mockReturnValue("/demo");
+    vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
+
+    render(<AppNav />);
+
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByTitle("Log out")).toBeInTheDocument();
+  });
+
   test("renders nothing on the landing page even when authenticated - navigating back there isn't a sign-out", () => {
     vi.mocked(useAuth).mockReturnValue({
       token: "t",

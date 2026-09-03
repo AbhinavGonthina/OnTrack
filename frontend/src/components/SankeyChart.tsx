@@ -135,7 +135,7 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
             }}
             nodePadding={24}
             nodeWidth={10}
-            margin={{ top: 26, right: 160, bottom: 8, left: 110 }}
+            margin={{ top: 42, right: 160, bottom: 8, left: 110 }}
           />
         </ResponsiveContainer>
       </div>

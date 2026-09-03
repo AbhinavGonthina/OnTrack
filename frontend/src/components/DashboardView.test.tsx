@@ -1,17 +1,11 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { DashboardView } from "./DashboardView";
 import { useAuth } from "../context/AuthContext";
-import { usePathname } from "next/navigation";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 
 vi.mock("../context/AuthContext", () => ({
   useAuth: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  usePathname: vi.fn(),
-  useRouter: vi.fn(),
 }));
 
 const baseStats: StatsResponse = {
@@ -35,7 +29,24 @@ const application: ApplicationResponse = {
   updatedAt: "2026-01-01T00:00:00Z",
 };
 
+function mockAuth(isAuthenticated: boolean) {
+  vi.mocked(useAuth).mockReturnValue({
+    token: isAuthenticated ? "t" : null,
+    user: isAuthenticated ? { id: "1", email: "person@example.com" } : null,
+    isAuthenticated,
+    isInitializing: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+  });
+}
+
 describe("DashboardView", () => {
+  beforeEach(() => {
+    // Matches the real (always-authenticated) dashboard by default - the handful of tests
+    // exercising the logged-out demo variant override this themselves.
+    mockAuth(true);
+  });
+
   test("renders every stat tile with its formatted value", () => {
     render(<DashboardView stats={baseStats} applications={[]} readOnly={false} />);
 
@@ -86,35 +97,38 @@ describe("DashboardView", () => {
     expect(link).toHaveAttribute("href", "/applications/a1");
   });
 
-  test("readOnly mode links into /demo/applications and hides 'View all'", () => {
+  test("readOnly mode shows 'Sample applications' and links into /demo/applications", () => {
     render(<DashboardView stats={baseStats} applications={[application]} readOnly />);
 
     expect(screen.getByText("Sample applications")).toBeInTheDocument();
-    expect(screen.queryByText("View all")).not.toBeInTheDocument();
     const link = screen.getByText("Backend Engineer · Acme Corp").closest("a");
     expect(link).toHaveAttribute("href", "/demo/applications/a1");
   });
 
-  test("real dashboard mode shows a 'View all' link", () => {
+  test("real dashboard mode shows 'Your applications' and its own quick actions", () => {
     render(<DashboardView stats={baseStats} applications={[application]} readOnly={false} />);
 
     expect(screen.getByText("Your applications")).toBeInTheDocument();
-    expect(screen.getByText("View all")).toHaveAttribute("href", "/applications");
+    expect(screen.getByText("View all applications")).toHaveAttribute("href", "/applications");
+    expect(screen.getByText("Check your resume fit")).toHaveAttribute("href", "/profile");
+    expect(screen.getByText("Report a problem")).toBeInTheDocument();
   });
 
-  test("the zero-scroll dashboard layout shows a 'Report a problem' quick action", () => {
-    vi.mocked(useAuth).mockReturnValue({
-      token: "t",
-      user: { id: "1", email: "person@example.com" },
-      isAuthenticated: true,
-      isInitializing: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-    });
-    vi.mocked(usePathname).mockReturnValue("/dashboard");
+  test("readOnly quick actions point a logged-out visitor at signup/login", () => {
+    mockAuth(false);
+    render(<DashboardView stats={baseStats} applications={[]} readOnly />);
 
-    render(<DashboardView stats={baseStats} applications={[]} readOnly={false} fitViewport />);
+    expect(screen.getByText("Sign up free")).toHaveAttribute("href", "/signup");
+    expect(screen.getByText("Log in")).toHaveAttribute("href", "/login");
+    expect(screen.queryByText("Report a problem")).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByText("Report a problem")).toBeInTheDocument();
+  test("readOnly quick actions point an already-signed-in visitor at their own dashboard", () => {
+    mockAuth(true);
+    render(<DashboardView stats={baseStats} applications={[]} readOnly />);
+
+    expect(screen.getByText("Go to your dashboard")).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByText("View your applications")).toHaveAttribute("href", "/applications");
+    expect(screen.queryByText("Sign up free")).not.toBeInTheDocument();
   });
 });

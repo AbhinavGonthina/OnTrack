@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { ApiError } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import type {
   ApplicationDetailResponse,
   ApplicationStatus,
@@ -52,6 +53,9 @@ export function ApplicationDetailView({
   onDeleteNote,
   onRunFitAnalysis,
 }: Props) {
+  // Only relevant when readOnly (the demo view) - a visitor who already has their own real
+  // account gets pointed at the nav above instead of a "sign up" pitch that no longer applies.
+  const { isAuthenticated } = useAuth();
   const [statusValue, setStatusValue] = useState<ApplicationStatus>(
     detail.currentStatus === "OFFER" ? "ACCEPTED" : "OA",
   );
@@ -179,7 +183,9 @@ export function ApplicationDetailView({
       {showOfferCelebration && <OfferCelebration onDone={() => setShowOfferCelebration(false)} />}
       {readOnly && (
         <p className="rounded-lg bg-brand/10 px-3 py-2 text-xs text-brand">
-          You&apos;re viewing a sample application. Sign up to track your own.
+          {isAuthenticated
+            ? "You're viewing a sample application - click Applications in the navbar above to see your own."
+            : "You're viewing a sample application. Sign up to track your own."}
         </p>
       )}
       <div>
@@ -320,7 +326,11 @@ export function ApplicationDetailView({
             </Button>
           </form>
         ) : (
-          <p className="mt-3 text-xs text-muted">Sign up to log your own status updates.</p>
+          <p className="mt-3 text-xs text-muted">
+            {isAuthenticated
+              ? "Open one of your own applications to log status updates."
+              : "Sign up to log your own status updates."}
+          </p>
         )}
         {statusError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{statusError}</p>}
       </section>
@@ -361,7 +371,11 @@ export function ApplicationDetailView({
             </Button>
           </form>
         ) : (
-          <p className="mt-3 text-xs text-muted">Sign up to add your own notes.</p>
+          <p className="mt-3 text-xs text-muted">
+            {isAuthenticated
+              ? "Open one of your own applications to add notes."
+              : "Sign up to add your own notes."}
+          </p>
         )}
         {noteError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{noteError}</p>}
       </section>

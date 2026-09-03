@@ -28,16 +28,46 @@ export function AppNav() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
 
-  if (!isAuthenticated || PUBLIC_ONLY_PATHS.includes(pathname)) {
-    return null;
-  }
-
   function handleLogout() {
     // Every authenticated page has its own "redirect if logged out" guard
     // effect, which also points at "/" - matching that destination here
     // means the async router.push race against that guard no longer matters.
     logout();
     router.push("/");
+  }
+
+  if (PUBLIC_ONLY_PATHS.includes(pathname)) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    // The read-only demo is the one place a logged-out visitor lands on a page that isn't
+    // "public-only" above - without some nav they'd have no way back home or to log in short
+    // of the browser's back button. A lightweight version of the landing page's own nav (not
+    // the full authenticated one, which assumes a real user/session) covers that.
+    if (!pathname.startsWith("/demo")) {
+      return null;
+    }
+
+    return (
+      <nav className="sticky top-0 z-50 w-full border-b border-surface-border bg-surface/80 text-sm backdrop-blur-md">
+        <PageContainer className="flex h-16 items-center justify-between">
+          <Link
+            href="/"
+            className="flex cursor-pointer items-center gap-2 font-display text-lg font-bold text-foreground transition-opacity hover:opacity-90"
+          >
+            <Logo size={28} />
+            OnTrack
+          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/login" className="text-sm font-medium text-muted hover:text-foreground">
+              Log In
+            </Link>
+          </div>
+        </PageContainer>
+      </nav>
+    );
   }
 
   return (

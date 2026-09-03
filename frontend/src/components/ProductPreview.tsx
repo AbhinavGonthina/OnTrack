@@ -18,7 +18,7 @@ export function ProductPreview() {
       >
         {/* No separate fake browser-chrome bar here - the screenshot itself already
             includes the real app nav, so a second toolbar on top would just be redundant. */}
-        <div className="overflow-hidden rounded-2xl border border-surface-border bg-surface shadow-2xl">
+        <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-surface shadow-2xl shadow-purple-950/20">
           <Image
             src={src}
             alt="OnTrack dashboard showing application stats and a status pipeline funnel chart"

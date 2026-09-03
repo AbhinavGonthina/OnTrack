@@ -1,9 +1,14 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApplicationDetailView } from "./ApplicationDetailView";
 import { ApiError } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 import type { ApplicationDetailResponse } from "@/lib/types";
+
+vi.mock("../context/AuthContext", () => ({
+  useAuth: vi.fn(),
+}));
 
 const detail: ApplicationDetailResponse = {
   id: "app-1",
@@ -30,6 +35,19 @@ const detail: ApplicationDetailResponse = {
 };
 
 describe("ApplicationDetailView", () => {
+  beforeEach(() => {
+    // Matches a logged-out demo visitor by default - the handful of tests that specifically
+    // exercise the "already signed in" messaging override this themselves.
+    vi.mocked(useAuth).mockReturnValue({
+      token: null,
+      user: null,
+      isAuthenticated: false,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+  });
+
   test("renders the header, status badge, and existing timeline/notes", () => {
     render(<ApplicationDetailView detail={detail} readOnly={false} />);
 
@@ -46,6 +64,26 @@ describe("ApplicationDetailView", () => {
     expect(screen.getByText("Sign up to log your own status updates.")).toBeInTheDocument();
     expect(screen.getByText("Sign up to add your own notes.")).toBeInTheDocument();
     expect(screen.queryByText("Add update")).not.toBeInTheDocument();
+  });
+
+  test("readOnly mode points an already-signed-in viewer at the navbar instead of pitching sign-up", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(<ApplicationDetailView detail={detail} readOnly />);
+
+    expect(
+      screen.getByText("You're viewing a sample application - click Applications in the navbar above to see your own."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Open one of your own applications to log status updates.")).toBeInTheDocument();
+    expect(screen.getByText("Open one of your own applications to add notes.")).toBeInTheDocument();
+    expect(screen.queryByText(/Sign up/)).not.toBeInTheDocument();
   });
 
   test("submitting a status update calls onAddStatusEvent with the selected status", async () => {

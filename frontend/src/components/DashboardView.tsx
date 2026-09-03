@@ -1,6 +1,19 @@
 import Link from "next/link";
-import { Briefcase, TrendingUp, ClipboardCheck, Building2, Trophy, Clock, ListChecks, FileText } from "lucide-react";
+import {
+  Briefcase,
+  TrendingUp,
+  ClipboardCheck,
+  Building2,
+  Trophy,
+  Clock,
+  ListChecks,
+  FileText,
+  LayoutDashboard,
+  UserPlus,
+  LogIn,
+} from "lucide-react";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
 import { StatTile } from "@/components/StatTile";
 import { SankeyChart } from "@/components/SankeyChart";
 import { StatusBadge } from "@/components/Badge";
@@ -11,10 +24,10 @@ interface Props {
   stats: StatsResponse;
   applications: ApplicationResponse[];
   readOnly: boolean;
-  /** Renders the compact 12-column zero-scroll grid used by the real /dashboard page,
-   * instead of the normal stacked layout /demo's page (a plain scrolling page) still uses. */
-  fitViewport?: boolean;
 }
+
+const QUICK_ACTION_CLASSNAME =
+  "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] px-3.5 py-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]";
 
 function formatPercent(value: number): string {
   return `${value}%`;
@@ -117,9 +130,7 @@ function ApplicationsList({
         <li key={app.id}>
           <Link
             href={`${basePath}/${app.id}`}
-            className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg text-sm transition-colors hover:bg-white/[0.02] ${
-              compact ? "px-3 py-2" : "px-4 py-3"
-            }`}
+            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.02]"
           >
             <span className="min-w-0 truncate text-foreground">
               {app.role} · {app.company}
@@ -132,96 +143,83 @@ function ApplicationsList({
   );
 }
 
-export function DashboardView({ stats, applications, readOnly, fitViewport = false }: Props) {
+export function DashboardView({ stats, applications, readOnly }: Props) {
+  const { isAuthenticated } = useAuth();
   const basePath = readOnly ? "/demo/applications" : "/applications";
   const applicationsHeading = readOnly ? "Sample applications" : "Your applications";
 
-  if (fitViewport) {
-    return (
-      <div className="grid grid-cols-12 gap-6 md:h-full">
-        <div className="col-span-12 flex flex-col gap-3 md:col-span-3 md:h-full">
-          <div className="grid grid-cols-2 gap-3">
-            <StatTiles stats={stats} compact />
-          </div>
-          {/* Fills the leftover height below the stats grid (the right column's Pipeline +
-              Applications cards are taller than 6 compact tiles) with something actually
-              useful, rather than stretching the tiles themselves into oversized boxes. */}
-          <div className="card flex flex-1 flex-col gap-2 p-4">
-            <h2 className="shrink-0 text-sm font-medium text-muted">Quick actions</h2>
-            <div className="flex flex-1 flex-col gap-3">
-              <Link
-                href="/applications"
-                className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]"
-              >
-                <ListChecks size={16} className="text-brand" />
-                View all applications
-              </Link>
-              <Link
-                href="/profile"
-                className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] p-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]"
-              >
-                <FileText size={16} className="text-brand" />
-                Check your resume fit
-              </Link>
-              <ReportProblemButton variant="action" />
-            </div>
-          </div>
+  return (
+    <div className="grid grid-cols-12 gap-6 md:h-full">
+      <div className="col-span-12 flex flex-col gap-3 md:col-span-3 md:h-full">
+        <div className="grid grid-cols-2 gap-3">
+          <StatTiles stats={stats} compact />
         </div>
-
-        <div className="col-span-12 flex flex-col gap-6 md:col-span-9 md:h-full">
-          {/* Proportional (flex-grow), not a fixed pixel height - a hardcoded height here
-              only ever fits the handful of screen sizes it was eyeballed against; this way
-              the two cards always divide whatever space the viewport actually has to give,
-              on any monitor, without either one ever getting clipped. */}
-          <div className="min-h-[220px] flex-[1.9] md:min-h-0">
-            {stats.sankeyLinks.length === 0 ? (
-              <PipelineEmptyState readOnly={readOnly} fillHeight />
+        {/* Fills the leftover height below the stats grid (the right column's Pipeline +
+            Applications cards are taller than 6 compact tiles) with something actually
+            useful, rather than stretching the tiles themselves into oversized boxes. */}
+        <div className="card flex flex-1 flex-col gap-2 p-4">
+          <h2 className="shrink-0 text-sm font-medium text-muted">Quick actions</h2>
+          <div className="flex flex-1 flex-col gap-3">
+            {readOnly ? (
+              isAuthenticated ? (
+                <>
+                  <Link href="/dashboard" className={QUICK_ACTION_CLASSNAME}>
+                    <LayoutDashboard size={16} className="text-brand" />
+                    Go to your dashboard
+                  </Link>
+                  <Link href="/applications" className={QUICK_ACTION_CLASSNAME}>
+                    <ListChecks size={16} className="text-brand" />
+                    View your applications
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/signup" className={QUICK_ACTION_CLASSNAME}>
+                    <UserPlus size={16} className="text-brand" />
+                    Sign up free
+                  </Link>
+                  <Link href="/login" className={QUICK_ACTION_CLASSNAME}>
+                    <LogIn size={16} className="text-brand" />
+                    Log in
+                  </Link>
+                </>
+              )
             ) : (
-              <SankeyChart links={stats.sankeyLinks} fillHeight />
+              <>
+                <Link href="/applications" className={QUICK_ACTION_CLASSNAME}>
+                  <ListChecks size={16} className="text-brand" />
+                  View all applications
+                </Link>
+                <Link href="/profile" className={QUICK_ACTION_CLASSNAME}>
+                  <FileText size={16} className="text-brand" />
+                  Check your resume fit
+                </Link>
+                <ReportProblemButton variant="action" />
+              </>
             )}
           </div>
-
-          <div className="card flex min-h-[140px] flex-1 flex-col p-4 md:min-h-0">
-            <h2 className="shrink-0 text-sm font-medium text-muted">{applicationsHeading}</h2>
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <ApplicationsList
-                applications={applications}
-                readOnly={readOnly}
-                basePath={basePath}
-                limit={5}
-                compact
-              />
-            </div>
-          </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <StatTiles stats={stats} compact={false} />
-      </div>
-
-      <div>
-        {stats.sankeyLinks.length === 0 ? (
-          <PipelineEmptyState readOnly={readOnly} />
-        ) : (
-          <SankeyChart links={stats.sankeyLinks} />
-        )}
-      </div>
-
-      <div className="card p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-muted">{applicationsHeading}</h2>
-          {!readOnly && (
-            <Link href="/applications" className="text-sm font-medium text-brand hover:underline">
-              View all
-            </Link>
+      <div className="col-span-12 flex flex-col gap-6 md:col-span-9 md:h-full">
+        {/* Proportional (flex-grow), not a fixed pixel height - a hardcoded height here
+            only ever fits the handful of screen sizes it was eyeballed against; this way
+            the two cards always divide whatever space the viewport actually has to give,
+            on any monitor, without either one ever getting clipped. */}
+        <div className="min-h-[220px] flex-[1.9] md:min-h-0">
+          {stats.sankeyLinks.length === 0 ? (
+            <PipelineEmptyState readOnly={readOnly} fillHeight />
+          ) : (
+            <SankeyChart links={stats.sankeyLinks} fillHeight />
           )}
         </div>
-        <ApplicationsList applications={applications} readOnly={readOnly} basePath={basePath} limit={8} />
+
+        <div className="card flex min-h-[140px] flex-1 flex-col p-4 md:min-h-0">
+          <h2 className="shrink-0 text-sm font-medium text-muted">{applicationsHeading}</h2>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ApplicationsList applications={applications} readOnly={readOnly} basePath={basePath} limit={5} compact />
+          </div>
+        </div>
       </div>
     </div>
   );
