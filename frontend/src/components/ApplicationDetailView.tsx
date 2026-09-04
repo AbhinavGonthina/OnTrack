@@ -23,6 +23,7 @@ import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 import { Button } from "@/components/Button";
 import { StatusBadge } from "@/components/Badge";
 import { OfferCelebration } from "@/components/OfferCelebration";
+import { AiUsageBadge } from "@/components/AiUsageBadge";
 
 interface Props {
   detail: ApplicationDetailResponse;
@@ -384,14 +385,12 @@ export function ApplicationDetailView({
         <h2 className="text-sm font-medium text-muted">Resume / JD fit</h2>
         {onRunFitAnalysis ? (
           <>
-            <Button
-              onClick={handleRunFitAnalysis}
-              disabled={isRunningFit}
-              variant="secondary"
-              className="mt-2 text-sm"
-            >
-              {isRunningFit ? "Analyzing…" : "Run fit analysis"}
-            </Button>
+            <div className="mt-2 flex items-center gap-3">
+              <Button onClick={handleRunFitAnalysis} disabled={isRunningFit} variant="secondary" className="text-sm">
+                {isRunningFit ? "Analyzing…" : "Run fit analysis"}
+              </Button>
+              <AiUsageBadge />
+            </div>
             {fitError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{fitError}</p>}
             {fitResult && (
               <div className="card mt-3 p-4 text-sm">

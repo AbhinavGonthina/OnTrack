@@ -31,6 +31,17 @@ public class GeminiRateLimiter {
         return bucket.tryConsume(1);
     }
 
+    /** Peeks the user's remaining budget without consuming from it - for showing a
+     * "requests left today" indicator in the UI. */
+    public long remaining(UUID userId) {
+        Bucket bucket = buckets.computeIfAbsent(userId, id -> newBucket());
+        return bucket.getAvailableTokens();
+    }
+
+    public int getLimit() {
+        return requestsPerDay;
+    }
+
     private Bucket newBucket() {
         Bandwidth limit = Bandwidth.classic(requestsPerDay, Refill.greedy(requestsPerDay, Duration.ofDays(1)));
         return Bucket.builder().addLimit(limit).build();

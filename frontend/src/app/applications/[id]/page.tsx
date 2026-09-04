@@ -14,6 +14,7 @@ import {
 } from "@/lib/api";
 import { applicationsCacheKey, invalidateCache, statsCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
+import { useAiUsage } from "@/context/AiUsageContext";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
 import { Spinner } from "@/components/Spinner";
 import type { ApplicationDetailResponse, ApplicationStatus, InterviewFormat, InterviewType } from "@/lib/types";
@@ -22,6 +23,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   const { id } = use(params);
   const router = useRouter();
   const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { refresh: refreshAiUsage } = useAiUsage();
 
   const [detail, setDetail] = useState<ApplicationDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
 
   async function handleRunFitAnalysis() {
     if (!token) throw new Error("Not authenticated");
-    return requestFitAnalysis(token, id);
+    return requestFitAnalysis(token, id).finally(() => refreshAiUsage());
   }
 
   if (!isAuthenticated) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, getProfile, getResumeStrength, normalizeResumeText, updateResume, uploadResume } from "@/lib/api";
 import { cachedFetch, invalidateCache, profileCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
+import { useAiUsage } from "@/context/AiUsageContext";
 import { PageContainer } from "@/components/PageContainer";
 import { Spinner } from "@/components/Spinner";
 import { DotGridBackground } from "@/components/DotGridBackground";
@@ -18,6 +19,7 @@ function errorMessage(err: unknown): string {
 export default function ProfilePage() {
   const router = useRouter();
   const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { refresh: refreshAiUsage } = useAiUsage();
 
   const [resumeText, setResumeText] = useState("");
   const [savedResumeText, setSavedResumeText] = useState("");
@@ -98,6 +100,7 @@ export default function ProfilePage() {
       setUploadError(errorMessage(err));
     } finally {
       setIsUploading(false);
+      refreshAiUsage();
     }
   }
 
@@ -112,6 +115,7 @@ export default function ProfilePage() {
       setNormalizeError(errorMessage(err));
     } finally {
       setIsNormalizing(false);
+      refreshAiUsage();
     }
   }
 
@@ -125,6 +129,7 @@ export default function ProfilePage() {
       setStrengthError(errorMessage(err));
     } finally {
       setIsScoringStrength(false);
+      refreshAiUsage();
     }
   }
 
@@ -133,39 +138,37 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="relative isolate flex w-full flex-col overflow-y-auto py-6 md:h-[calc(100vh-4rem-1px)] md:max-h-[calc(100vh-4rem-1px)] md:overflow-hidden">
+    <main className="relative isolate flex w-full flex-col py-6">
       <DotGridBackground center />
-      <PageContainer className="flex flex-col md:min-h-0 md:flex-1">
-        <div className="mb-6 shrink-0">
+      <PageContainer className="flex flex-col">
+        <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Profile</h1>
           <p className="mt-1 text-sm text-foreground/70">
             Keep your resume up to date - it powers fit analysis against every job description.
           </p>
         </div>
-        {loadError && <p className="mb-4 shrink-0 text-sm text-red-600 dark:text-red-400">{loadError}</p>}
-        {!loadError && isLoading && <Spinner label="Loading…" className="shrink-0" />}
+        {loadError && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{loadError}</p>}
+        {!loadError && isLoading && <Spinner label="Loading…" />}
         {!isLoading && !loadError && (
-          <div className="md:min-h-0 md:flex-1 md:overflow-hidden">
-            <ProfileView
-              resumeText={resumeText}
-              onResumeTextChange={setResumeText}
-              onSave={handleSave}
-              isSaving={isSaving}
-              isDirty={resumeText !== savedResumeText}
-              lastSavedAt={lastSavedAt}
-              saveError={saveError}
-              onUpload={handleUpload}
-              isUploading={isUploading}
-              uploadError={uploadError}
-              onNormalize={handleNormalize}
-              isNormalizing={isNormalizing}
-              normalizeError={normalizeError}
-              strength={strength}
-              onScoreStrength={handleScoreStrength}
-              isScoringStrength={isScoringStrength}
-              strengthError={strengthError}
-            />
-          </div>
+          <ProfileView
+            resumeText={resumeText}
+            onResumeTextChange={setResumeText}
+            onSave={handleSave}
+            isSaving={isSaving}
+            isDirty={resumeText !== savedResumeText}
+            lastSavedAt={lastSavedAt}
+            saveError={saveError}
+            onUpload={handleUpload}
+            isUploading={isUploading}
+            uploadError={uploadError}
+            onNormalize={handleNormalize}
+            isNormalizing={isNormalizing}
+            normalizeError={normalizeError}
+            strength={strength}
+            onScoreStrength={handleScoreStrength}
+            isScoringStrength={isScoringStrength}
+            strengthError={strengthError}
+          />
         )}
       </PageContainer>
     </main>

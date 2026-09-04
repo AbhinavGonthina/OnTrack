@@ -1,7 +1,12 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ProfileView } from "./ProfileView";
+import { useAiUsage } from "../context/AiUsageContext";
+
+vi.mock("../context/AiUsageContext", () => ({
+  useAiUsage: vi.fn(),
+}));
 
 function baseProps() {
   return {
@@ -26,6 +31,10 @@ function baseProps() {
 }
 
 describe("ProfileView", () => {
+  beforeEach(() => {
+    vi.mocked(useAiUsage).mockReturnValue({ aiUsage: null, refresh: vi.fn() });
+  });
+
   test("Save is disabled when there are no unsaved changes, and shows the Saved badge", () => {
     render(<ProfileView {...baseProps()} />);
 
@@ -76,18 +85,38 @@ describe("ProfileView", () => {
     expect(props.onNormalize).toHaveBeenCalled();
   });
 
-  test("clicking Analyze calls onScoreStrength, and a strength result renders the score and recommendations", async () => {
+  test("clicking Analyze calls onScoreStrength, and a strength result renders the score, categories, and recommendations", async () => {
     const props = baseProps();
     const { rerender } = render(<ProfileView {...props} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Analyze" }));
     expect(props.onScoreStrength).toHaveBeenCalled();
 
-    rerender(<ProfileView {...props} strength={{ score: 80, recommendations: ["Add metrics"] }} />);
+    rerender(
+      <ProfileView
+        {...props}
+        strength={{
+          score: 80,
+          categories: [{ name: "Impact & Metrics", score: 60, feedback: "Quantify more bullets." }],
+          recommendations: ["Add metrics"],
+        }}
+      />,
+    );
 
     expect(screen.getByText("80")).toBeInTheDocument();
+    expect(screen.getByText("Impact & Metrics")).toBeInTheDocument();
+    expect(screen.getByText("60")).toBeInTheDocument();
+    expect(screen.getByText("Quantify more bullets.")).toBeInTheDocument();
     expect(screen.getByText("Add metrics")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Re-analyze" })).toBeInTheDocument();
+  });
+
+  test("shows the AI usage badge when usage data is available", () => {
+    vi.mocked(useAiUsage).mockReturnValue({ aiUsage: { remaining: 14, limit: 20 }, refresh: vi.fn() });
+
+    render(<ProfileView {...baseProps()} />);
+
+    expect(screen.getByText("14 / 20 AI calls left today")).toBeInTheDocument();
   });
 
   test("selecting a file in the upload dropzone calls onUpload", async () => {

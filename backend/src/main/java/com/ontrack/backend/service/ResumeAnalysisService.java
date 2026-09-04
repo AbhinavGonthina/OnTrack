@@ -10,6 +10,8 @@ import com.ontrack.backend.ratelimit.GeminiRateLimiter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * Resume-editing AI helpers (upload+extract, normalize, strength score) - distinct from
  * FitAnalysisService, which compares a saved resume against one specific job description.
@@ -51,7 +53,10 @@ public class ResumeAnalysisService {
     public ResumeStrengthResponse scoreStrength(User user, String resumeText) {
         consumeGeminiBudget(user);
         GeminiStrengthResult result = geminiClient.scoreResumeStrength(resumeText);
-        return new ResumeStrengthResponse(result.score(), result.recommendations());
+        List<ResumeStrengthResponse.CategoryScore> categories = result.categories().stream()
+                .map(c -> new ResumeStrengthResponse.CategoryScore(c.name(), c.score(), c.feedback()))
+                .toList();
+        return new ResumeStrengthResponse(result.score(), categories, result.recommendations());
     }
 
     private void consumeGeminiBudget(User user) {

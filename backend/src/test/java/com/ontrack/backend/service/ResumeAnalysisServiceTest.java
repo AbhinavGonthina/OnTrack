@@ -71,14 +71,21 @@ class ResumeAnalysisServiceTest {
     }
 
     @Test
-    void scoreStrengthReturnsGeminiScoreAndRecommendations() {
+    void scoreStrengthReturnsGeminiScoreCategoriesAndRecommendations() {
         when(geminiRateLimiter.tryConsume(user.getId())).thenReturn(true);
         when(geminiClient.scoreResumeStrength("resume text"))
-                .thenReturn(new GeminiStrengthResult(80, List.of("Add metrics")));
+                .thenReturn(new GeminiStrengthResult(
+                        80,
+                        List.of(new GeminiStrengthResult.CategoryScore("Impact & Metrics", 70, "Quantify more.")),
+                        List.of("Add metrics")));
 
         ResumeStrengthResponse response = resumeAnalysisService.scoreStrength(user, "resume text");
 
         assertThat(response.score()).isEqualTo(80);
+        assertThat(response.categories()).hasSize(1);
+        assertThat(response.categories().get(0).name()).isEqualTo("Impact & Metrics");
+        assertThat(response.categories().get(0).score()).isEqualTo(70);
+        assertThat(response.categories().get(0).feedback()).isEqualTo("Quantify more.");
         assertThat(response.recommendations()).containsExactly("Add metrics");
     }
 

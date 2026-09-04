@@ -48,9 +48,21 @@ public class GeminiClient {
             "type", "OBJECT",
             "properties", Map.of(
                     "score", Map.of("type", "INTEGER"),
+                    "categories", Map.of(
+                            "type", "ARRAY",
+                            "items", Map.of(
+                                    "type", "OBJECT",
+                                    "properties", Map.of(
+                                            "name", Map.of("type", "STRING"),
+                                            "score", Map.of("type", "INTEGER"),
+                                            "feedback", Map.of("type", "STRING")
+                                    ),
+                                    "required", List.of("name", "score", "feedback")
+                            )
+                    ),
                     "recommendations", Map.of("type", "ARRAY", "items", Map.of("type", "STRING"))
             ),
-            "required", List.of("score", "recommendations")
+            "required", List.of("score", "categories", "recommendations")
     );
 
     private final RestClient restClient;
@@ -161,15 +173,27 @@ public class GeminiClient {
 
     private String buildStrengthPrompt(String resumeText) {
         return """
-                You are a resume reviewer for software engineering candidates. Analyze the following resume \
-                text and evaluate its overall strength.
+                You are a resume reviewer specializing in software engineering / CS resumes (internship, \
+                new-grad, and experienced SWE candidates). Analyze the following resume text.
 
                 Respond ONLY with JSON matching the required schema:
-                - score: an integer from 0 to 100 reflecting section completeness (Experience, Education, \
-                Skills present), use of quantified/measurable impact in bullets (numbers, percentages, scale), \
-                and use of strong active verbs rather than passive phrasing.
-                - recommendations: exactly 2 to 3 short, specific, actionable suggestions for improving this \
-                resume (e.g. "Add measurable outcomes to your Experience bullets").
+                - score: an overall integer from 0 to 100.
+                - categories: exactly these 4 categories, in this exact order, each with its own 0-100 score \
+                and one sentence of specific feedback grounded in what's actually in the resume:
+                  1. "Impact & Metrics" - are achievements quantified (numbers, percentages, scale, users, \
+                  latency, etc.) rather than just listing responsibilities?
+                  2. "Technical Depth" - does the resume show technical depth appropriate for a software \
+                  engineering role: relevant languages/frameworks, project or system complexity, and (for \
+                  students) relevant CS coursework or fundamentals?
+                  3. "Structure & ATS Compatibility" - standard, clearly labeled sections (Experience, \
+                  Education, Skills, Projects) in a format both an ATS parser and a human skimmer can follow.
+                  4. "Clarity & Conciseness" - strong action verbs, no filler or passive phrasing, bullets \
+                  that are specific but not bloated.
+                - recommendations: exactly 2 to 3 short, specific, actionable suggestions grounded in \
+                software-engineering resume norms - e.g. surfacing a GitHub/portfolio link, adding a concrete \
+                metric to a vague bullet, naming a specific missing but relevant technology, or (for \
+                students/early-career candidates) highlighting relevant coursework, personal projects, or \
+                open-source contributions.
 
                 RESUME:
                 %s

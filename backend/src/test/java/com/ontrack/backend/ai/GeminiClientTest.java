@@ -92,12 +92,12 @@ class GeminiClientTest {
     }
 
     @Test
-    void parsesStrengthScoreAndRecommendationsFromGeminiResponse() {
+    void parsesStrengthScoreCategoriesAndRecommendationsFromGeminiResponse() {
         String geminiJson = """
                 {
                   "candidates": [{
                     "content": {
-                      "parts": [{"text": "{\\"score\\":72,\\"recommendations\\":[\\"Add metrics\\",\\"List top skills first\\"]}"}]
+                      "parts": [{"text": "{\\"score\\":72,\\"categories\\":[{\\"name\\":\\"Impact & Metrics\\",\\"score\\":60,\\"feedback\\":\\"Quantify more bullets.\\"}],\\"recommendations\\":[\\"Add metrics\\",\\"List top skills first\\"]}"}]
                     }
                   }]
                 }
@@ -109,6 +109,10 @@ class GeminiClientTest {
         GeminiStrengthResult result = geminiClient.scoreResumeStrength("resume text");
 
         assertThat(result.score()).isEqualTo(72);
+        assertThat(result.categories()).hasSize(1);
+        assertThat(result.categories().get(0).name()).isEqualTo("Impact & Metrics");
+        assertThat(result.categories().get(0).score()).isEqualTo(60);
+        assertThat(result.categories().get(0).feedback()).isEqualTo("Quantify more bullets.");
         assertThat(result.recommendations()).containsExactly("Add metrics", "List top skills first");
         mockServer.verify();
     }

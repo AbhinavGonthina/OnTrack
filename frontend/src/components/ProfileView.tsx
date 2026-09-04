@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, Gauge, Sparkles, UploadCloud } from "lucide-
 import type { ResumeStrengthResponse } from "@/lib/types";
 import { parseResumeBlocks } from "@/lib/resumeFormatting";
 import { Button } from "@/components/Button";
+import { AiUsageBadge } from "@/components/AiUsageBadge";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 
 type Tab = "formatted" | "raw";
@@ -97,6 +98,20 @@ function StrengthScoreCard({
             <span className="font-display text-3xl font-bold gradient-text">{strength.score}</span>
             <span className="text-sm text-muted">/ 100</span>
           </div>
+          <div className="flex flex-col gap-2.5">
+            {strength.categories.map((category) => (
+              <div key={category.name}>
+                <div className="flex items-baseline justify-between text-xs">
+                  <span className="font-medium text-foreground/80">{category.name}</span>
+                  <span className="text-muted">{category.score}</span>
+                </div>
+                <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-brand/15">
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${category.score}%` }} />
+                </div>
+                <p className="mt-1 text-xs text-foreground/60">{category.feedback}</p>
+              </div>
+            ))}
+          </div>
           {strength.recommendations.length > 0 && (
             <ul className="list-disc pl-5 text-sm text-foreground/70">
               {strength.recommendations.map((rec, i) => (
@@ -132,6 +147,10 @@ function UploadDropzone({
   }
 
   return (
+    // flex-1: fills whatever leftover height the grid's default column-stretch gives this
+    // column when it's shorter than the right column (the normal "nothing expanded" case) -
+    // without it, the columns would still align at the grid level, but this card would stay
+    // short and leave a visible empty gap below it.
     <div className="card flex flex-1 flex-col gap-2 p-4">
       <h2 className="shrink-0 text-sm font-medium text-muted">Upload resume</h2>
       <div
@@ -142,7 +161,7 @@ function UploadDropzone({
         onDragLeave={() => setIsDraggingOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors ${
+        className={`flex min-h-[160px] flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors ${
           isDraggingOver ? "border-brand bg-brand/10" : "border-surface-border bg-white/[0.03] hover:bg-white/[0.06]"
         } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
       >
@@ -242,8 +261,8 @@ export function ProfileView({
   const [tab, setTab] = useState<Tab>("formatted");
 
   return (
-    <div className="grid grid-cols-12 gap-6 md:h-full">
-      <div className="col-span-12 flex flex-col gap-3 md:col-span-4 md:h-full">
+    <div className="grid grid-cols-12 gap-6">
+      <div className="col-span-12 flex flex-col gap-3 md:col-span-4">
         <div className="card flex items-center justify-between p-4">
           <SaveStatusBadge isDirty={isDirty} isSaving={isSaving} lastSavedAt={lastSavedAt} />
           <Button size="sm" onClick={onSave} disabled={isSaving || !isDirty}>
@@ -263,7 +282,7 @@ export function ProfileView({
         <UploadDropzone onUpload={onUpload} isUploading={isUploading} uploadError={uploadError} />
       </div>
 
-      <div className="col-span-12 flex min-h-[420px] flex-col gap-3 md:col-span-8 md:h-full">
+      <div className="col-span-12 flex flex-col gap-3 md:col-span-8">
         <div className="flex shrink-0 items-center justify-between gap-3">
           <div className="flex gap-1 rounded-full border border-surface-border bg-white/[0.03] p-1 text-sm">
             <button
@@ -283,21 +302,27 @@ export function ProfileView({
               Raw Text Editor
             </button>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onNormalize}
-            disabled={isNormalizing || resumeText.trim().length === 0}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <Sparkles size={14} />
-              {isNormalizing ? "Normalizing…" : "Normalize with Gemini"}
-            </span>
-          </Button>
+          <div className="flex items-center gap-3">
+            <AiUsageBadge />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onNormalize}
+              disabled={isNormalizing || resumeText.trim().length === 0}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles size={14} />
+                {isNormalizing ? "Normalizing…" : "Normalize with Gemini"}
+              </span>
+            </Button>
+          </div>
         </div>
         {normalizeError && <p className="shrink-0 text-xs text-red-600 dark:text-red-400">{normalizeError}</p>}
 
-        <div className="card min-h-0 flex-1 overflow-y-auto p-4">
+        {/* A real fixed height (not just a minimum) so this scrolls internally for a long
+            resume, like before - the page itself can still grow/scroll too if the left
+            column (e.g. a tall strength breakdown) ends up taller than this card. */}
+        <div className="card h-[600px] overflow-y-auto p-4">
           {tab === "formatted" ? (
             <FormattedPreview resumeText={resumeText} />
           ) : (

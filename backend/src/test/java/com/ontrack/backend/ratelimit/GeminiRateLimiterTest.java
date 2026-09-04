@@ -28,4 +28,22 @@ class GeminiRateLimiterTest {
         assertThat(limiter.tryConsume(userB)).isTrue();
         assertThat(limiter.tryConsume(userA)).isFalse();
     }
+
+    @Test
+    void remainingReflectsConsumedRequestsWithoutConsuming() {
+        GeminiRateLimiter limiter = new GeminiRateLimiter(3);
+        UUID userId = UUID.randomUUID();
+
+        assertThat(limiter.remaining(userId)).isEqualTo(3);
+        limiter.tryConsume(userId);
+        assertThat(limiter.remaining(userId)).isEqualTo(2);
+        assertThat(limiter.remaining(userId)).isEqualTo(2);
+    }
+
+    @Test
+    void getLimitReturnsTheConfiguredDailyLimit() {
+        GeminiRateLimiter limiter = new GeminiRateLimiter(7);
+
+        assertThat(limiter.getLimit()).isEqualTo(7);
+    }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AiUsageProvider } from "@/context/AiUsageContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { BackendWakeProvider } from "@/context/BackendWakeContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -38,11 +39,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <AuthProvider>
-            <BackendWakeProvider>
-              <NavigationProgressBar />
-              <AppNav />
-              {children}
-            </BackendWakeProvider>
+            <AiUsageProvider>
+              <BackendWakeProvider>
+                <NavigationProgressBar />
+                <AppNav />
+                {children}
+              </BackendWakeProvider>
+            </AiUsageProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

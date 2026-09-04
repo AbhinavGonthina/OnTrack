@@ -102,13 +102,11 @@ function ApplicationsList({
   applications,
   readOnly,
   basePath,
-  limit,
   compact = false,
 }: {
   applications: ApplicationResponse[];
   readOnly: boolean;
   basePath: string;
-  limit: number;
   compact?: boolean;
 }) {
   if (applications.length === 0) {
@@ -126,7 +124,7 @@ function ApplicationsList({
 
   return (
     <ul className={`divide-y divide-surface-border ${compact ? "mt-2" : "mt-4"}`}>
-      {applications.slice(0, limit).map((app) => (
+      {applications.map((app) => (
         <li key={app.id}>
           <Link
             href={`${basePath}/${app.id}`}
@@ -149,14 +147,15 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
   const applicationsHeading = readOnly ? "Sample applications" : "Your applications";
 
   return (
-    <div className="grid grid-cols-12 gap-6 md:h-full">
-      <div className="col-span-12 flex flex-col gap-3 md:col-span-3 md:h-full">
+    <div className="grid grid-cols-12 gap-6">
+      <div className="col-span-12 flex flex-col gap-3 md:col-span-3">
         <div className="grid grid-cols-2 gap-3">
           <StatTiles stats={stats} compact />
         </div>
-        {/* Fills the leftover height below the stats grid (the right column's Pipeline +
-            Applications cards are taller than 6 compact tiles) with something actually
-            useful, rather than stretching the tiles themselves into oversized boxes. */}
+        {/* flex-1: the grid's default stretch behavior matches this column's height to
+            the right column's (whichever is taller), and this card fills the leftover
+            space - without it, the grid would still align the two columns' outer boxes,
+            but this card would stay short and leave a visible empty gap below it. */}
         <div className="card flex flex-1 flex-col gap-2 p-4">
           <h2 className="shrink-0 text-sm font-medium text-muted">Quick actions</h2>
           <div className="flex flex-1 flex-col gap-3">
@@ -201,12 +200,11 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
         </div>
       </div>
 
-      <div className="col-span-12 flex flex-col gap-6 md:col-span-9 md:h-full">
-        {/* Proportional (flex-grow), not a fixed pixel height - a hardcoded height here
-            only ever fits the handful of screen sizes it was eyeballed against; this way
-            the two cards always divide whatever space the viewport actually has to give,
-            on any monitor, without either one ever getting clipped. */}
-        <div className="min-h-[220px] flex-[1.9] md:min-h-0">
+      <div className="col-span-12 flex flex-col gap-6 md:col-span-9">
+        {/* A fixed height, not a proportional flex-grow split against the viewport - the
+            page itself scrolls now, so this only needs to be tall enough to render the
+            chart well, not to divide up a fixed budget with the Applications card below. */}
+        <div className="h-[380px]">
           {stats.sankeyLinks.length === 0 ? (
             <PipelineEmptyState readOnly={readOnly} fillHeight />
           ) : (
@@ -214,10 +212,14 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
           )}
         </div>
 
-        <div className="card flex min-h-[140px] flex-1 flex-col p-4 md:min-h-0">
+        {/* A real fixed height, not flex-1 - this card's box size (and therefore the whole
+            rectangle's shape, and Quick Actions' matched height on the left) never changes
+            as more applications get added. Shows every application (no artificial cap),
+            scrolling internally instead. */}
+        <div className="card flex h-[320px] flex-col p-4">
           <h2 className="shrink-0 text-sm font-medium text-muted">{applicationsHeading}</h2>
           <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <ApplicationsList applications={applications} readOnly={readOnly} basePath={basePath} limit={5} compact />
+            <ApplicationsList applications={applications} readOnly={readOnly} basePath={basePath} compact />
           </div>
         </div>
       </div>

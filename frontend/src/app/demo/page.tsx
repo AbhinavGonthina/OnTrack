@@ -36,10 +36,10 @@ function DemoDashboardContent() {
   }, []);
 
   return (
-    <main className="relative isolate flex w-full flex-col overflow-y-auto py-6 md:h-[calc(100vh-4rem-1px)] md:max-h-[calc(100vh-4rem-1px)] md:overflow-hidden">
+    <main className="relative isolate flex w-full flex-col py-6">
       <DotGridBackground center />
-      <PageContainer className="flex flex-col md:min-h-0 md:flex-1">
-        <div className="mb-6 flex shrink-0 items-center justify-between">
+      <PageContainer className="flex flex-col">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Demo dashboard</h1>
             <p className="mt-1 text-sm text-foreground/70">
@@ -49,13 +49,9 @@ function DemoDashboardContent() {
             </p>
           </div>
         </div>
-        {error && <p className="mb-4 shrink-0 text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && (!stats || !applications) && <Spinner label="Loading…" className="shrink-0" />}
-        {stats && applications && (
-          <div className="md:min-h-0 md:flex-1 md:overflow-hidden">
-            <DashboardView stats={stats} applications={applications} readOnly />
-          </div>
-        )}
+        {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {!error && (!stats || !applications) && <Spinner label="Loading…" />}
+        {stats && applications && <DashboardView stats={stats} applications={applications} readOnly />}
       </PageContainer>
     </main>
   );

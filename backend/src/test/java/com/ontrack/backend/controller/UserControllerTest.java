@@ -5,6 +5,7 @@ import com.ontrack.backend.dto.ResumeStrengthResponse;
 import com.ontrack.backend.dto.ResumeUpdateRequest;
 import com.ontrack.backend.dto.UserResponse;
 import com.ontrack.backend.entity.User;
+import com.ontrack.backend.ratelimit.GeminiRateLimiter;
 import com.ontrack.backend.repository.UserRepository;
 import com.ontrack.backend.security.JwtService;
 import com.ontrack.backend.service.ResumeAnalysisService;
@@ -48,6 +49,9 @@ class UserControllerTest {
 
     @MockitoBean
     private ResumeAnalysisService resumeAnalysisService;
+
+    @MockitoBean
+    private GeminiRateLimiter geminiRateLimiter;
 
     @MockitoBean
     private JwtService jwtService;
@@ -132,9 +136,12 @@ class UserControllerTest {
     }
 
     @Test
-    void resumeStrengthReturnsScoreAndRecommendations() throws Exception {
+    void resumeStrengthReturnsScoreCategoriesAndRecommendations() throws Exception {
         when(resumeAnalysisService.scoreStrength(eq(user), eq("resume text")))
-                .thenReturn(new ResumeStrengthResponse(75, List.of("Add metrics")));
+                .thenReturn(new ResumeStrengthResponse(
+                        75,
+                        List.of(new ResumeStrengthResponse.CategoryScore("Impact & Metrics", 60, "Quantify more.")),
+                        List.of("Add metrics")));
         String body = objectMapper.writeValueAsString(new ResumeUpdateRequest("resume text"));
 
         mockMvc.perform(post("/api/users/me/resume/strength")
@@ -144,6 +151,21 @@ class UserControllerTest {
                         .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.score").value(75))
+                .andExpect(jsonPath("$.categories[0].name").value("Impact & Metrics"))
+                .andExpect(jsonPath("$.categories[0].score").value(60))
+                .andExpect(jsonPath("$.categories[0].feedback").value("Quantify more."))
                 .andExpect(jsonPath("$.recommendations[0]").value("Add metrics"));
+    }
+
+    @Test
+    void aiUsageReturnsRemainingAndLimit() throws Exception {
+        when(geminiRateLimiter.remaining(user.getId())).thenReturn(14L);
+        when(geminiRateLimiter.getLimit()).thenReturn(20);
+
+        mockMvc.perform(get("/api/users/me/ai-usage")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.remaining").value(14))
+                .andExpect(jsonPath("$.limit").value(20));
     }
 }

@@ -32,9 +32,21 @@ export interface ResumeTextResponse {
   resumeText: string;
 }
 
+export interface ResumeStrengthCategory {
+  name: string;
+  score: number;
+  feedback: string;
+}
+
 export interface ResumeStrengthResponse {
   score: number;
+  categories: ResumeStrengthCategory[];
   recommendations: string[];
+}
+
+export interface AiUsageResponse {
+  remaining: number;
+  limit: number;
 }
 
 export interface ApplicationResponse {

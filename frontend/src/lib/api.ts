@@ -1,4 +1,5 @@
 import type {
+  AiUsageResponse,
   ApiErrorBody,
   ApplicationDetailResponse,
   ApplicationResponse,
@@ -155,6 +156,11 @@ export function normalizeResumeText(token: string, resumeText: string): Promise<
 
 export function getResumeStrength(token: string, resumeText: string): Promise<ResumeStrengthResponse> {
   return request("/api/users/me/resume/strength", { method: "POST", token, body: { resumeText } });
+}
+
+/** Shared daily budget across fit-analysis, resume normalize, and resume strength. */
+export function getAiUsage(token: string): Promise<AiUsageResponse> {
+  return request("/api/users/me/ai-usage", { token });
 }
 
 // --- Applications ---

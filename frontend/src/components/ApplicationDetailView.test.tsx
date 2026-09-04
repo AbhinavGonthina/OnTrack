@@ -4,10 +4,15 @@ import userEvent from "@testing-library/user-event";
 import { ApplicationDetailView } from "./ApplicationDetailView";
 import { ApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { useAiUsage } from "../context/AiUsageContext";
 import type { ApplicationDetailResponse } from "@/lib/types";
 
 vi.mock("../context/AuthContext", () => ({
   useAuth: vi.fn(),
+}));
+
+vi.mock("../context/AiUsageContext", () => ({
+  useAiUsage: vi.fn(),
 }));
 
 const detail: ApplicationDetailResponse = {
@@ -46,6 +51,7 @@ describe("ApplicationDetailView", () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
+    vi.mocked(useAiUsage).mockReturnValue({ aiUsage: null, refresh: vi.fn() });
   });
 
   test("renders the header, status badge, and existing timeline/notes", () => {

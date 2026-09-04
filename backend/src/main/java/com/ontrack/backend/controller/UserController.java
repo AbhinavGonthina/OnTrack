@@ -1,10 +1,12 @@
 package com.ontrack.backend.controller;
 
+import com.ontrack.backend.dto.AiUsageResponse;
 import com.ontrack.backend.dto.ResumeStrengthResponse;
 import com.ontrack.backend.dto.ResumeTextResponse;
 import com.ontrack.backend.dto.ResumeUpdateRequest;
 import com.ontrack.backend.dto.UserResponse;
 import com.ontrack.backend.entity.User;
+import com.ontrack.backend.ratelimit.GeminiRateLimiter;
 import com.ontrack.backend.service.ResumeAnalysisService;
 import com.ontrack.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -24,15 +26,27 @@ public class UserController {
 
     private final UserService userService;
     private final ResumeAnalysisService resumeAnalysisService;
+    private final GeminiRateLimiter geminiRateLimiter;
 
-    public UserController(UserService userService, ResumeAnalysisService resumeAnalysisService) {
+    public UserController(
+            UserService userService,
+            ResumeAnalysisService resumeAnalysisService,
+            GeminiRateLimiter geminiRateLimiter) {
         this.userService = userService;
         this.resumeAnalysisService = resumeAnalysisService;
+        this.geminiRateLimiter = geminiRateLimiter;
     }
 
     @GetMapping
     public UserResponse profile(@AuthenticationPrincipal User user) {
         return userService.getProfile(user);
+    }
+
+    /** Lets the UI show "N AI calls left today" - shared across fit-analysis, resume
+     * normalize, and resume strength, since they all draw from the same daily budget. */
+    @GetMapping("/ai-usage")
+    public AiUsageResponse aiUsage(@AuthenticationPrincipal User user) {
+        return new AiUsageResponse(geminiRateLimiter.remaining(user.getId()), geminiRateLimiter.getLimit());
     }
 
     @PutMapping("/resume")

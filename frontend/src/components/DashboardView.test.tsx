@@ -97,6 +97,19 @@ describe("DashboardView", () => {
     expect(link).toHaveAttribute("href", "/applications/a1");
   });
 
+  test("lists every application, not just the first few", () => {
+    const applications = Array.from({ length: 8 }, (_, i) => ({
+      ...application,
+      id: `a${i + 1}`,
+      company: `Company ${i + 1}`,
+    }));
+    render(<DashboardView stats={baseStats} applications={applications} readOnly={false} />);
+
+    for (const app of applications) {
+      expect(screen.getByText(`Backend Engineer · ${app.company}`)).toBeInTheDocument();
+    }
+  });
+
   test("readOnly mode shows 'Sample applications' and links into /demo/applications", () => {
     render(<DashboardView stats={baseStats} applications={[application]} readOnly />);
 
