@@ -82,13 +82,32 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
       <h2 className="shrink-0 text-sm font-medium text-muted">Pipeline</h2>
       {/* A Sankey needs real horizontal room: the fixed left/right margins below reserve
           270px for the "Applied" and "Rejected (Phone Screen)"-style end labels, so on a
-          phone the diagram itself was being squeezed into a ~25px sliver with every label
-          piled on top of the next. Scrolling sideways below this min-width keeps the chart
-          at its intended proportions instead of degrading it - at md+ the card is always
-          wider than the min-width, so this has no effect on desktop. */}
-      <div className={fillHeight ? "mt-3 min-h-0 flex-1 overflow-x-auto" : "mt-3 overflow-x-auto"}>
-        <div className={`min-w-[640px] ${fillHeight ? "h-full" : ""}`}>
-          <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320}>
+          phone the diagram was being squeezed into a ~25px sliver with every label piled on
+          top of the next. Scrolling sideways below a min-width keeps the chart at its
+          intended proportions instead of degrading it.
+
+          All of that is scoped to below md, and deliberately so. This card is only 9 of 12
+          columns, so an unconditional min-width starts overflowing once the viewport is
+          under ~985px - which is merely ~145% browser zoom on a 1440px window. That put a
+          scrollbar on the desktop layout at ordinary zoom levels, with no hint explaining it
+          (the hint below is md:hidden), and because the min-width wasn't aligned to the md
+          breakpoint the card's width changed *non-monotonically* across it - the grid
+          reflows to full width at 768px, so the card abruptly got wider as the viewport got
+          narrower, making the whole chart jump. At md+ the chart is plainly responsive again.
+
+          overflow-y-hidden is explicit rather than inherited: CSS forces the other axis to
+          auto when one axis isn't visible, so overflow-x-auto alone also allowed a spurious
+          *vertical* scrollbar from sub-pixel rounding while zooming. md:overflow-visible has
+          to set both axes back for the same reason. */}
+      <div
+        className={`${fillHeight ? "mt-3 min-h-0 flex-1" : "mt-3"} overflow-x-auto overflow-y-hidden md:overflow-visible`}
+      >
+        <div className={`min-w-[640px] md:min-w-0 ${fillHeight ? "h-full" : ""}`}>
+          {/* debounce: ResponsiveContainer otherwise re-measures and re-lays-out on every
+              intermediate resize step. With 270px of fixed margin, every node and label
+              visibly shifts on each step, so a zoom gesture reads as the chart flickering
+              through positions. Settling once at the end is both calmer and cheaper. */}
+          <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320} debounce={150}>
             <Sankey
               data={data}
               node={SankeyNode}
