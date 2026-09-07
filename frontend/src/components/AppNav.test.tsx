@@ -74,7 +74,9 @@ describe("AppNav", () => {
 
     render(<AppNav />);
 
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    // getAllByText, not getByText: the nav links render twice by design - see the
+    // "renders the nav links twice" test below.
+    expect(screen.getAllByText("Dashboard").length).toBeGreaterThan(0);
     expect(screen.getByTitle("Log out")).toBeInTheDocument();
   });
 
@@ -130,9 +132,42 @@ describe("AppNav", () => {
     render(<AppNav />);
 
     expect(screen.getByText("P")).toBeInTheDocument();
-    expect(screen.getByText("Applications")).toHaveClass("border-brand");
-    expect(screen.getByText("Dashboard")).not.toHaveClass("border-brand");
+    // Both the desktop and the mobile copy of each link must agree on the active route.
+    for (const link of screen.getAllByText("Applications")) {
+      expect(link).toHaveClass("border-brand");
+    }
+    for (const link of screen.getAllByText("Dashboard")) {
+      expect(link).not.toHaveClass("border-brand");
+    }
     expect(screen.getByText("OnTrack").closest("a")).toHaveAttribute("href", "/");
+  });
+
+  // The desktop copy is absolutely centered (so the active tab lines up with the page's
+  // own vertical grid) which takes it out of flow; on a phone that made it render on top
+  // of the logo and the right-hand controls. The two copies are hidden at opposite
+  // breakpoints, so exactly one is ever visible - and only one reaches assistive tech,
+  // since the other is display:none rather than merely transparent.
+  test("renders the nav links twice - an md+ centered copy and a narrow-screen second row", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "t",
+      user: { id: "1", email: "person@example.com" },
+      isAuthenticated: true,
+      isInitializing: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+    vi.mocked(useTheme).mockReturnValue({ theme: "light", toggleTheme: vi.fn() });
+    vi.mocked(usePathname).mockReturnValue("/dashboard");
+    vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>);
+
+    render(<AppNav />);
+
+    const copies = screen.getAllByText("Dashboard");
+    expect(copies).toHaveLength(2);
+
+    const rows = copies.map((link) => link.parentElement);
+    expect(rows.some((row) => row?.className.includes("hidden") && row?.className.includes("md:flex"))).toBe(true);
+    expect(rows.some((row) => row?.className.includes("md:hidden"))).toBe(true);
   });
 
   test("logout clears auth state and navigates to the landing page", async () => {

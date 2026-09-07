@@ -23,6 +23,30 @@ const LINKS = [
 // window and shove its layout around.)
 const PUBLIC_ONLY_PATHS = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
 
+// Rendered twice: absolutely centered in the bar itself at md+, and as a normal in-flow
+// second row below the bar on narrow screens (see the nav's own comment for why).
+function NavLinks({ pathname }: { pathname: string }) {
+  return LINKS.map((link) => {
+    const isActive = pathname.startsWith(link.href);
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        className={`border-b-2 py-1.5 font-medium transition-colors ${
+          isActive ? "border-brand text-foreground" : "border-transparent text-muted hover:text-foreground"
+        }`}
+      >
+        {link.label}
+      </Link>
+    );
+  });
+}
+
+// p-3 gives these 16px icons a 40px touch target on phones, tightening back to the
+// original compact 28px on desktop where a cursor doesn't need the extra area.
+const ICON_BUTTON_CLASSNAME =
+  "rounded-lg p-3 text-muted transition-colors hover:bg-white/5 hover:text-foreground md:p-1.5";
+
 export function AppNav() {
   const router = useRouter();
   const pathname = usePathname();
@@ -80,43 +104,31 @@ export function AppNav() {
           <Logo size={28} />
           OnTrack
         </Link>
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-6">
-          {LINKS.map((link) => {
-            const isActive = pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`border-b-2 py-1.5 font-medium transition-colors ${
-                  isActive
-                    ? "border-brand text-foreground"
-                    : "border-transparent text-muted hover:text-foreground"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+        {/* Absolutely centered so the active tab lines up with the page's own vertical grid
+            regardless of how wide the logo or the right-hand controls are - but that also
+            takes it out of flow, so on a phone it used to render straight on top of both.
+            Hidden here below md and re-rendered as a real second row underneath instead. */}
+        <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 md:flex">
+          <NavLinks pathname={pathname} />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-3">
           <ThemeToggle />
           <ReportProblemButton variant="icon" />
           {user && (
             <span
               title={user.email}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white ring-2 ring-brand/25"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white ring-2 ring-brand/25"
             >
               {user.email[0].toUpperCase()}
             </span>
           )}
-          <button
-            onClick={handleLogout}
-            title="Log out"
-            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-white/5 hover:text-foreground"
-          >
+          <button onClick={handleLogout} title="Log out" className={ICON_BUTTON_CLASSNAME}>
             <LogOut size={16} />
           </button>
         </div>
+      </PageContainer>
+      <PageContainer className="flex items-center gap-6 pb-2 text-sm md:hidden">
+        <NavLinks pathname={pathname} />
       </PageContainer>
     </nav>
   );
