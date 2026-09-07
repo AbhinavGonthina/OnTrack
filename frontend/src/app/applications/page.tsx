@@ -72,7 +72,9 @@ export default function ApplicationsPage() {
   return (
     <main className="w-full flex-1 py-10">
       <PageContainer>
-        <div className="flex items-center justify-between">
+        {/* Stacked below sm: the heading doesn't shrink and the button doesn't wrap, so on a
+            narrow phone the two just rendered on top of each other. */}
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-display text-2xl font-bold text-foreground">Applications</h1>
           <Link href="/applications/new">
             <Button>New application</Button>
@@ -97,15 +99,21 @@ export default function ApplicationsPage() {
         )}
         {applications && applications.length > 0 && (
           <ul className="card mt-6 divide-y divide-surface-border">
+            {/* Rows stack below sm: sharing one line with the status badge, Edit and Delete
+                left the title barely 15 characters before truncating, and pushed the date
+                onto a second line anyway. A full row each keeps both readable. */}
             {applications.map((app) => (
-              <li key={app.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                <Link href={`/applications/${app.id}`} className="min-w-0 flex-1">
+              <li
+                key={app.id}
+                className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+              >
+                <Link href={`/applications/${app.id}`} className="min-w-0 sm:flex-1">
                   <p className="truncate text-sm font-medium text-foreground">
                     {app.role} · {app.company}
                   </p>
                   <p className="mt-1 text-xs text-muted">Applied {app.dateApplied}</p>
                 </Link>
-                <div className="flex shrink-0 items-center gap-3 text-sm">
+                <div className="flex shrink-0 items-center gap-4 text-sm sm:gap-3">
                   <StatusBadge status={app.currentStatus} />
                   <Link href={`/applications/${app.id}/edit`} className="font-medium text-brand hover:underline">
                     Edit

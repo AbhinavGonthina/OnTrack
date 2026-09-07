@@ -51,7 +51,7 @@ export function ReportProblemButton({ variant = "icon" }: Props) {
         <button
           onClick={openModal}
           title="Report a problem"
-          className="rounded-lg p-1.5 text-muted transition-colors hover:bg-white/5 hover:text-foreground"
+          className="rounded-lg p-3 text-muted transition-colors hover:bg-white/5 hover:text-foreground md:p-1.5"
         >
           <MessageSquareWarning size={16} />
         </button>

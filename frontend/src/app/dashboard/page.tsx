@@ -65,7 +65,9 @@ export default function DashboardPage() {
     <main className="relative isolate flex w-full flex-col py-6">
       <DotGridBackground center />
       <PageContainer className="flex flex-col">
-        <div className="mb-6 flex items-center justify-between">
+        {/* Stacked below sm: the heading doesn't shrink and the button doesn't wrap, so on a
+            narrow phone the two just rendered on top of each other. */}
+        <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
           <Link href="/applications/new">
             <Button>+ Add Application</Button>
