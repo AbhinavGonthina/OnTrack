@@ -80,65 +80,76 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
   return (
     <div className={`card relative ${fillHeight ? "flex h-full flex-col p-6" : "p-4"}`}>
       <h2 className="shrink-0 text-sm font-medium text-muted">Pipeline</h2>
-      <div className={fillHeight ? "mt-3 min-h-0 flex-1" : "mt-3"}>
-        <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320}>
-          <Sankey
-            data={data}
-            node={SankeyNode}
-            link={(linkProps: LinkProps) => {
-              const targetName = linkProps.payload.target.name as string;
-              const color = getNodeColor(targetName);
-              const isActive = activeIndex === linkProps.index;
-              const value = linkProps.payload.value as number;
+      {/* A Sankey needs real horizontal room: the fixed left/right margins below reserve
+          270px for the "Applied" and "Rejected (Phone Screen)"-style end labels, so on a
+          phone the diagram itself was being squeezed into a ~25px sliver with every label
+          piled on top of the next. Scrolling sideways below this min-width keeps the chart
+          at its intended proportions instead of degrading it - at md+ the card is always
+          wider than the min-width, so this has no effect on desktop. */}
+      <div className={fillHeight ? "mt-3 min-h-0 flex-1 overflow-x-auto" : "mt-3 overflow-x-auto"}>
+        <div className={`min-w-[640px] ${fillHeight ? "h-full" : ""}`}>
+          <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320}>
+            <Sankey
+              data={data}
+              node={SankeyNode}
+              link={(linkProps: LinkProps) => {
+                const targetName = linkProps.payload.target.name as string;
+                const color = getNodeColor(targetName);
+                const isActive = activeIndex === linkProps.index;
+                const value = linkProps.payload.value as number;
 
-              // Nodes render on top of links (recharts draws all links, then all nodes), so
-              // a label sitting at the raw geometric midpoint of a link that skips one or
-              // more columns (e.g. an OA -> Offer flow skipping Phone Screen/Interview) would
-              // land directly behind one of those columns' opaque bars and disappear. Hugging
-              // the target end instead keeps it in the gap right before the target's own bar,
-              // which no other column ever occupies.
-              const spansMultipleColumns = linkProps.payload.target.depth - linkProps.payload.source.depth > 1;
-              const labelX = spansMultipleColumns ? linkProps.targetX - 14 : (linkProps.sourceX + linkProps.targetX) / 2;
-              const labelY = spansMultipleColumns ? linkProps.targetY : (linkProps.sourceY + linkProps.targetY) / 2;
+                // Nodes render on top of links (recharts draws all links, then all nodes),
+                // so a label sitting at the raw geometric midpoint of a link that skips one
+                // or more columns (e.g. an OA -> Offer flow skipping Phone Screen/Interview)
+                // would land directly behind one of those columns' opaque bars and
+                // disappear. Hugging the target end instead keeps it in the gap right before
+                // the target's own bar, which no other column ever occupies.
+                const spansMultipleColumns = linkProps.payload.target.depth - linkProps.payload.source.depth > 1;
+                const labelX = spansMultipleColumns
+                  ? linkProps.targetX - 14
+                  : (linkProps.sourceX + linkProps.targetX) / 2;
+                const labelY = spansMultipleColumns ? linkProps.targetY : (linkProps.sourceY + linkProps.targetY) / 2;
 
-              return (
-                <g
-                  onMouseEnter={() => setActiveIndex(linkProps.index)}
-                  onMouseLeave={() => setActiveIndex(null)}
-                >
-                  <path
-                    d={buildLinkPath(linkProps)}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth={linkProps.linkWidth}
-                    strokeOpacity={isActive ? 0.5 : 0.25}
-                    style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
-                  />
-                  <text
-                    x={labelX}
-                    y={labelY}
-                    textAnchor={spansMultipleColumns ? "end" : "middle"}
-                    dominantBaseline="middle"
-                    paintOrder="stroke"
-                    // A fixed dark outline (not var(--surface), which is near-white in light
-                    // mode and made a white fill blend into it) so the label stays legible
-                    // over both the pale ribbon tint light mode renders and the darker one
-                    // dark mode renders, without depending on which theme is active.
-                    stroke="#18181b"
-                    strokeWidth={3}
-                    className="pointer-events-none fill-white text-[11px] font-semibold"
-                  >
-                    {value}
-                  </text>
-                </g>
-              );
-            }}
-            nodePadding={24}
-            nodeWidth={10}
-            margin={{ top: 42, right: 160, bottom: 8, left: 110 }}
-          />
-        </ResponsiveContainer>
+                return (
+                  <g onMouseEnter={() => setActiveIndex(linkProps.index)} onMouseLeave={() => setActiveIndex(null)}>
+                    <path
+                      d={buildLinkPath(linkProps)}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth={linkProps.linkWidth}
+                      strokeOpacity={isActive ? 0.5 : 0.25}
+                      style={{ mixBlendMode: theme === "dark" ? "screen" : "normal" }}
+                    />
+                    <text
+                      x={labelX}
+                      y={labelY}
+                      textAnchor={spansMultipleColumns ? "end" : "middle"}
+                      dominantBaseline="middle"
+                      paintOrder="stroke"
+                      // A fixed dark outline (not var(--surface), which is near-white in
+                      // light mode and made a white fill blend into it) so the label stays
+                      // legible over both the pale ribbon tint light mode renders and the
+                      // darker one dark mode renders, without depending on the active theme.
+                      stroke="#18181b"
+                      strokeWidth={3}
+                      className="pointer-events-none fill-white text-[11px] font-semibold"
+                    >
+                      {value}
+                    </text>
+                  </g>
+                );
+              }}
+              nodePadding={24}
+              nodeWidth={10}
+              margin={{ top: 42, right: 160, bottom: 8, left: 110 }}
+            />
+          </ResponsiveContainer>
+        </div>
       </div>
+      {/* The chart being visibly cut off mid-ribbon is a hint on its own, but only if you
+          already suspect it scrolls - this says so outright. md:hidden because at that
+          point the card is wider than the chart's min-width and nothing is clipped. */}
+      <p className="mt-2 text-xs text-muted/70 md:hidden">Scroll sideways to see the full pipeline →</p>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1.5">
           <span
