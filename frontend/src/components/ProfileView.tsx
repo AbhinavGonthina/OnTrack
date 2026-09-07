@@ -283,11 +283,14 @@ export function ProfileView({
       </div>
 
       <div className="col-span-12 flex flex-col gap-3 md:col-span-8">
-        <div className="flex shrink-0 items-center justify-between gap-3">
-          <div className="flex gap-1 rounded-full border border-surface-border bg-white/[0.03] p-1 text-sm">
+        {/* Stacked below sm: side by side, the tab pills, the AI-usage badge and the
+            Normalize button each wrapped onto three lines on a phone (and overflowed the
+            viewport outright at 320px). Given a full row each, both fit on one line. */}
+        <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-1 self-start rounded-full border border-surface-border bg-white/[0.03] p-1 text-sm sm:self-auto">
             <button
               onClick={() => setTab("formatted")}
-              className={`rounded-full px-3 py-1 transition-colors ${
+              className={`rounded-full px-3 py-1.5 whitespace-nowrap transition-colors ${
                 tab === "formatted" ? "bg-brand/15 text-brand" : "text-muted hover:text-foreground"
               }`}
             >
@@ -295,14 +298,14 @@ export function ProfileView({
             </button>
             <button
               onClick={() => setTab("raw")}
-              className={`rounded-full px-3 py-1 transition-colors ${
+              className={`rounded-full px-3 py-1.5 whitespace-nowrap transition-colors ${
                 tab === "raw" ? "bg-brand/15 text-brand" : "text-muted hover:text-foreground"
               }`}
             >
               Raw Text Editor
             </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <AiUsageBadge />
             <Button
               variant="secondary"
@@ -310,7 +313,7 @@ export function ProfileView({
               onClick={onNormalize}
               disabled={isNormalizing || resumeText.trim().length === 0}
             >
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                 <Sparkles size={14} />
                 {isNormalizing ? "Normalizing…" : "Normalize with Gemini"}
               </span>
@@ -321,8 +324,9 @@ export function ProfileView({
 
         {/* A real fixed height (not just a minimum) so this scrolls internally for a long
             resume, like before - the page itself can still grow/scroll too if the left
-            column (e.g. a tall strength breakdown) ends up taller than this card. */}
-        <div className="card h-[600px] overflow-y-auto p-4">
+            column (e.g. a tall strength breakdown) ends up taller than this card. Shorter
+            on phones, where 600px is most of the viewport and pushes everything else off. */}
+        <div className="card h-[420px] overflow-y-auto p-4 sm:h-[600px]">
           {tab === "formatted" ? (
             <FormattedPreview resumeText={resumeText} />
           ) : (
