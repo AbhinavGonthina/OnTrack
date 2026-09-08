@@ -21,6 +21,14 @@ function mockSystemTheme(prefersDark: boolean) {
   );
 }
 
+function renderPreview() {
+  render(
+    <ThemeProvider>
+      <ProductPreview />
+    </ThemeProvider>,
+  );
+}
+
 describe("ProductPreview", () => {
   beforeEach(() => {
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
@@ -31,27 +39,43 @@ describe("ProductPreview", () => {
     document.documentElement.removeAttribute("data-theme");
   });
 
-  test("shows the dashboard screenshot with a descriptive alt", async () => {
+  test("layers all three feature screenshots, each with a descriptive alt", async () => {
     mockSystemTheme(true);
-    render(
-      <ThemeProvider>
-        <ProductPreview />
-      </ThemeProvider>,
-    );
+    renderPreview();
 
-    const img = await screen.findByAltText(/OnTrack dashboard/i);
-    await waitFor(() => expect(img.getAttribute("src")).toContain("dashboard-dark.png"));
+    const images = await screen.findAllByRole("img");
+    expect(images).toHaveLength(3);
+    expect(screen.getByAltText(/OnTrack dashboard/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/Resume strength scored 95/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/fit scored 88/i)).toBeInTheDocument();
   });
 
-  test("swaps to the light screenshot once the system prefers light", async () => {
-    mockSystemTheme(false);
-    render(
-      <ThemeProvider>
-        <ProductPreview />
-      </ThemeProvider>,
-    );
+  test("uses the dark variant of every layer when the system prefers dark", async () => {
+    mockSystemTheme(true);
+    renderPreview();
 
-    const img = await screen.findByAltText(/OnTrack dashboard/i);
-    await waitFor(() => expect(img.getAttribute("src")).toContain("dashboard-light.png"));
+    const images = await screen.findAllByRole("img");
+    await waitFor(() => {
+      for (const img of images) {
+        expect(img.getAttribute("src")).toContain("-dark.png");
+      }
+    });
+  });
+
+  test("swaps every layer to its light variant once the system prefers light", async () => {
+    mockSystemTheme(false);
+    renderPreview();
+
+    const images = await screen.findAllByRole("img");
+    await waitFor(() => {
+      for (const img of images) {
+        expect(img.getAttribute("src")).toContain("-light.png");
+      }
+    });
+    // Every layer must swap, not just the dashboard behind them.
+    const srcs = images.map((i) => i.getAttribute("src") ?? "");
+    expect(srcs.some((s) => s.includes("dashboard-light"))).toBe(true);
+    expect(srcs.some((s) => s.includes("strength-card-light"))).toBe(true);
+    expect(srcs.some((s) => s.includes("fit-card-light"))).toBe(true);
   });
 });
