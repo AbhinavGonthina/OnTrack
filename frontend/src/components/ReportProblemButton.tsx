@@ -51,14 +51,14 @@ export function ReportProblemButton({ variant = "icon" }: Props) {
         <button
           onClick={openModal}
           title="Report a problem"
-          className="rounded-lg p-3 text-muted transition-colors hover:bg-white/5 hover:text-foreground md:p-1.5"
+          className="rounded-lg p-3 text-muted transition-colors hover:bg-foreground/5 hover:text-foreground md:p-1.5"
         >
           <MessageSquareWarning size={16} />
         </button>
       ) : (
         <button
           onClick={openModal}
-          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] px-3.5 py-2.5 text-left text-sm text-foreground transition-all hover:bg-white/[0.08]"
+          className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-foreground/[0.03] px-3.5 py-2.5 text-left text-sm text-foreground transition-all hover:bg-foreground/[0.08]"
         >
           <MessageSquareWarning size={16} className="text-brand" />
           Report a problem
@@ -80,7 +80,7 @@ export function ReportProblemButton({ variant = "icon" }: Props) {
                 <h2 className="font-display text-lg font-bold text-foreground">Report a problem</h2>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="rounded-lg p-1 text-muted transition-colors hover:bg-white/5 hover:text-foreground"
+                  className="rounded-lg p-1 text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
                 >
                   <X size={18} />
                 </button>

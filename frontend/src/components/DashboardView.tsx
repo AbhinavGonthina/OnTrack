@@ -27,7 +27,7 @@ interface Props {
 }
 
 const QUICK_ACTION_CLASSNAME =
-  "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-white/[0.03] px-3.5 py-2.5 text-sm text-foreground transition-all hover:bg-white/[0.08]";
+  "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-surface-border bg-foreground/[0.03] px-3.5 py-2.5 text-sm text-foreground transition-all hover:bg-foreground/[0.08]";
 
 function formatPercent(value: number): string {
   return `${value}%`;
@@ -128,7 +128,7 @@ function ApplicationsList({
         <li key={app.id}>
           <Link
             href={`${basePath}/${app.id}`}
-            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.02]"
+            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-foreground/[0.04]"
           >
             <span className="min-w-0 truncate text-foreground">
               {app.role} · {app.company}

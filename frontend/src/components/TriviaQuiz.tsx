@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import triviaBank from "@/data/trivia.json";
+import { Button } from "@/components/Button";
 
 interface TriviaQuestion {
   question: string;
@@ -11,42 +13,46 @@ interface TriviaQuestion {
 }
 
 const QUESTIONS = triviaBank as TriviaQuestion[];
-const ROTATE_INTERVAL_MS = 18000;
 
-function randomIndex(exclude?: number): number {
-  if (QUESTIONS.length <= 1) return 0;
-  let index = Math.floor(Math.random() * QUESTIONS.length);
-  while (index === exclude) {
-    index = Math.floor(Math.random() * QUESTIONS.length);
+interface QuizState {
+  index: number;
+  /** Questions already shown this session - not persisted anywhere, just this
+   * component's lifetime, which matches one backend wake-up. */
+  seen: Set<number>;
+}
+
+/** Picks a question not yet seen this session. Once every question has been shown,
+ * starts a fresh round rather than getting stuck - but still avoids repeating
+ * whatever's on screen right now, so the round boundary itself never reads as a
+ * literal repeat. */
+function pickNext(seen: Set<number>, current: number): QuizState {
+  let pool = QUESTIONS.map((_, i) => i).filter((i) => !seen.has(i));
+  let nextSeen = seen;
+  if (pool.length === 0) {
+    pool = QUESTIONS.map((_, i) => i).filter((i) => i !== current);
+    nextSeen = new Set();
   }
-  return index;
+  const index = pool[Math.floor(Math.random() * pool.length)];
+  return { index, seen: new Set(nextSeen).add(index) };
 }
 
 export function TriviaQuiz() {
   // Starts at a fixed index so server and client render the same question on
   // hydration (Math.random() during the initial render would mismatch between
   // SSR and the client); the effect below picks a random one right after mount.
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const [quiz, setQuiz] = useState<QuizState>({ index: 0, seen: new Set([0]) });
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
   useEffect(() => {
     const pickInitial = setTimeout(() => {
-      setQuestionIndex((current) => randomIndex(current));
+      setQuiz((prev) => pickNext(prev.seen, prev.index));
     }, 0);
 
-    const interval = setInterval(() => {
-      setQuestionIndex((current) => randomIndex(current));
-      setSelected(null);
-    }, ROTATE_INTERVAL_MS);
-
-    return () => {
-      clearTimeout(pickInitial);
-      clearInterval(interval);
-    };
+    return () => clearTimeout(pickInitial);
   }, []);
 
-  const question = QUESTIONS[questionIndex];
+  const question = QUESTIONS[quiz.index];
 
   function selectAnswer(choiceIndex: number) {
     if (selected !== null) return;
@@ -55,6 +61,11 @@ export function TriviaQuiz() {
       correct: prev.correct + (choiceIndex === question.correctIndex ? 1 : 0),
       total: prev.total + 1,
     }));
+  }
+
+  function goToNextQuestion() {
+    setQuiz((prev) => pickNext(prev.seen, prev.index));
+    setSelected(null);
   }
 
   return (
@@ -98,6 +109,14 @@ export function TriviaQuiz() {
       {selected !== null && (
         <p className="mt-4 text-xs text-foreground/70">{question.explanation}</p>
       )}
+      <div className="mt-4 flex justify-end">
+        <Button variant="secondary" size="sm" onClick={goToNextQuestion} className="ml-auto">
+          <span className="inline-flex items-center gap-1.5">
+            Next question
+            <ArrowRight size={14} />
+          </span>
+        </Button>
+      </div>
     </div>
   );
 }

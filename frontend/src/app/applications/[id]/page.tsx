@@ -7,6 +7,7 @@ import {
   ApiError,
   addNote,
   addStatusEvent,
+  deleteApplication,
   deleteNote,
   deleteStatusEvent,
   getApplication,
@@ -27,6 +28,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
 
   const [detail, setDetail] = useState<ApplicationDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!isInitializing && !isAuthenticated) {
@@ -94,6 +96,20 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
     return requestFitAnalysis(token, id).finally(() => refreshAiUsage());
   }
 
+  async function handleDeleteApplication() {
+    if (!token) return;
+    if (!confirm("Delete this application? This can't be undone.")) return;
+    setIsDeleting(true);
+    try {
+      await deleteApplication(token, id);
+      invalidateCache(applicationsCacheKey(token), statsCacheKey(token));
+      router.push("/applications");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+      setIsDeleting(false);
+    }
+  }
+
   if (!isAuthenticated) {
     return null;
   }
@@ -108,13 +124,20 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
         {!error && !detail && <Spinner label="Loading…" />}
         {detail && (
           <>
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end gap-4">
               <Link
                 href={`/applications/${id}/edit`}
                 className="text-sm font-medium text-brand hover:underline"
               >
                 Edit application
               </Link>
+              <button
+                onClick={handleDeleteApplication}
+                disabled={isDeleting}
+                className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+              >
+                {isDeleting ? "Deleting…" : "Delete application"}
+              </button>
             </div>
             <ApplicationDetailView
               detail={detail}

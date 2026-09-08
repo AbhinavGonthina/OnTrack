@@ -66,7 +66,7 @@ export function OfferCelebration({ onDone }: { onDone: () => void }) {
         <p className="text-sm font-medium text-foreground">Congratulations on your offer!</p>
         <button
           onClick={onDone}
-          className="rounded-lg p-1 text-muted transition-colors hover:bg-white/5 hover:text-foreground"
+          className="rounded-lg p-1 text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
           <X size={16} />
         </button>

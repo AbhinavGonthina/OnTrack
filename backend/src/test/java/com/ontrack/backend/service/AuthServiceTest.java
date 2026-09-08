@@ -216,4 +216,18 @@ class AuthServiceTest {
         assertThat(user.getPasswordHash()).isEqualTo("new-hashed-password");
         verify(userRepository).save(user);
     }
+
+    @Test
+    void resetPasswordAlsoVerifiesAPreviouslyUnverifiedAccount() {
+        // Completing the reset-password flow already proves control of the mailbox (the reset
+        // link was emailed there) - a user who never finished verifying shouldn't reset their
+        // password successfully and then still be blocked at login for being unverified.
+        User user = User.builder().id(UUID.randomUUID()).email("person@example.com").emailVerified(false).build();
+        when(tokenService.consume("raw-token", TokenType.PASSWORD_RESET)).thenReturn(user);
+        when(passwordEncoder.encode("new-password123")).thenReturn("new-hashed-password");
+
+        authService.resetPassword("raw-token", "new-password123");
+
+        assertThat(user.isEmailVerified()).isTrue();
+    }
 }

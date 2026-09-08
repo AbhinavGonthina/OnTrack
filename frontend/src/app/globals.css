@@ -85,6 +85,14 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Browsers' own UA stylesheet gives <button> a plain arrow cursor, not a pointer, unlike
+   <a href>. Every button in this app is a real interactive control, so this should be the
+   default everywhere rather than something each component has to opt into one-by-one -
+   :not(:disabled) so a component's own disabled:cursor-not-allowed still wins when it applies. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 @utility gradient-text {
   background-image: linear-gradient(135deg, var(--brand), var(--brand-secondary));
   background-clip: text;

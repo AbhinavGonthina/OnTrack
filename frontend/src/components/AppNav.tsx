@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { PageContainer } from "@/components/PageContainer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReportProblemButton } from "@/components/ReportProblemButton";
+import { UserAccountButton } from "@/components/UserAccountButton";
 
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -45,12 +46,12 @@ function NavLinks({ pathname }: { pathname: string }) {
 // p-3 gives these 16px icons a 40px touch target on phones, tightening back to the
 // original compact 28px on desktop where a cursor doesn't need the extra area.
 const ICON_BUTTON_CLASSNAME =
-  "rounded-lg p-3 text-muted transition-colors hover:bg-white/5 hover:text-foreground md:p-1.5";
+  "rounded-lg p-3 text-muted transition-colors hover:bg-foreground/5 hover:text-foreground md:p-1.5";
 
 export function AppNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   function handleLogout() {
     // Every authenticated page has its own "redirect if logged out" guard
@@ -114,14 +115,7 @@ export function AppNav() {
         <div className="flex items-center gap-1 md:gap-3">
           <ThemeToggle />
           <ReportProblemButton variant="icon" />
-          {user && (
-            <span
-              title={user.email}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-secondary text-xs font-semibold text-white ring-2 ring-brand/25"
-            >
-              {user.email[0].toUpperCase()}
-            </span>
-          )}
+          <UserAccountButton />
           <button onClick={handleLogout} title="Log out" className={ICON_BUTTON_CLASSNAME}>
             <LogOut size={16} />
           </button>

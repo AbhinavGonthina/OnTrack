@@ -162,7 +162,9 @@ function UploadDropzone({
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={`flex min-h-[160px] flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors ${
-          isDraggingOver ? "border-brand bg-brand/10" : "border-surface-border bg-white/[0.03] hover:bg-white/[0.06]"
+          isDraggingOver
+            ? "border-brand bg-brand/10"
+            : "border-surface-border bg-foreground/[0.03] hover:bg-foreground/[0.06]"
         } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
       >
         <UploadCloud size={24} className="text-brand" />
@@ -287,7 +289,7 @@ export function ProfileView({
             Normalize button each wrapped onto three lines on a phone (and overflowed the
             viewport outright at 320px). Given a full row each, both fit on one line. */}
         <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-1 self-start rounded-full border border-surface-border bg-white/[0.03] p-1 text-sm sm:self-auto">
+          <div className="flex gap-1 self-start rounded-full border border-surface-border bg-foreground/[0.03] p-1 text-sm sm:self-auto">
             <button
               onClick={() => setTab("formatted")}
               className={`rounded-full px-3 py-1.5 whitespace-nowrap transition-colors ${

@@ -122,6 +122,13 @@ public class AuthService {
     public MessageResponse resetPassword(String rawToken, String newPassword) {
         User user = tokenService.consume(rawToken, TokenType.PASSWORD_RESET);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        // Completing a password reset already proves control of the mailbox - the reset link
+        // was emailed to it, same trust model as the original verification link - so an
+        // unverified account no longer needs a separate verification step afterward. Without
+        // this, a user who never finished verifying (e.g. the original email never arrived)
+        // would reset their password successfully and then still be blocked at login with a
+        // confusing "please verify your email" they have no way to act on differently.
+        user.setEmailVerified(true);
         userRepository.save(user);
         return new MessageResponse("Password reset. You can now log in with your new password.");
     }
