@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { Logo } from "./Logo";
 
 describe("Logo", () => {
-  test("renders the OT monogram", () => {
+  test("renders the OnTrack mark", () => {
     render(<Logo />);
-    expect(screen.getByText("OT")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "OnTrack" })).toBeInTheDocument();
   });
 });
