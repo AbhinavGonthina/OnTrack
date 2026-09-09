@@ -69,7 +69,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         response.setHeader("Retry-After", String.valueOf(waitSeconds));
         response.setContentType("application/json");
         response.getWriter().write(
-                "{\"status\":429,\"error\":\"Too many requests - please slow down and try again in "
+                "{\"status\":429,\"error\":\"Too many requests. Please slow down and try again in "
                         + waitSeconds + " " + unit + ".\"}");
     }
 

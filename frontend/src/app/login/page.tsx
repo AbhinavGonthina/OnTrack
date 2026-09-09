@@ -114,7 +114,7 @@ export default function LoginPage() {
                 <button type="button" onClick={handleResend} className="font-medium text-brand hover:underline">
                   Resend verification email
                 </button>
-                {resent && <p className="mt-1 text-foreground/70">Sent — check your inbox.</p>}
+                {resent && <p className="mt-1 text-foreground/70">Sent. Check your inbox.</p>}
               </div>
             )}
             <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">

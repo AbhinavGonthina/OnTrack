@@ -144,7 +144,7 @@ export default function ProfilePage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Profile</h1>
           <p className="mt-1 text-sm text-foreground/70">
-            Keep your resume up to date - it powers fit analysis against every job description.
+            Keep your resume up to date. It powers fit analysis against every job description.
           </p>
         </div>
         {loadError && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{loadError}</p>}

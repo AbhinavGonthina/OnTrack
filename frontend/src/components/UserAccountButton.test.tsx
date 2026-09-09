@@ -63,7 +63,7 @@ describe("UserAccountButton", () => {
 
     expect(forgotPassword).toHaveBeenCalledWith("person@example.com");
     await waitFor(() =>
-      expect(screen.getByText("Check your email — we sent a link to reset your password.")).toBeInTheDocument(),
+      expect(screen.getByText("Check your email for a link to reset your password.")).toBeInTheDocument(),
     );
     // The button itself never asks for or changes a password directly.
     expect(screen.queryByPlaceholderText(/password/i)).not.toBeInTheDocument();

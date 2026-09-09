@@ -113,7 +113,7 @@ export function ProductPreview() {
       {/* mt clears the cards' -bottom-10 overhang before the caption starts. */}
       <p className="mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed font-medium text-foreground/80 lg:mt-20">
         Track every stage of every application, score your resume out of 100, and check your fit
-        against any job description — all in one place.
+        against any job description, all in one place.
       </p>
     </div>
   );

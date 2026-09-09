@@ -44,8 +44,8 @@ function DemoDashboardContent() {
             <h1 className="font-display text-2xl font-bold text-foreground">Demo dashboard</h1>
             <p className="mt-1 text-sm text-foreground/70">
               {isAuthenticated
-                ? "Sample data - you're already signed in, so just click Dashboard in the navbar above to start tracking your own job search."
-                : "Sample data - sign up to track your own job search."}
+                ? "Sample data. You're already signed in, so just click Dashboard in the navbar above to start tracking your own job search."
+                : "Sample data. Sign up to track your own job search."}
             </p>
           </div>
         </div>

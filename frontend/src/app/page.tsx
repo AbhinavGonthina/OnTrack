@@ -37,14 +37,14 @@ const FEATURES: { title: string; description: string; icon: LucideIcon; accent: 
   {
     title: "Track every application",
     description:
-      "Log each stage as it happens — Applied, OA, Phone Screen, Onsite, Offer, or Rejected — and see exactly when and where every application moved.",
+      "Log every stage as it happens: Applied, OA, Phone Screen, Onsite, Offer or Rejected. See exactly when and where each application moved.",
     icon: History,
     accent: "brand",
   },
   {
     title: "Visualize your whole pipeline",
     description:
-      "One dashboard shows your whole search at a glance: how many applications reach OA, phone screen, onsite, and offer — and where rejections cluster.",
+      "One dashboard shows your whole search at a glance: how many applications reach OA, phone screen, onsite and offer, plus where rejections cluster.",
     icon: Workflow,
     accent: "brand-secondary",
   },
@@ -58,7 +58,7 @@ const FEATURES: { title: string; description: string; icon: LucideIcon; accent: 
   {
     title: "Notes for every application",
     description:
-      "Jot down recruiter calls, interview feedback, or next steps — attached to the right application, right next to its status history.",
+      "Jot down recruiter calls, interview feedback or next steps. Every note stays attached to the right application, next to its status history.",
     icon: StickyNote,
     accent: "brand-secondary",
   },
@@ -177,9 +177,9 @@ export default function LandingPage() {
               variants={heroItem}
               className="max-w-xl text-base leading-relaxed font-normal text-muted sm:text-lg"
             >
-              OnTrack is a job application tracker built specifically for SWE/CS job searches —
-              status-pipeline analytics, a funnel visualization, and an AI-powered resume/JD fit
-              check, all in one place.
+              OnTrack is a job application tracker built specifically for SWE/CS job searches. It
+              gives you status-pipeline analytics, a funnel visualization and an AI-powered
+              resume/JD fit check, all in one place.
             </motion.p>
             <motion.div variants={heroItem} className="mt-2 flex flex-col items-center gap-3 sm:flex-row">
               <Link

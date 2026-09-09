@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
-        return error(HttpStatus.BAD_REQUEST, "File is too large - please upload a PDF or DOCX under 5MB");
+        return error(HttpStatus.BAD_REQUEST, "File is too large. Please upload a PDF or DOCX under 5MB.");
     }
 
     @ExceptionHandler(GeminiApiException.class)

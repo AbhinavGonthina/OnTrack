@@ -43,7 +43,7 @@ describe("ReportProblemButton", () => {
     await user.click(screen.getByText("Send feedback"));
 
     expect(submitFeedback).toHaveBeenCalledWith("t", "The delete button 404s", "/dashboard");
-    await waitFor(() => expect(screen.getByText(/Thanks - we'll take a look\./)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Thanks, we'll take a look\./)).toBeInTheDocument());
   });
 
   test("shows an error message if submitting feedback fails", async () => {

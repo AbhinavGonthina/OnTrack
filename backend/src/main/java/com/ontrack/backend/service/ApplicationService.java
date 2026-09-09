@@ -183,7 +183,7 @@ public class ApplicationService {
 
         if (event.getStatus() == ApplicationStatus.APPLIED) {
             throw new InvalidStatusEventException(
-                    "The Applied stage can't be deleted - edit the application's date applied instead");
+                    "The Applied stage can't be deleted. Edit the application's date applied instead.");
         }
 
         statusEventRepository.delete(event);
@@ -272,7 +272,7 @@ public class ApplicationService {
             // rounds are expected and each is already tracked as its own numbered round.
             if (request.status() == current && request.status() != ApplicationStatus.INTERVIEW) {
                 throw new InvalidStatusEventException(
-                        "This stage has already been logged for this application - only interview rounds can repeat");
+                        "This stage has already been logged for this application. Only interview rounds can repeat.");
             }
 
             if (STAGE_TIER.get(request.status()) < STAGE_TIER.get(current)) {

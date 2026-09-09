@@ -49,7 +49,7 @@
       "It requires authentication"
     ],
     "correctIndex": 1,
-    "explanation": "PUT and DELETE are idempotent - repeating the request doesn't change the outcome further."
+    "explanation": "PUT and DELETE are idempotent, so repeating the request doesn't change the outcome further."
   },
   {
     "question": "Which sorting algorithm is guaranteed O(n log n) in all cases and stable?",
@@ -66,7 +66,7 @@
       "It doesn't require balancing"
     ],
     "correctIndex": 2,
-    "explanation": "B-trees have high fanout, so they stay shallow - fewer disk seeks per lookup, which matters when nodes live on disk."
+    "explanation": "B-trees have high fanout, so they stay shallow, which means fewer disk seeks per lookup when nodes live on disk."
   },
   {
     "question": "What problem does a Bloom filter solve?",
@@ -83,7 +83,7 @@
     "question": "In REST API design, which HTTP method is typically NOT idempotent?",
     "choices": ["GET", "PUT", "DELETE", "POST"],
     "correctIndex": 3,
-    "explanation": "POST usually creates a new resource each time - call it twice, get two resources."
+    "explanation": "POST usually creates a new resource each time, so calling it twice gets you two resources."
   },
   {
     "question": "What is 'thrashing' in the context of an operating system?",
@@ -178,7 +178,7 @@
     "question": "In Big-O notation, what does O(1) describe?",
     "choices": [
       "An algorithm that always takes exactly 1 millisecond",
-      "Constant time - the operation's cost doesn't grow with input size",
+      "Constant time, where the operation's cost doesn't grow with input size",
       "An algorithm with exactly one loop",
       "The best possible algorithm for any problem"
     ],
@@ -265,10 +265,10 @@
   {
     "question": "What does 'DNS' stand for and do?",
     "choices": [
-      "Domain Name System - translates human-readable domain names into IP addresses",
-      "Data Node Storage - a database replication protocol",
-      "Dynamic Network Security - a firewall standard",
-      "Distributed Node Sync - a consensus algorithm"
+      "Domain Name System, which translates human-readable domain names into IP addresses",
+      "Data Node Storage, a database replication protocol",
+      "Dynamic Network Security, a firewall standard",
+      "Distributed Node Sync, a consensus algorithm"
     ],
     "correctIndex": 0,
     "explanation": "DNS is essentially the internet's phone book, mapping domains like example.com to IP addresses."

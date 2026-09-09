@@ -104,6 +104,6 @@ public class DemoController {
     private User demoUser() {
         return userRepository.findByEmail(DEMO_USER_EMAIL)
                 .orElseThrow(() -> new IllegalStateException(
-                        "Demo user not seeded - check that V2__seed_demo_data.sql ran"));
+                        "Demo user not seeded. Check that V2__seed_demo_data.sql ran."));
     }
 }

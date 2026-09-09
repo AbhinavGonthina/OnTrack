@@ -80,7 +80,7 @@ export function UserAccountButton() {
               <div className="mt-5 border-t border-surface-border pt-4">
                 {resetSent ? (
                   <p className="text-sm text-foreground/70">
-                    Check your email — we sent a link to reset your password.
+                    Check your email for a link to reset your password.
                   </p>
                 ) : (
                   <>
@@ -91,7 +91,7 @@ export function UserAccountButton() {
                       </span>
                     </Button>
                     <p className="mt-2 text-xs text-muted">
-                      We&apos;ll email you a link - your password only changes once you click it.
+                      We&apos;ll email you a link. Your password only changes once you click it.
                     </p>
                   </>
                 )}

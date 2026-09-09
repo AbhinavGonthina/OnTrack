@@ -86,7 +86,7 @@ export function ReportProblemButton({ variant = "icon" }: Props) {
                 </button>
               </div>
               {isSent ? (
-                <p className="mt-4 text-sm text-foreground">Thanks - we&apos;ll take a look.</p>
+                <p className="mt-4 text-sm text-foreground">Thanks, we&apos;ll take a look.</p>
               ) : (
                 <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
                   <label className="flex flex-col gap-1 text-xs text-foreground">

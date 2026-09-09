@@ -192,7 +192,7 @@ function FormattedPreview({ resumeText }: { resumeText: string }) {
   const blocks = parseResumeBlocks(resumeText);
 
   if (blocks.length === 0) {
-    return <p className="text-sm text-muted">Nothing to preview yet - add resume text in the raw editor.</p>;
+    return <p className="text-sm text-muted">Nothing to preview yet. Add resume text in the raw editor.</p>;
   }
 
   return (

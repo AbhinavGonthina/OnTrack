@@ -74,7 +74,7 @@ export default function SignupPage() {
           <Button onClick={handleResend} variant="secondary" className="mt-6 w-full">
             Resend verification email
           </Button>
-          {resent && <p className="mt-2 text-sm text-foreground/70">Sent again — check your inbox.</p>}
+          {resent && <p className="mt-2 text-sm text-foreground/70">Sent again. Check your inbox.</p>}
           <p className="mt-6 text-sm text-foreground/70">
             <Link href="/login" className="font-medium text-brand hover:underline">
               Back to log in

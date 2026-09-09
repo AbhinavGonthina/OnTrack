@@ -23,11 +23,11 @@ export function WakingUpNoticeContent({
         </h1>
         <p className="mt-2 max-w-md text-sm text-foreground/70">
           OnTrack runs on free-tier hosting, so the backend naps after 15 minutes idle. It&apos;s
-          starting back up now — this usually takes under a minute.
+          starting back up now. This usually takes under a minute.
         </p>
         {isSlow && (
           <p className="mt-2 max-w-md text-sm text-amber-600 dark:text-amber-400">
-            Still waking up — hang tight, free hosting can occasionally take a little longer.
+            Still waking up. Hang tight, free hosting can occasionally take a little longer.
           </p>
         )}
       </div>
