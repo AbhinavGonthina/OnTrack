@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
   ApiError,
   addNote,
@@ -17,6 +18,7 @@ import { applicationsCacheKey, invalidateCache, statsCacheKey } from "@/lib/requ
 import { useAuth } from "@/context/AuthContext";
 import { useAiUsage } from "@/context/AiUsageContext";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
+import { DotGridBackground } from "@/components/DotGridBackground";
 import { Spinner } from "@/components/Spinner";
 import type { ApplicationDetailResponse, ApplicationStatus, InterviewFormat, InterviewType } from "@/lib/types";
 
@@ -115,41 +117,32 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
-      <Link href="/applications" className="text-sm font-medium text-brand hover:underline">
-        ← Back to applications
+    <main className="relative isolate w-full flex-1 px-6 py-8">
+      <DotGridBackground center />
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+      <Link
+        href="/applications"
+        className="flex w-fit items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
+      >
+        <ArrowLeft size={15} />
+        Back to applications
       </Link>
-      <div className="mt-4">
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {!error && !detail && <Spinner label="Loading…" />}
-        {detail && (
-          <>
-            <div className="mb-4 flex justify-end gap-4">
-              <Link
-                href={`/applications/${id}/edit`}
-                className="text-sm font-medium text-brand hover:underline"
-              >
-                Edit application
-              </Link>
-              <button
-                onClick={handleDeleteApplication}
-                disabled={isDeleting}
-                className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
-              >
-                {isDeleting ? "Deleting…" : "Delete application"}
-              </button>
-            </div>
-            <ApplicationDetailView
-              detail={detail}
-              readOnly={false}
-              onAddStatusEvent={handleAddStatusEvent}
-              onDeleteStatusEvent={handleDeleteStatusEvent}
-              onAddNote={handleAddNote}
-              onDeleteNote={handleDeleteNote}
-              onRunFitAnalysis={handleRunFitAnalysis}
-            />
-          </>
-        )}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {!error && !detail && <Spinner label="Loading…" />}
+      {detail && (
+        <ApplicationDetailView
+          detail={detail}
+          readOnly={false}
+          editHref={`/applications/${id}/edit`}
+          onDeleteApplication={handleDeleteApplication}
+          isDeletingApplication={isDeleting}
+          onAddStatusEvent={handleAddStatusEvent}
+          onDeleteStatusEvent={handleDeleteStatusEvent}
+          onAddNote={handleAddNote}
+          onDeleteNote={handleDeleteNote}
+          onRunFitAnalysis={handleRunFitAnalysis}
+        />
+      )}
       </div>
     </main>
   );

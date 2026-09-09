@@ -69,7 +69,7 @@ describe("ApplicationDetailView", () => {
     expect(screen.getByText(/viewing a sample application/)).toBeInTheDocument();
     expect(screen.getByText("Sign up to log your own status updates.")).toBeInTheDocument();
     expect(screen.getByText("Sign up to add your own notes.")).toBeInTheDocument();
-    expect(screen.queryByText("Add update")).not.toBeInTheDocument();
+    expect(screen.queryByText("+ Add update")).not.toBeInTheDocument();
   });
 
   test("readOnly mode points an already-signed-in viewer at the navbar instead of pitching sign-up", () => {
@@ -85,7 +85,7 @@ describe("ApplicationDetailView", () => {
     render(<ApplicationDetailView detail={detail} readOnly />);
 
     expect(
-      screen.getByText("You're viewing a sample application - click Applications in the navbar above to see your own."),
+      screen.getByText("You're viewing a sample application. Click Applications in the navbar above to see your own."),
     ).toBeInTheDocument();
     expect(screen.getByText("Open one of your own applications to log status updates.")).toBeInTheDocument();
     expect(screen.getByText("Open one of your own applications to add notes.")).toBeInTheDocument();
@@ -98,7 +98,7 @@ describe("ApplicationDetailView", () => {
     render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
     await user.selectOptions(screen.getByLabelText("New status"), "OA");
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     expect(onAddStatusEvent).toHaveBeenCalledTimes(1);
     expect(onAddStatusEvent.mock.calls[0][0]).toBe("OA");
@@ -113,7 +113,7 @@ describe("ApplicationDetailView", () => {
     await user.selectOptions(screen.getByLabelText("New status"), "REJECTED");
     expect(screen.getByLabelText("Rejected from")).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("Rejected from"), "OA");
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     expect(onAddStatusEvent).toHaveBeenCalledWith("REJECTED", expect.any(String), "OA", undefined, undefined);
   });
@@ -128,7 +128,7 @@ describe("ApplicationDetailView", () => {
     expect(screen.getByLabelText("Format")).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("Interview type"), "BEHAVIORAL");
     await user.selectOptions(screen.getByLabelText("Format"), "IN_PERSON");
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     expect(onAddStatusEvent).toHaveBeenCalledWith(
       "INTERVIEW",
@@ -168,7 +168,7 @@ describe("ApplicationDetailView", () => {
     render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
     await user.selectOptions(screen.getByLabelText("New status"), "OFFER");
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     await waitFor(() => expect(screen.getByText("Congratulations on your offer!")).toBeInTheDocument());
   });
@@ -187,7 +187,7 @@ describe("ApplicationDetailView", () => {
     const user = userEvent.setup();
     render(<ApplicationDetailView detail={offeredDetail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     expect(onAddStatusEvent.mock.calls[0][0]).toBe("ACCEPTED");
   });
@@ -197,7 +197,7 @@ describe("ApplicationDetailView", () => {
     const user = userEvent.setup();
     render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     await waitFor(() => expect(screen.getByText("Rate limit exceeded")).toBeInTheDocument());
   });
@@ -210,12 +210,12 @@ describe("ApplicationDetailView", () => {
   test("disables the button for the server's stated wait time after a 429, and blocks a click during it", async () => {
     const onAddStatusEvent = vi
       .fn()
-      .mockRejectedValueOnce(new ApiError(429, "Too many requests - please slow down and try again in 2 seconds.", 2))
+      .mockRejectedValueOnce(new ApiError(429, "Too many requests. Please slow down and try again in 2 seconds.", 2))
       .mockResolvedValue(undefined);
     const user = userEvent.setup();
     render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
-    await user.click(screen.getByText("Add update"));
+    await user.click(screen.getByText("+ Add update"));
 
     const cooldownButton = await screen.findByText("Try again in 2s");
     expect(cooldownButton.closest("button")).toBeDisabled();
@@ -252,7 +252,7 @@ describe("ApplicationDetailView", () => {
       />,
     );
 
-    await user.click(screen.getByText("Delete"));
+    await user.click(screen.getByLabelText("Delete the OA update"));
 
     expect(onDeleteStatusEvent).toHaveBeenCalledWith("e2");
   });
@@ -260,7 +260,7 @@ describe("ApplicationDetailView", () => {
   test("the Applied stage has no delete option", () => {
     render(<ApplicationDetailView detail={detail} readOnly={false} onDeleteStatusEvent={vi.fn()} />);
 
-    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Delete the /)).not.toBeInTheDocument();
   });
 
   test("shows an error message if deleting a status event fails", async () => {
@@ -290,7 +290,7 @@ describe("ApplicationDetailView", () => {
       />,
     );
 
-    await user.click(screen.getByText("Delete"));
+    await user.click(screen.getByLabelText("Delete the OA update"));
 
     await waitFor(() => expect(screen.getByText("Something went wrong. Please try again.")).toBeInTheDocument());
   });
@@ -319,7 +319,7 @@ describe("ApplicationDetailView", () => {
     const user = userEvent.setup();
     render(<ApplicationDetailView detail={detail} readOnly={false} onDeleteNote={onDeleteNote} />);
 
-    await user.click(screen.getByText("Delete"));
+    await user.click(screen.getByLabelText("Delete note"));
 
     expect(onDeleteNote).toHaveBeenCalledWith("n1");
   });
@@ -361,5 +361,82 @@ describe("ApplicationDetailView", () => {
 
     expect(screen.getByText("Fit analysis isn't available here.")).toBeInTheDocument();
     expect(screen.queryByText("Run fit analysis")).not.toBeInTheDocument();
+  });
+
+  test("lists notes newest first, each with its own timestamp", () => {
+    const detailWithNotes: ApplicationDetailResponse = {
+      ...detail,
+      notes: [
+        { id: "old", text: "Recruiter screen booked", createdAt: "2026-01-10T09:00:00Z" },
+        { id: "new", text: "Sent thank-you email", createdAt: "2026-02-20T17:30:00Z" },
+      ],
+    };
+    render(<ApplicationDetailView detail={detailWithNotes} readOnly={false} />);
+
+    const items = screen.getAllByRole("listitem").filter((li) => li.textContent?.includes("2026"));
+    const noteItems = items.filter((li) => /Recruiter screen booked|Sent thank-you email/.test(li.textContent ?? ""));
+    // Newest first, regardless of the order the API returned them in.
+    expect(noteItems[0].textContent).toContain("Sent thank-you email");
+    expect(noteItems[1].textContent).toContain("Recruiter screen booked");
+    // Each carries a rendered timestamp, not just the body text.
+    expect(noteItems[0].textContent).toMatch(/Feb 20, 2026/);
+    expect(noteItems[1].textContent).toMatch(/Jan 10, 2026/);
+  });
+
+  test("enables Add note only once the textarea has text", async () => {
+    const user = userEvent.setup();
+    render(<ApplicationDetailView detail={detail} readOnly={false} onAddNote={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: "Add note" });
+    expect(button).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Add a note"), "   ");
+    expect(button).toBeDisabled(); // whitespace alone doesn't count
+
+    await user.type(screen.getByLabelText("Add a note"), "Real note");
+    expect(button).toBeEnabled();
+  });
+
+  // Covers the "appears without a full page refresh" requirement: the page refetches and
+  // passes a new detail prop, and the view must slot the event into date order.
+  test("slots a newly added status event into the timeline in date order on re-render", () => {
+    const { rerender } = render(<ApplicationDetailView detail={detail} readOnly={false} />);
+
+    const withNewEvent: ApplicationDetailResponse = {
+      ...detail,
+      statusEvents: [
+        ...detail.statusEvents,
+        {
+          id: "e-new",
+          status: "PHONE_SCREEN",
+          rejectedFromStage: null,
+          interviewRound: null,
+          interviewType: null,
+          interviewFormat: null,
+          eventDate: "2026-03-01",
+          createdAt: "2026-03-01T00:00:00Z",
+        },
+        {
+          id: "e-mid",
+          status: "OA",
+          rejectedFromStage: null,
+          interviewRound: null,
+          interviewType: null,
+          interviewFormat: null,
+          eventDate: "2026-02-01",
+          createdAt: "2026-02-01T00:00:00Z",
+        },
+      ],
+    };
+    rerender(<ApplicationDetailView detail={withNewEvent} readOnly={false} />);
+
+    const labels = screen
+      .getAllByRole("listitem")
+      .map((li) => li.textContent ?? "")
+      .filter((s) => /Applied|OA|Phone Screen/.test(s));
+    const oaIndex = labels.findIndex((s) => s.includes("OA"));
+    const phoneIndex = labels.findIndex((s) => s.includes("Phone Screen"));
+    // Feb event before the Mar event, even though it was supplied last.
+    expect(oaIndex).toBeLessThan(phoneIndex);
   });
 });
