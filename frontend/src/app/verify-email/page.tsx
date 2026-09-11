@@ -89,7 +89,9 @@ function VerifyEmailContent() {
             <Button onClick={handleResend} className="w-full">
               Resend verification email
             </Button>
-            {resent && <p className="text-sm text-foreground/70">Sent. Check your inbox.</p>}
+            {resent && (
+              <p className="text-sm text-foreground/70">Sent. Check your inbox, and your spam folder.</p>
+            )}
           </div>
           <p className="mt-6 text-sm text-foreground/70">
             <Link href="/login" className="font-medium text-brand hover:underline">

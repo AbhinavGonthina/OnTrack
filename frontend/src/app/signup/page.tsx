@@ -71,6 +71,11 @@ export default function SignupPage() {
             We sent a verification link to <span className="font-medium text-foreground">{email}</span>. Click it
             to activate your account, then log in.
           </p>
+          {/* OnTrack sends from a new low-volume domain, so Gmail in particular files these under
+              Spam often enough that leaving it unsaid costs people the whole signup. */}
+          <p className="mt-2 text-sm text-foreground/70">
+            It should arrive within a minute. If you don&apos;t see it, check your spam folder.
+          </p>
           <Button onClick={handleResend} variant="secondary" className="mt-6 w-full">
             Resend verification email
           </Button>

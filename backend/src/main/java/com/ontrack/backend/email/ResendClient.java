@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,13 +35,25 @@ public class ResendClient {
                 .build();
     }
 
+    /** Plain-text only. Fine for internal mail (feedback) that no spam filter scores against us. */
     public void send(String toEmail, String subject, String text) {
-        Map<String, Object> requestBody = Map.of(
-                "from", fromAddress,
-                "to", List.of(toEmail),
-                "subject", subject,
-                "text", text
-        );
+        send(toEmail, subject, text, null);
+    }
+
+    /**
+     * Sends text and HTML together as a multipart message when {@code html} is given.
+     * Both parts matter for inbox placement: a text-only body with a bare URL scores badly with
+     * Gmail, and an HTML-only body scores badly too, so neither part is optional on its own.
+     */
+    public void send(String toEmail, String subject, String text, String html) {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("from", fromAddress);
+        requestBody.put("to", List.of(toEmail));
+        requestBody.put("subject", subject);
+        requestBody.put("text", text);
+        if (html != null) {
+            requestBody.put("html", html);
+        }
 
         try {
             restClient.post()
