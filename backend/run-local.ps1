@@ -13,7 +13,20 @@ Get-Content $envFile | ForEach-Object {
     }
 }
 
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.8-hotspot"
+# Resolve a JDK 21 rather than hardcoding one exact patch version: Temurin updates itself in
+# place under a new versioned folder name, which silently breaks a pinned path ("JAVA_HOME
+# environment variable is not defined correctly"). Prefer an already-correct JAVA_HOME, then
+# fall back to the newest Adoptium 21 install on disk.
+if (-not ($env:JAVA_HOME -and (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe")))) {
+    $jdk = Get-ChildItem "C:\Program Files\Eclipse Adoptium" -Directory -Filter "jdk-21*" -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $jdk) {
+        Write-Host "No JDK 21 found. Install it with: winget install --id EclipseAdoptium.Temurin.21.JDK" -ForegroundColor Red
+        exit 1
+    }
+    $env:JAVA_HOME = $jdk.FullName
+}
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+Write-Host "Using JAVA_HOME=$env:JAVA_HOME"
 
 & "$PSScriptRoot\mvnw.cmd" spring-boot:run
