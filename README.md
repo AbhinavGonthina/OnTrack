@@ -4,7 +4,7 @@ A full-stack job application tracker built for SWE/CS job searches. It combines 
 
 **Live demo:** [ontrack.abhinavgonthina.me](https://ontrack.abhinavgonthina.me). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account.
 
-> The backend runs on Render's free tier, which spins down after 15 minutes idle. First load after a nap takes up to a minute to wake back up. The UI tells you what's happening and keeps you entertained with CS/SWE trivia while it does. This is a deliberate trade for a $0 always-available demo link, not an oversight.
+> The backend runs on Render's free tier, which spins down after 15 minutes idle. First load after a nap takes up to a minute to wake back up. The UI tells you what's happening and keeps you entertained with a 100-question CS/SWE interview trivia quiz while it does. This is a deliberate trade for a $0 always-available demo link, not an oversight.
 
 ## Screenshots
 

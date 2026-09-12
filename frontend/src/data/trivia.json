@@ -1,31 +1,56 @@
 [
   {
     "question": "What is the average time complexity of searching in a balanced binary search tree?",
-    "choices": ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    "choices": [
+      "O(1)",
+      "O(log n)",
+      "O(n)",
+      "O(n log n)"
+    ],
     "correctIndex": 1,
     "explanation": "A balanced BST halves the search space at each step, giving O(log n)."
   },
   {
     "question": "Which data structure is the natural fit for implementing a LRU cache?",
-    "choices": ["A stack", "A hash map alone", "A hash map + doubly linked list", "A binary heap"],
+    "choices": [
+      "A stack",
+      "A hash map alone",
+      "A hash map + doubly linked list",
+      "A binary heap"
+    ],
     "correctIndex": 2,
     "explanation": "The hash map gives O(1) lookup; the doubly linked list gives O(1) reordering to track recency."
   },
   {
     "question": "What does the CAP theorem say a distributed system must sacrifice during a network partition?",
-    "choices": ["Consistency or availability", "Security or speed", "Cost or scale", "Latency or throughput"],
+    "choices": [
+      "Consistency or availability",
+      "Security or speed",
+      "Cost or scale",
+      "Latency or throughput"
+    ],
     "correctIndex": 0,
     "explanation": "CAP: you can't have Consistency, Availability, and Partition tolerance all at once during a partition."
   },
   {
     "question": "What is the time complexity of quicksort in the worst case?",
-    "choices": ["O(n log n)", "O(n)", "O(n^2)", "O(log n)"],
+    "choices": [
+      "O(n log n)",
+      "O(n)",
+      "O(n^2)",
+      "O(log n)"
+    ],
     "correctIndex": 2,
     "explanation": "Worst case (e.g. already-sorted input with a naive pivot) degrades to O(n^2)."
   },
   {
     "question": "Which HTTP status code means 'rate limited, try again later'?",
-    "choices": ["503", "429", "409", "401"],
+    "choices": [
+      "503",
+      "429",
+      "409",
+      "401"
+    ],
     "correctIndex": 1,
     "explanation": "429 Too Many Requests is the standard rate-limiting status code."
   },
@@ -53,7 +78,12 @@
   },
   {
     "question": "Which sorting algorithm is guaranteed O(n log n) in all cases and stable?",
-    "choices": ["Quicksort", "Heapsort", "Merge sort", "Selection sort"],
+    "choices": [
+      "Quicksort",
+      "Heapsort",
+      "Merge sort",
+      "Selection sort"
+    ],
     "correctIndex": 2,
     "explanation": "Merge sort is stable and O(n log n) worst-case, at the cost of O(n) extra space."
   },
@@ -81,7 +111,12 @@
   },
   {
     "question": "In REST API design, which HTTP method is typically NOT idempotent?",
-    "choices": ["GET", "PUT", "DELETE", "POST"],
+    "choices": [
+      "GET",
+      "PUT",
+      "DELETE",
+      "POST"
+    ],
     "correctIndex": 3,
     "explanation": "POST usually creates a new resource each time, so calling it twice gets you two resources."
   },
@@ -109,7 +144,12 @@
   },
   {
     "question": "Which of these is a common way to horizontally scale a relational database?",
-    "choices": ["Vertical indexing", "Sharding", "Garbage collection tuning", "Increasing connection pool size"],
+    "choices": [
+      "Vertical indexing",
+      "Sharding",
+      "Garbage collection tuning",
+      "Increasing connection pool size"
+    ],
     "correctIndex": 1,
     "explanation": "Sharding splits data across multiple database instances by some key, spreading load horizontally."
   },
@@ -148,7 +188,12 @@
   },
   {
     "question": "Which data structure would you use to implement a priority queue efficiently?",
-    "choices": ["Linked list", "Binary heap", "Hash set", "Stack"],
+    "choices": [
+      "Linked list",
+      "Binary heap",
+      "Hash set",
+      "Stack"
+    ],
     "correctIndex": 1,
     "explanation": "A binary heap gives O(log n) insert and O(log n) extract-min/max, the standard priority queue backing."
   },
@@ -360,5 +405,698 @@
     ],
     "correctIndex": 1,
     "explanation": "Phil Karlton's quip: 'There are only two hard things in CS: cache invalidation and naming things.'"
+  },
+  {
+    "question": "What is the main difference between TCP and UDP?",
+    "choices": [
+      "TCP is faster than UDP",
+      "TCP guarantees ordered, reliable delivery while UDP does not",
+      "UDP is encrypted and TCP is not",
+      "TCP works only on local networks"
+    ],
+    "correctIndex": 1,
+    "explanation": "TCP adds acknowledgements, retransmission and ordering. UDP skips all of that for lower overhead."
+  },
+  {
+    "question": "What is the purpose of TCP's three-way handshake?",
+    "choices": [
+      "To encrypt the connection",
+      "To compress the payload",
+      "To establish sequence numbers and confirm both sides can send and receive",
+      "To pick the fastest route"
+    ],
+    "correctIndex": 2,
+    "explanation": "SYN, SYN-ACK and ACK let both sides agree on starting sequence numbers and prove the path works both ways."
+  },
+  {
+    "question": "What does an HTTP 401 mean that a 403 does not?",
+    "choices": [
+      "The server crashed",
+      "You are not authenticated, so credentials are missing or invalid",
+      "The page moved permanently",
+      "The request body was malformed"
+    ],
+    "correctIndex": 1,
+    "explanation": "401 means the server does not know who you are. 403 means it knows and you still are not allowed."
+  },
+  {
+    "question": "What is the difference between a 301 and a 302 redirect?",
+    "choices": [
+      "301 is permanent and 302 is temporary",
+      "301 is for HTTPS only",
+      "302 is faster",
+      "There is no difference"
+    ],
+    "correctIndex": 0,
+    "explanation": "Browsers and search engines cache a 301 and update their links. A 302 is treated as temporary."
+  },
+  {
+    "question": "What problem does CORS solve?",
+    "choices": [
+      "Compressing responses",
+      "Letting a server opt in to browser requests from other origins",
+      "Caching static assets",
+      "Load balancing across regions"
+    ],
+    "correctIndex": 1,
+    "explanation": "The same-origin policy blocks cross-origin reads by default, and CORS headers let a server explicitly allow them."
+  },
+  {
+    "question": "What counts as the same 'origin' under the same-origin policy?",
+    "choices": [
+      "Same domain only",
+      "Same scheme, host and port",
+      "Same IP address",
+      "Same TLS certificate"
+    ],
+    "correctIndex": 1,
+    "explanation": "All three of scheme, host and port must match, so http and https on the same host are different origins."
+  },
+  {
+    "question": "What does a WebSocket give you that repeated HTTP polling does not?",
+    "choices": [
+      "Automatic encryption",
+      "A persistent full-duplex connection where the server can push",
+      "Smaller TLS certificates",
+      "Guaranteed message ordering across reconnects"
+    ],
+    "correctIndex": 1,
+    "explanation": "One long-lived connection stays open, so the server can send without waiting to be asked."
+  },
+  {
+    "question": "What is the difference between latency and throughput?",
+    "choices": [
+      "They are the same thing",
+      "Latency is time per request, throughput is requests handled per unit time",
+      "Latency applies only to databases",
+      "Throughput is measured in milliseconds"
+    ],
+    "correctIndex": 1,
+    "explanation": "A system can have high throughput and bad latency at once, which is why you measure both."
+  },
+  {
+    "question": "What does gRPC typically use for its wire format?",
+    "choices": [
+      "XML",
+      "Plain text JSON",
+      "Binary Protocol Buffers over HTTP/2",
+      "CSV"
+    ],
+    "correctIndex": 2,
+    "explanation": "Protobuf is compact and schema-driven, and HTTP/2 multiplexing lets many calls share one connection."
+  },
+  {
+    "question": "For an unweighted graph, which traversal finds the shortest path?",
+    "choices": [
+      "Depth-first search",
+      "Breadth-first search",
+      "Either one works",
+      "Neither, you need Dijkstra"
+    ],
+    "correctIndex": 1,
+    "explanation": "BFS explores by distance, so the first time it reaches a node it has used the fewest edges."
+  },
+  {
+    "question": "A topological sort can only be computed on what kind of graph?",
+    "choices": [
+      "Any graph",
+      "A directed acyclic graph",
+      "An undirected graph",
+      "A complete graph"
+    ],
+    "correctIndex": 1,
+    "explanation": "A cycle means no valid ordering exists, since each node in it would have to come before itself."
+  },
+  {
+    "question": "Why does Dijkstra's algorithm break on graphs with negative edge weights?",
+    "choices": [
+      "It runs out of memory",
+      "It assumes a finalized node can never be improved later",
+      "It cannot handle directed edges",
+      "It only works on trees"
+    ],
+    "correctIndex": 1,
+    "explanation": "Once Dijkstra settles a node it never revisits it, but a negative edge could have offered a cheaper path."
+  },
+  {
+    "question": "What is a trie particularly good at?",
+    "choices": [
+      "Sorting numbers",
+      "Prefix lookups over a set of strings",
+      "Finding the median",
+      "Balancing itself automatically"
+    ],
+    "correctIndex": 1,
+    "explanation": "Each level consumes one character, so every word sharing a prefix shares the same path."
+  },
+  {
+    "question": "What does a union-find (disjoint set) structure track efficiently?",
+    "choices": [
+      "The shortest path between two nodes",
+      "Which elements belong to the same group, with fast merges",
+      "The maximum element",
+      "Sorted order of insertions"
+    ],
+    "correctIndex": 1,
+    "explanation": "With path compression and union by rank, both find and union run in near constant amortized time."
+  },
+  {
+    "question": "What is the time complexity of building a heap from an unsorted array?",
+    "choices": [
+      "O(1)",
+      "O(log n)",
+      "O(n)",
+      "O(n log n)"
+    ],
+    "correctIndex": 2,
+    "explanation": "Heapifying bottom up is O(n), because most nodes are near the leaves and sift down very little."
+  },
+  {
+    "question": "What does Floyd's cycle detection algorithm use to find a loop in a linked list?",
+    "choices": [
+      "A hash set of visited nodes",
+      "Two pointers moving at different speeds",
+      "Recursion with memoization",
+      "A counter of total nodes"
+    ],
+    "correctIndex": 1,
+    "explanation": "The fast pointer laps the slow one inside any cycle, and it needs only O(1) extra space."
+  },
+  {
+    "question": "What must be true before you can run a binary search?",
+    "choices": [
+      "The array must be sorted",
+      "The array must be a power of two in length",
+      "All values must be unique",
+      "The array must fit in cache"
+    ],
+    "correctIndex": 0,
+    "explanation": "Binary search discards half the range each step based on ordering, which is exactly what sortedness guarantees."
+  },
+  {
+    "question": "What is the auxiliary space complexity of a standard merge sort on arrays?",
+    "choices": [
+      "O(1)",
+      "O(log n)",
+      "O(n)",
+      "O(n log n)"
+    ],
+    "correctIndex": 2,
+    "explanation": "Merging needs a temporary buffer the size of the range being merged, so it is not in place."
+  },
+  {
+    "question": "What makes a sorting algorithm 'stable'?",
+    "choices": [
+      "It never crashes",
+      "Equal elements keep their original relative order",
+      "It always runs in O(n log n)",
+      "It sorts in place"
+    ],
+    "correctIndex": 1,
+    "explanation": "Stability matters when you sort by one key and want a previous sort on another key preserved."
+  },
+  {
+    "question": "What property must a problem have for dynamic programming to help?",
+    "choices": [
+      "It must be NP-complete",
+      "Overlapping subproblems and optimal substructure",
+      "It must involve graphs",
+      "It must be solvable greedily"
+    ],
+    "correctIndex": 1,
+    "explanation": "Without overlap there is nothing to cache, and without optimal substructure the cached answers do not compose."
+  },
+  {
+    "question": "What is the difference between memoization and tabulation?",
+    "choices": [
+      "Memoization is top down and caches as it recurses, tabulation is bottom up and fills a table",
+      "They are the same",
+      "Memoization is always faster",
+      "Tabulation only works on strings"
+    ],
+    "correctIndex": 0,
+    "explanation": "Both avoid recomputing subproblems, they just arrive at the answers from opposite directions."
+  },
+  {
+    "question": "How much space does an adjacency matrix use for a graph with n nodes?",
+    "choices": [
+      "O(n)",
+      "O(n log n)",
+      "O(n squared)",
+      "O(edges)"
+    ],
+    "correctIndex": 2,
+    "explanation": "It stores a cell for every possible pair, which is wasteful for sparse graphs where a list is better."
+  },
+  {
+    "question": "What does quickselect find, and how fast on average?",
+    "choices": [
+      "The median only, in O(log n)",
+      "The kth smallest element, in O(n) average",
+      "A sorted copy, in O(n)",
+      "The maximum, in O(1)"
+    ],
+    "correctIndex": 1,
+    "explanation": "It partitions like quicksort but only recurses into the side containing the target, halving the work each time."
+  },
+  {
+    "question": "Why does a deep recursion risk a stack overflow?",
+    "choices": [
+      "Recursion is slower than loops",
+      "Each call keeps a frame on the call stack until it returns",
+      "Compilers forbid deep recursion",
+      "It uses more heap memory"
+    ],
+    "correctIndex": 1,
+    "explanation": "The frames accumulate, so recursion depth costs O(depth) stack space even when the logic looks cheap."
+  },
+  {
+    "question": "In ACID, what does atomicity guarantee?",
+    "choices": [
+      "Queries run in parallel",
+      "A transaction either fully applies or not at all",
+      "Data is encrypted at rest",
+      "Reads never block writes"
+    ],
+    "correctIndex": 1,
+    "explanation": "A partial transaction is never visible, so a crash halfway through rolls the whole thing back."
+  },
+  {
+    "question": "What is a 'dirty read'?",
+    "choices": [
+      "Reading a corrupted disk block",
+      "Reading data another transaction wrote but has not committed",
+      "Reading from a replica",
+      "Reading without an index"
+    ],
+    "correctIndex": 1,
+    "explanation": "If that other transaction rolls back, you acted on a value that never officially existed."
+  },
+  {
+    "question": "What is the difference between sharding and replication?",
+    "choices": [
+      "They are the same",
+      "Sharding splits different data across nodes, replication copies the same data to several nodes",
+      "Replication is only for backups",
+      "Sharding requires NoSQL"
+    ],
+    "correctIndex": 1,
+    "explanation": "Sharding buys write capacity and storage, replication buys read capacity and redundancy."
+  },
+  {
+    "question": "What is the main cost of adding an index to a table?",
+    "choices": [
+      "Reads get slower",
+      "Writes get slower and storage grows, since the index must be maintained",
+      "It breaks foreign keys",
+      "Transactions stop working"
+    ],
+    "correctIndex": 1,
+    "explanation": "Every insert, update and delete has to update the index too, so indexes are not free."
+  },
+  {
+    "question": "What distinguishes an OLTP workload from an OLAP workload?",
+    "choices": [
+      "OLTP is many small fast transactions, OLAP is fewer large analytical scans",
+      "OLAP is always faster",
+      "OLTP cannot use SQL",
+      "They are the same"
+    ],
+    "correctIndex": 0,
+    "explanation": "The access patterns differ so much that they usually justify different schemas and often different systems."
+  },
+  {
+    "question": "Why do backends use a connection pool?",
+    "choices": [
+      "To encrypt queries",
+      "To reuse established connections instead of paying setup cost per request",
+      "To shard automatically",
+      "To cache query results"
+    ],
+    "correctIndex": 1,
+    "explanation": "Opening a database connection is expensive, so a pool keeps a set warm and hands them out."
+  },
+  {
+    "question": "How do prepared statements prevent SQL injection?",
+    "choices": [
+      "They escape every character twice",
+      "They send the query structure and the values separately, so input is never parsed as SQL",
+      "They encrypt the query",
+      "They validate against a regex"
+    ],
+    "correctIndex": 1,
+    "explanation": "The database plans the statement first, so user input can only ever be a value, never new syntax."
+  },
+  {
+    "question": "What is a write-ahead log (WAL) for?",
+    "choices": [
+      "Compressing old rows",
+      "Recording changes before applying them so the database can recover after a crash",
+      "Caching frequent queries",
+      "Replicating to a CDN"
+    ],
+    "correctIndex": 1,
+    "explanation": "If the process dies mid-write, the log lets the database replay or undo to reach a consistent state."
+  },
+  {
+    "question": "Why would you deliberately denormalize a schema?",
+    "choices": [
+      "To save storage",
+      "To trade some redundancy for faster reads with fewer joins",
+      "To enforce referential integrity",
+      "To make writes atomic"
+    ],
+    "correctIndex": 1,
+    "explanation": "It is a deliberate read-performance choice, and the cost is keeping duplicated data in sync."
+  },
+  {
+    "question": "What is the difference between a mutex and a semaphore?",
+    "choices": [
+      "A mutex allows one holder, a semaphore allows a set number",
+      "A semaphore is faster",
+      "A mutex works only across processes",
+      "They are identical"
+    ],
+    "correctIndex": 0,
+    "explanation": "A binary semaphore looks like a mutex, but a mutex also carries the idea of an owner who must release it."
+  },
+  {
+    "question": "What happens during a context switch?",
+    "choices": [
+      "The CPU overclocks",
+      "The kernel saves one task's register state and restores another's",
+      "Memory is defragmented",
+      "The process is killed"
+    ],
+    "correctIndex": 1,
+    "explanation": "It is pure overhead, which is why very high thread counts can cost more than they gain."
+  },
+  {
+    "question": "What does virtual memory give each process?",
+    "choices": [
+      "Faster RAM",
+      "Its own address space, mapped to physical memory by the MMU",
+      "Unlimited storage",
+      "A dedicated CPU core"
+    ],
+    "correctIndex": 1,
+    "explanation": "Isolation comes for free, and paging lets the total address space exceed the physical memory installed."
+  },
+  {
+    "question": "What does optimistic locking assume?",
+    "choices": [
+      "That conflicts are common",
+      "That conflicts are rare, so it checks for them at write time instead of locking up front",
+      "That only one user exists",
+      "That the database is single threaded"
+    ],
+    "correctIndex": 1,
+    "explanation": "It usually compares a version column on update and retries if something else changed first."
+  },
+  {
+    "question": "What is compare-and-swap (CAS) used for?",
+    "choices": [
+      "Sorting in place",
+      "Updating a value atomically only if it still holds the expected old value",
+      "Swapping two variables",
+      "Comparing strings quickly"
+    ],
+    "correctIndex": 1,
+    "explanation": "It is the hardware primitive most lock-free data structures are built on."
+  },
+  {
+    "question": "Why use a thread pool instead of spawning a thread per task?",
+    "choices": [
+      "Threads cannot be created at runtime",
+      "It avoids repeated creation cost and bounds how much runs at once",
+      "Pools are required by the OS",
+      "It makes tasks run in order"
+    ],
+    "correctIndex": 1,
+    "explanation": "Unbounded thread creation is a classic way to turn a traffic spike into an out-of-memory crash."
+  },
+  {
+    "question": "What is 'false sharing' in multithreaded code?",
+    "choices": [
+      "Two threads reading the same variable",
+      "Two threads writing different variables that sit on the same cache line",
+      "Sharing a pointer across processes",
+      "A race condition on a boolean"
+    ],
+    "correctIndex": 1,
+    "explanation": "The cache line ping-pongs between cores even though the threads never actually touch the same data."
+  },
+  {
+    "question": "What is a system call?",
+    "choices": [
+      "A function call within your program",
+      "A request from user code for the kernel to do something privileged",
+      "A network request",
+      "A compiler directive"
+    ],
+    "correctIndex": 1,
+    "explanation": "Reading a file or opening a socket crosses into kernel mode, which is why syscalls are relatively expensive."
+  },
+  {
+    "question": "What is the key difference between hashing and encryption?",
+    "choices": [
+      "Hashing is reversible with a key, encryption is not",
+      "Encryption is reversible with a key, hashing is meant to be one way",
+      "They are the same",
+      "Hashing is always more secure"
+    ],
+    "correctIndex": 1,
+    "explanation": "You decrypt ciphertext, but you never 'unhash' a hash, you only hash a guess and compare."
+  },
+  {
+    "question": "Why is a salt added to a password before hashing?",
+    "choices": [
+      "To make the hash shorter",
+      "So identical passwords produce different hashes and precomputed tables are useless",
+      "To encrypt the password",
+      "To speed up verification"
+    ],
+    "correctIndex": 1,
+    "explanation": "A unique per-user salt defeats rainbow tables and hides the fact that two users share a password."
+  },
+  {
+    "question": "Why is bcrypt preferred over a plain SHA-256 for passwords?",
+    "choices": [
+      "It produces shorter output",
+      "It is deliberately slow and tunable, which makes brute forcing expensive",
+      "It is reversible",
+      "It needs no salt"
+    ],
+    "correctIndex": 1,
+    "explanation": "Fast hashes are a liability here, because the attacker gets to try billions of guesses per second."
+  },
+  {
+    "question": "What does TLS provide beyond encryption?",
+    "choices": [
+      "Compression",
+      "Authentication that you are talking to the server you think you are",
+      "Load balancing",
+      "Caching"
+    ],
+    "correctIndex": 1,
+    "explanation": "The certificate chain is what stops an attacker from simply presenting their own encrypted connection."
+  },
+  {
+    "question": "What makes a JWT 'stateless' from the server's point of view?",
+    "choices": [
+      "It is stored in a cookie",
+      "The token itself carries signed claims, so the server does not look up a session",
+      "It never expires",
+      "It is encrypted"
+    ],
+    "correctIndex": 1,
+    "explanation": "The tradeoff is that you cannot easily revoke one before it expires, since nothing server side tracks it."
+  },
+  {
+    "question": "What is cross-site request forgery (CSRF)?",
+    "choices": [
+      "Injecting a script into a page",
+      "Tricking a logged-in user's browser into sending an unintended authenticated request",
+      "Reading another site's cookies",
+      "Guessing a password"
+    ],
+    "correctIndex": 1,
+    "explanation": "The browser attaches credentials automatically, so the request looks legitimate unless you require a token."
+  },
+  {
+    "question": "What is the core idea behind cross-site scripting (XSS)?",
+    "choices": [
+      "Overloading a server with traffic",
+      "Getting attacker-controlled script to run in another user's page",
+      "Intercepting network traffic",
+      "Brute forcing a login"
+    ],
+    "correctIndex": 1,
+    "explanation": "Escaping output and avoiding raw HTML injection is what stops user input from becoming executable code."
+  },
+  {
+    "question": "Why retry a failed request with exponential backoff instead of immediately?",
+    "choices": [
+      "It is easier to code",
+      "Immediate retries pile load onto an already struggling service",
+      "Backoff guarantees success",
+      "It reduces bandwidth to zero"
+    ],
+    "correctIndex": 1,
+    "explanation": "Spacing retries out, usually with jitter, avoids a synchronized stampede making the outage worse."
+  },
+  {
+    "question": "What does a circuit breaker do in a distributed system?",
+    "choices": [
+      "Encrypts traffic",
+      "Stops sending calls to a failing dependency for a while so it can recover",
+      "Balances load",
+      "Compresses payloads"
+    ],
+    "correctIndex": 1,
+    "explanation": "Failing fast beats queueing thousands of requests against something that is already down."
+  },
+  {
+    "question": "What is the advantage of a token bucket over a fixed window for rate limiting?",
+    "choices": [
+      "It is simpler",
+      "It permits short bursts while still enforcing an average rate",
+      "It never rejects requests",
+      "It needs no state"
+    ],
+    "correctIndex": 1,
+    "explanation": "Fixed windows allow a double burst across the boundary, and token buckets smooth that out."
+  },
+  {
+    "question": "What is an idempotency key used for?",
+    "choices": [
+      "Encrypting a request",
+      "Letting a client safely retry a request without causing a duplicate effect",
+      "Compressing headers",
+      "Authenticating a user"
+    ],
+    "correctIndex": 1,
+    "explanation": "The server records the key and returns the original result instead of performing the action twice."
+  },
+  {
+    "question": "What defines a blue-green deployment?",
+    "choices": [
+      "Deploying at night",
+      "Running two identical environments and switching traffic between them",
+      "Deploying one server at a time",
+      "Deploying only on weekends"
+    ],
+    "correctIndex": 1,
+    "explanation": "Rollback is just flipping traffic back, since the previous version is still running and healthy."
+  },
+  {
+    "question": "What is a canary release?",
+    "choices": [
+      "A test that runs before deploy",
+      "Routing a small share of real traffic to the new version first",
+      "A rollback script",
+      "A staging environment"
+    ],
+    "correctIndex": 1,
+    "explanation": "Real traffic on a small blast radius catches problems that staging never reproduces."
+  },
+  {
+    "question": "Under semantic versioning, what does bumping the MAJOR number signal?",
+    "choices": [
+      "A bug fix",
+      "A backwards-incompatible change",
+      "A performance improvement",
+      "A new maintainer"
+    ],
+    "correctIndex": 1,
+    "explanation": "MAJOR.MINOR.PATCH means breaking, additive and fix respectively, so consumers know what a bump costs them."
+  },
+  {
+    "question": "What is a feature flag used for?",
+    "choices": [
+      "Marking bugs",
+      "Shipping code to production with the behavior switched off until you enable it",
+      "Tagging releases",
+      "Tracking test coverage"
+    ],
+    "correctIndex": 1,
+    "explanation": "It separates deploy from release, so you can merge continuously and turn things on when ready."
+  },
+  {
+    "question": "What separates a unit test from an integration test?",
+    "choices": [
+      "Unit tests are written first",
+      "A unit test exercises one piece in isolation, an integration test exercises pieces working together",
+      "Integration tests are always faster",
+      "Unit tests require a database"
+    ],
+    "correctIndex": 1,
+    "explanation": "The isolation is the point, since a failing unit test should tell you exactly which piece broke."
+  },
+  {
+    "question": "Why mock a dependency in a test?",
+    "choices": [
+      "To make the test pass",
+      "To keep the test fast and deterministic by removing slow or external behavior",
+      "Because real code cannot be tested",
+      "To increase coverage numbers"
+    ],
+    "correctIndex": 1,
+    "explanation": "Over-mocking is its own trap, because a test of nothing but mocks stops proving the real thing works."
+  },
+  {
+    "question": "What is the main point of continuous integration?",
+    "choices": [
+      "Deploying to production automatically",
+      "Merging and testing changes frequently so breakage is caught early",
+      "Writing tests for you",
+      "Replacing code review"
+    ],
+    "correctIndex": 1,
+    "explanation": "Long-lived branches hide conflicts and regressions, and frequent integration surfaces them while they are small."
+  },
+  {
+    "question": "JavaScript is single threaded, so how does it handle concurrent work?",
+    "choices": [
+      "It spawns OS threads",
+      "An event loop runs queued callbacks when the call stack is empty",
+      "It blocks until each task finishes",
+      "It uses multiple processes by default"
+    ],
+    "correctIndex": 1,
+    "explanation": "Work that waits, like network calls, is handed off and the result comes back as a queued callback."
+  },
+  {
+    "question": "What is the difference between debouncing and throttling?",
+    "choices": [
+      "They are the same",
+      "Debounce waits until activity stops, throttle allows at most one call per interval",
+      "Throttle only works on scroll events",
+      "Debounce is for animations only"
+    ],
+    "correctIndex": 1,
+    "explanation": "Debounce suits a search box that should fire once you stop typing, throttle suits a steady stream like scrolling."
+  },
+  {
+    "question": "What does a closure capture in JavaScript?",
+    "choices": [
+      "Only global variables",
+      "The variables from the scope where the function was defined",
+      "A copy of the entire heap",
+      "Nothing, it is just a function"
+    ],
+    "correctIndex": 1,
+    "explanation": "The captured scope stays alive as long as the closure does, which is both the power and the memory leak risk."
+  },
+  {
+    "question": "Why can comparing with == instead of === cause bugs in JavaScript?",
+    "choices": [
+      "== is slower",
+      "== coerces types before comparing, so values of different types can be equal",
+      "=== does not exist",
+      "== only works on numbers"
+    ],
+    "correctIndex": 1,
+    "explanation": "Cases like 0 == '' being true are exactly why most style guides require strict equality."
   }
 ]
