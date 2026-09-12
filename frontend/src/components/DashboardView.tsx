@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { StatTile } from "@/components/StatTile";
 import { SankeyChart } from "@/components/SankeyChart";
 import { StatusBadge } from "@/components/Badge";
+import { STATUS_LABELS, STATUS_ORDER, getStatusColor } from "@/lib/statusLabels";
 import { Button } from "@/components/Button";
 import { ReportProblemButton } from "@/components/ReportProblemButton";
 
@@ -80,6 +81,48 @@ function StatTiles({ stats, compact }: { stats: StatsResponse; compact: boolean 
  * correct, but it has to be explained differently depending on why: telling someone to add
  * their first application when they are looking at the one they just added reads as a bug.
  */
+/**
+ * A count of where every application currently sits, above the Sankey.
+ *
+ * The Sankey can only draw transitions, so an account whose applications are all still at
+ * Applied has nothing to plot and shows an empty chart, which reads as "the dashboard is
+ * broken" rather than "nothing has moved yet". This row always has something to say from the
+ * first application onward, and answers the question the chart can't: how many are sitting
+ * where, right now.
+ *
+ * Derived from the applications already loaded for the list below rather than a new stats
+ * field, so it costs no extra request and can never disagree with that list.
+ */
+function StageCounts({ applications }: { applications: ApplicationResponse[] }) {
+  const counts = STATUS_ORDER.map((status) => ({
+    status,
+    count: applications.filter((application) => application.currentStatus === status).length,
+  })).filter(({ count }) => count > 0);
+
+  if (counts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="card flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-3.5">
+      <h2 className="text-sm font-medium text-muted">Where things stand</h2>
+      {counts.map(({ status, count }) => (
+        <span key={status} className="flex items-center gap-2 text-sm">
+          {/* Same per-status colors the badges and timeline use, so a stage reads the same
+              everywhere in the app. */}
+          <span
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: getStatusColor(status) }}
+          />
+          <span className="text-foreground/80">{STATUS_LABELS[status]}</span>
+          <span className="font-semibold text-foreground tabular-nums">{count}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function PipelineEmptyState({
   readOnly,
   hasApplications,
@@ -101,7 +144,7 @@ function PipelineEmptyState({
         <Briefcase size={40} className="text-muted/40" />
         <p className="text-sm text-muted">
           {hasApplications
-            ? "Log a status update on an application to see how your pipeline flows."
+            ? "Move an application to another stage to see the flow diagram."
             : "Add an application and log a status update to see your pipeline here."}
         </p>
         {!readOnly && (
@@ -222,6 +265,7 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
         {/* A fixed height, not a proportional flex-grow split against the viewport - the
             page itself scrolls now, so this only needs to be tall enough to render the
             chart well, not to divide up a fixed budget with the Applications card below. */}
+        <StageCounts applications={applications} />
         <div className="h-[380px]">
           {stats.sankeyLinks.length === 0 ? (
             <PipelineEmptyState readOnly={readOnly} hasApplications={applications.length > 0} fillHeight />

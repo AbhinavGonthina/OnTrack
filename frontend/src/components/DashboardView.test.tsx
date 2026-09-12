@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { DashboardView } from "./DashboardView";
 import { useAuth } from "../context/AuthContext";
 import type { ApplicationResponse, StatsResponse } from "@/lib/types";
@@ -75,6 +75,38 @@ describe("DashboardView", () => {
     expect(screen.queryByText("Add one now")).not.toBeInTheDocument();
   });
 
+  // The Sankey can only draw transitions, so this row is the only thing on the dashboard that
+  // says anything at all until an application moves. It has to work from the very first one.
+  test("counts where applications currently sit, including when nothing has moved yet", () => {
+    const applied = { ...application, id: "a2", currentStatus: "APPLIED" as const };
+    const alsoApplied = { ...application, id: "a3", currentStatus: "APPLIED" as const };
+    render(
+      <DashboardView stats={baseStats} applications={[application, applied, alsoApplied]} readOnly={false} />,
+    );
+
+    const row = screen.getByText("Where things stand").parentElement!;
+    expect(within(row).getByText("Applied")).toBeInTheDocument();
+    expect(within(row).getByText("2")).toBeInTheDocument();
+    expect(within(row).getByText("OA")).toBeInTheDocument();
+    expect(within(row).getByText("1")).toBeInTheDocument();
+  });
+
+  // Stages nobody is sitting in would otherwise pad the row with six zeroes.
+  test("omits stages with no applications in them", () => {
+    render(<DashboardView stats={baseStats} applications={[application]} readOnly={false} />);
+
+    const row = screen.getByText("Where things stand").parentElement!;
+    expect(within(row).getByText("OA")).toBeInTheDocument();
+    expect(within(row).queryByText("Offer")).not.toBeInTheDocument();
+    expect(within(row).queryByText("Rejected")).not.toBeInTheDocument();
+  });
+
+  test("hides the stage-count row entirely when there are no applications", () => {
+    render(<DashboardView stats={baseStats} applications={[]} readOnly={false} />);
+
+    expect(screen.queryByText("Where things stand")).not.toBeInTheDocument();
+  });
+
   test("shows an 'Add First Application' CTA in the empty pipeline state when not read-only", () => {
     render(<DashboardView stats={baseStats} applications={[]} readOnly={false} />);
 
@@ -87,7 +119,7 @@ describe("DashboardView", () => {
   test("asks for a status update, not a first application, once one exists", () => {
     render(<DashboardView stats={baseStats} applications={[application]} readOnly={false} />);
 
-    expect(screen.getByText("Log a status update on an application to see how your pipeline flows.")).toBeInTheDocument();
+    expect(screen.getByText("Move an application to another stage to see the flow diagram.")).toBeInTheDocument();
     expect(screen.queryByText("+ Add First Application")).not.toBeInTheDocument();
     expect(screen.getByText("Go to applications").closest("a")).toHaveAttribute("href", "/applications");
   });
@@ -102,7 +134,9 @@ describe("DashboardView", () => {
     render(<DashboardView stats={baseStats} applications={[application]} readOnly={false} />);
 
     expect(screen.getByText("Backend Engineer · Acme Corp")).toBeInTheDocument();
-    expect(screen.getByText("OA")).toBeInTheDocument();
+    // Scoped to the row: "OA" is now also a label in the stage-count summary above the chart.
+    const row = screen.getByText("Backend Engineer · Acme Corp").closest("a")!;
+    expect(within(row).getByText("OA")).toBeInTheDocument();
     const link = screen.getByText("Backend Engineer · Acme Corp").closest("a");
     expect(link).toHaveAttribute("href", "/applications/a1");
   });
