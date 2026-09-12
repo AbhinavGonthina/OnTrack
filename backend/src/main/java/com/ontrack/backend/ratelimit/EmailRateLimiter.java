@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -77,7 +79,7 @@ public class EmailRateLimiter {
                 // Lowercased so Mixed@Case.com and mixed@case.com share one bucket, since the
                 // receiving mailbox is the same either way.
                 .addValue("email", email.toLowerCase())
-                .addValue("windowStart", Instant.now(clock).truncatedTo(ChronoUnit.HOURS))
+                .addValue("windowStart", currentWindow())
                 .addValue("limit", requestsPerHour);
         return jdbc.update(CONSUME_SQL, params) == 1;
     }
@@ -85,6 +87,19 @@ public class EmailRateLimiter {
     /** Drops windows that can no longer be hit. Nothing reads them; they would just accumulate. */
     @Transactional
     public int pruneWindowsBefore(Instant cutoff) {
-        return jdbc.update(PRUNE_SQL, new MapSqlParameterSource("cutoff", cutoff));
+        return jdbc.update(PRUNE_SQL, new MapSqlParameterSource("cutoff", cutoff.atOffset(ZoneOffset.UTC)));
+    }
+
+    /**
+     * Returned as an OffsetDateTime, not an Instant. The Postgres JDBC driver has no mapping for
+     * {@code java.time.Instant} and fails at bind time with "Can't infer the SQL type to use for
+     * an instance of java.time.Instant", which surfaces as a 500 on signup rather than anything
+     * that looks like a type problem. OffsetDateTime maps straight onto TIMESTAMPTZ.
+     *
+     * <p>Truncating to the hour is what makes this a real per-hour allowance rather than a
+     * sliding window, matching what V6 did for the Gemini cap's calendar day.
+     */
+    private OffsetDateTime currentWindow() {
+        return Instant.now(clock).atOffset(ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
     }
 }

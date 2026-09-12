@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,13 +63,20 @@ class EmailRateLimiterTest {
 
     // Truncating to the hour is what makes this a real per-hour allowance rather than a sliding
     // window, matching how V6 made the Gemini cap a true calendar-day one.
+    //
+    // The type matters as much as the value: pgjdbc has no mapping for java.time.Instant and
+    // fails at bind time with "Can't infer the SQL type", which shipped as a 500 on signup.
+    // OffsetDateTime maps onto TIMESTAMPTZ directly.
     @Test
-    void bucketsRequestsByTheTruncatedHour() {
+    void bucketsRequestsByTheTruncatedHourAsAnOffsetDateTime() {
         when(jdbc.update(anyString(), any(MapSqlParameterSource.class))).thenReturn(1);
 
         limiter(5).tryConsume("person@example.com");
 
-        assertThat(capturedParams().getValue("windowStart")).isEqualTo(Instant.parse("2026-09-11T18:00:00Z"));
+        Object windowStart = capturedParams().getValue("windowStart");
+        assertThat(windowStart)
+                .isInstanceOf(OffsetDateTime.class)
+                .isEqualTo(OffsetDateTime.parse("2026-09-11T18:00:00Z"));
     }
 
     @Test
