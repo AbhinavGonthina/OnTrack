@@ -30,7 +30,7 @@ interface Props {
   normalizeError: string | null;
 
   strength: ResumeStrengthResponse | null;
-  onScoreStrength: () => void;
+  onScoreStrength: (force?: boolean) => void;
   isScoringStrength: boolean;
   strengthError: string | null;
 }
@@ -71,7 +71,7 @@ function StrengthScoreCard({
   disabled,
 }: {
   strength: ResumeStrengthResponse | null;
-  onScoreStrength: () => void;
+  onScoreStrength: (force?: boolean) => void;
   isScoringStrength: boolean;
   strengthError: string | null;
   disabled: boolean;
@@ -86,7 +86,9 @@ function StrengthScoreCard({
         <Button
           variant="secondary"
           size="sm"
-          onClick={onScoreStrength}
+          // Force only when re-analyzing something already on screen. A first Analyze stays
+          // cacheable, so clicking it on unchanged text is free rather than a second call.
+          onClick={() => onScoreStrength(strength !== null)}
           disabled={isScoringStrength || disabled}
         >
           {isScoringStrength ? "Analyzing…" : strength ? "Re-analyze" : "Analyze"}
@@ -98,6 +100,14 @@ function StrengthScoreCard({
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl font-bold gradient-text">{strength.score}</span>
             <span className="text-sm text-muted">/ 100</span>
+            {strength.cached && (
+              <span
+                title="Stored from an earlier analysis of this exact resume. Re-analyze to recompute."
+                className="ml-auto rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-normal text-muted"
+              >
+                Saved result
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-2.5">
             {strength.categories.map((category) => (

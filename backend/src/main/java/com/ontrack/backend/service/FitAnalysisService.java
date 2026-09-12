@@ -15,10 +15,7 @@ import com.ontrack.backend.repository.FitAnalysisRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -40,8 +37,40 @@ public class FitAnalysisService {
         this.geminiRateLimiter = geminiRateLimiter;
     }
 
+    /**
+     * Returns the cached analysis for this application's current resume and job description, or
+     * empty if there isn't one. Never calls Gemini and never consumes budget, so the detail page
+     * can show an existing result on load instead of making the user click to find out one
+     * exists. Returns empty rather than throwing when the resume or JD is missing: on page load
+     * that's an ordinary state, not an error worth surfacing.
+     */
+    @Transactional(readOnly = true)
+    public Optional<FitAnalysisResponse> findCached(User user, UUID applicationId) {
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+
+        String resumeText = user.getResumeText();
+        String jobDescriptionText = application.getJobDescriptionText();
+        if (resumeText == null || resumeText.isBlank() || jobDescriptionText == null || jobDescriptionText.isBlank()) {
+            return Optional.empty();
+        }
+        return fitAnalysisRepository
+                .findByApplicationIdAndInputHash(applicationId, InputHasher.sha256Hex(resumeText + jobDescriptionText))
+                .map(existing -> toResponse(existing, true));
+    }
+
     @Transactional
     public FitAnalysisResponse getOrCreate(User user, UUID applicationId) {
+        return getOrCreate(user, applicationId, false);
+    }
+
+    /**
+     * @param force re-run against Gemini even when a cached result matches, for an explicit
+     *              "Re-analyze". Costs a call from the daily budget, which is why it is only ever
+     *              set by a deliberate user action and never by simply opening the page.
+     */
+    @Transactional
+    public FitAnalysisResponse getOrCreate(User user, UUID applicationId, boolean force) {
         Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
@@ -56,15 +85,24 @@ public class FitAnalysisService {
                     "This application needs a job description before requesting a fit analysis");
         }
 
-        String inputHash = sha256Hex(resumeText + jobDescriptionText);
+        String inputHash = InputHasher.sha256Hex(resumeText + jobDescriptionText);
 
-        return fitAnalysisRepository.findByApplicationIdAndInputHash(applicationId, inputHash)
+        Optional<FitAnalysis> cached = force
+                ? Optional.empty()
+                : fitAnalysisRepository.findByApplicationIdAndInputHash(applicationId, inputHash);
+
+        return cached
                 .map(existing -> toResponse(existing, true))
                 .orElseGet(() -> {
                     if (!geminiRateLimiter.tryConsume(user.getId())) {
                         throw new GeminiRateLimitExceededException();
                     }
                     GeminiFitResult result = geminiClient.analyzeFit(resumeText, jobDescriptionText);
+                    // A forced re-run has the same inputs, so it would otherwise insert a second
+                    // row with an identical (application, input_hash) and the next cache read
+                    // would be a coin flip between them.
+                    fitAnalysisRepository.findByApplicationIdAndInputHash(applicationId, inputHash)
+                            .ifPresent(fitAnalysisRepository::delete);
                     FitAnalysis saved = fitAnalysisRepository.save(FitAnalysis.builder()
                             .application(application)
                             .inputHash(inputHash)
@@ -87,12 +125,4 @@ public class FitAnalysisService {
         );
     }
 
-    private String sha256Hex(String input) {
-        try {
-            byte[] hash = MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

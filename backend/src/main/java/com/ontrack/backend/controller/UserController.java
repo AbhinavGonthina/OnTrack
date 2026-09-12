@@ -10,6 +10,7 @@ import com.ontrack.backend.ratelimit.GeminiRateLimiter;
 import com.ontrack.backend.service.ResumeAnalysisService;
 import com.ontrack.backend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,8 +67,26 @@ public class UserController {
         return new ResumeTextResponse(resumeAnalysisService.normalize(user, request.resumeText()));
     }
 
+    /**
+     * Read-only: the stored score for the saved resume, or 204 if there is none or the resume
+     * has changed since it was scored. Safe on page load, never reaches Gemini.
+     */
+    @GetMapping("/resume/strength")
+    public ResponseEntity<ResumeStrengthResponse> cachedResumeStrength(@AuthenticationPrincipal User user) {
+        return resumeAnalysisService.findCachedStrength(user)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    /**
+     * @param force set by an explicit "Re-analyze" to recompute even when the stored hash matches.
+     *              Defaults to false, so re-scoring unchanged text is free.
+     */
     @PostMapping("/resume/strength")
-    public ResumeStrengthResponse resumeStrength(@AuthenticationPrincipal User user, @Valid @RequestBody ResumeUpdateRequest request) {
-        return resumeAnalysisService.scoreStrength(user, request.resumeText());
+    public ResumeStrengthResponse resumeStrength(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody ResumeUpdateRequest request,
+            @RequestParam(name = "force", defaultValue = "false") boolean force) {
+        return resumeAnalysisService.scoreStrength(user, request.resumeText(), force);
     }
 }

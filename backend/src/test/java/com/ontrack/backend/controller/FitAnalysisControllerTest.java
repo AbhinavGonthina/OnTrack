@@ -58,7 +58,7 @@ class FitAnalysisControllerTest {
         UUID appId = UUID.randomUUID();
         FitAnalysisResponse response = new FitAnalysisResponse(
                 UUID.randomUUID(), 78, List.of("Docker"), List.of("Built scalable APIs"), Instant.now(), false);
-        when(fitAnalysisService.getOrCreate(eq(user), eq(appId))).thenReturn(response);
+        when(fitAnalysisService.getOrCreate(eq(user), eq(appId), eq(false))).thenReturn(response);
 
         mockMvc.perform(post("/api/applications/" + appId + "/fit-analysis")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
@@ -71,7 +71,7 @@ class FitAnalysisControllerTest {
     @Test
     void analyzeReturns404WhenApplicationNotFound() throws Exception {
         UUID appId = UUID.randomUUID();
-        when(fitAnalysisService.getOrCreate(eq(user), eq(appId))).thenThrow(new ApplicationNotFoundException(appId));
+        when(fitAnalysisService.getOrCreate(eq(user), eq(appId), eq(false))).thenThrow(new ApplicationNotFoundException(appId));
 
         mockMvc.perform(post("/api/applications/" + appId + "/fit-analysis")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
@@ -82,7 +82,7 @@ class FitAnalysisControllerTest {
     @Test
     void analyzeReturns400WhenResumeMissing() throws Exception {
         UUID appId = UUID.randomUUID();
-        when(fitAnalysisService.getOrCreate(eq(user), eq(appId)))
+        when(fitAnalysisService.getOrCreate(eq(user), eq(appId), eq(false)))
                 .thenThrow(new MissingFitAnalysisInputException("Add your resume text first"));
 
         mockMvc.perform(post("/api/applications/" + appId + "/fit-analysis")

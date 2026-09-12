@@ -42,6 +42,8 @@ export interface ResumeStrengthResponse {
   score: number;
   categories: ResumeStrengthCategory[];
   recommendations: string[];
+  /** True when this is the stored score rather than a fresh Gemini call. */
+  cached: boolean;
 }
 
 export interface AiUsageResponse {

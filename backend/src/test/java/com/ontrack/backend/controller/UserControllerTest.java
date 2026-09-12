@@ -137,11 +137,12 @@ class UserControllerTest {
 
     @Test
     void resumeStrengthReturnsScoreCategoriesAndRecommendations() throws Exception {
-        when(resumeAnalysisService.scoreStrength(eq(user), eq("resume text")))
+        when(resumeAnalysisService.scoreStrength(eq(user), eq("resume text"), eq(false)))
                 .thenReturn(new ResumeStrengthResponse(
                         75,
                         List.of(new ResumeStrengthResponse.CategoryScore("Impact & Metrics", 60, "Quantify more.")),
-                        List.of("Add metrics")));
+                        List.of("Add metrics"),
+                        false));
         String body = objectMapper.writeValueAsString(new ResumeUpdateRequest("resume text"));
 
         mockMvc.perform(post("/api/users/me/resume/strength")

@@ -46,7 +46,12 @@ interface Props {
   onDeleteStatusEvent?: (eventId: string) => Promise<void>;
   onAddNote?: (text: string) => Promise<void>;
   onDeleteNote?: (noteId: string) => Promise<void>;
-  onRunFitAnalysis?: () => Promise<FitAnalysisResponse>;
+  onRunFitAnalysis?: (force: boolean) => Promise<FitAnalysisResponse>;
+  /**
+   * A stored analysis fetched on page load, shown immediately so an existing result doesn't
+   * cost a click to discover. Demo mode passes nothing and keeps its click-to-reveal flow.
+   */
+  initialFitResult?: FitAnalysisResponse | null;
 }
 
 function todayIso(): string {
@@ -71,6 +76,7 @@ export function ApplicationDetailView({
   onAddNote,
   onDeleteNote,
   onRunFitAnalysis,
+  initialFitResult,
 }: Props) {
   // Only relevant when readOnly (the demo view) - a visitor who already has their own real
   // account gets pointed at the nav above instead of a "sign up" pitch that no longer applies.
@@ -113,6 +119,9 @@ export function ApplicationDetailView({
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   const [fitResult, setFitResult] = useState<FitAnalysisResponse | null>(null);
+  // Derived rather than synced into state with an effect: the cached result arrives after mount,
+  // and a freshly run analysis should win over it from then on.
+  const displayedFit = fitResult ?? initialFitResult ?? null;
   const [isRunningFit, setIsRunningFit] = useState(false);
   const [fitError, setFitError] = useState<string | null>(null);
 
@@ -188,12 +197,12 @@ export function ApplicationDetailView({
     }
   }
 
-  async function handleRunFitAnalysis() {
+  async function handleRunFitAnalysis(force: boolean) {
     if (!onRunFitAnalysis) return;
     setFitError(null);
     setIsRunningFit(true);
     try {
-      setFitResult(await onRunFitAnalysis());
+      setFitResult(await onRunFitAnalysis(force));
     } catch (err) {
       setFitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -385,18 +394,20 @@ export function ApplicationDetailView({
                   Gemini compares your saved resume against this job description.
                 </p>
                 <Button
-                  onClick={handleRunFitAnalysis}
+                  // Force only when re-running something already on screen. A first run stays
+                  // cacheable, so it costs nothing if this exact resume and JD were scored before.
+                  onClick={() => handleRunFitAnalysis(displayedFit !== null)}
                   disabled={isRunningFit}
                   className="mt-4 rounded-xl px-5 py-2.5"
                 >
-                  {isRunningFit ? "Analyzing…" : "Run fit analysis"}
+                  {isRunningFit ? "Analyzing…" : displayedFit ? "Re-analyze" : "Run fit analysis"}
                 </Button>
                 {fitError && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{fitError}</p>}
                 {/* Animated height so the card visibly expands into the result rather than
                     snapping. MotionConfig reducedMotion="user" is set at the app level, so
                     this is skipped for anyone who prefers reduced motion. */}
                 <AnimatePresence initial={false}>
-                {fitResult && (
+                {displayedFit && (
                   <motion.div
                     key="fit-result"
                     initial={{ height: 0, opacity: 0 }}
@@ -407,19 +418,19 @@ export function ApplicationDetailView({
                   >
                   <div className="mt-5 border-t border-surface-border pt-5 text-sm">
                     <div className="flex items-center gap-3">
-                      <span className="gradient-text font-display text-4xl font-bold">{fitResult.fitScore}</span>
+                      <span className="gradient-text font-display text-4xl font-bold">{displayedFit.fitScore}</span>
                       <span className="text-muted">/ 100 fit score</span>
-                      {fitResult.cached && (
+                      {displayedFit.cached && (
                         <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
                           cached
                         </span>
                       )}
                     </div>
-                    {fitResult.missingKeywords.length > 0 && (
+                    {displayedFit.missingKeywords.length > 0 && (
                       <div className="mt-4">
                         <p className="text-xs font-medium text-foreground/70">Missing keywords</p>
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {fitResult.missingKeywords.map((keyword) => (
+                          {displayedFit.missingKeywords.map((keyword) => (
                             <span
                               key={keyword}
                               className="rounded-full border border-surface-border bg-foreground/5 px-2 py-0.5 text-xs text-foreground/80"
@@ -430,11 +441,11 @@ export function ApplicationDetailView({
                         </div>
                       </div>
                     )}
-                    {fitResult.suggestedBullets.length > 0 && (
+                    {displayedFit.suggestedBullets.length > 0 && (
                       <div className="mt-4">
                         <p className="text-xs font-medium text-foreground/70">Suggested resume bullets</p>
                         <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground/70">
-                          {fitResult.suggestedBullets.map((bullet, i) => (
+                          {displayedFit.suggestedBullets.map((bullet, i) => (
                             <li key={i}>{bullet}</li>
                           ))}
                         </ul>

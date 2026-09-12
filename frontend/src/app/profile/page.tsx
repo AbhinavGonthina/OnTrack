@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, getProfile, getResumeStrength, normalizeResumeText, updateResume, uploadResume } from "@/lib/api";
+import {
+  ApiError,
+  getCachedResumeStrength,
+  getProfile,
+  getResumeStrength,
+  normalizeResumeText,
+  updateResume,
+  uploadResume,
+} from "@/lib/api";
 import { cachedFetch, invalidateCache, profileCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
 import { useAiUsage } from "@/context/AiUsageContext";
@@ -73,6 +81,26 @@ export default function ProfilePage() {
     };
   }, [token, logout, router]);
 
+  // Show a previously computed score straight away instead of making the user spend a Gemini
+  // call to discover one already exists. This endpoint is read-only and can't reach Gemini, so
+  // running it on every load costs nothing.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+
+    getCachedResumeStrength(token)
+      .then((stored) => {
+        if (!cancelled && stored) setStrength(stored);
+      })
+      .catch(() => {
+        // A missing cached score is not worth surfacing: the Analyze button is right there.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   async function handleSave() {
     if (!token) return;
     setSaveError(null);
@@ -119,12 +147,14 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleScoreStrength() {
+  // force=true only when re-analyzing an already-displayed score. A first run stays cacheable,
+  // so clicking Analyze twice on unchanged text costs one call rather than two.
+  async function handleScoreStrength(force = false) {
     if (!token) return;
     setStrengthError(null);
     setIsScoringStrength(true);
     try {
-      setStrength(await getResumeStrength(token, resumeText));
+      setStrength(await getResumeStrength(token, resumeText, force));
     } catch (err) {
       setStrengthError(errorMessage(err));
     } finally {

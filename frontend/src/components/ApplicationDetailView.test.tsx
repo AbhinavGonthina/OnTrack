@@ -344,6 +344,83 @@ describe("ApplicationDetailView", () => {
     expect(screen.getByText("cached")).toBeInTheDocument();
   });
 
+  // The whole point of the GET endpoint: a stored analysis shows on arrival, so an existing
+  // result costs neither a click nor a Gemini call to discover.
+  test("shows a stored fit analysis on load without anyone clicking", () => {
+    const onRunFitAnalysis = vi.fn();
+    render(
+      <ApplicationDetailView
+        detail={detail}
+        readOnly={false}
+        onRunFitAnalysis={onRunFitAnalysis}
+        initialFitResult={{
+          id: "f1",
+          fitScore: 77,
+          missingKeywords: ["Terraform"],
+          suggestedBullets: ["Mention infrastructure as code."],
+          createdAt: "2026-01-01T00:00:00Z",
+          cached: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("77")).toBeInTheDocument();
+    expect(screen.getByText("cached")).toBeInTheDocument();
+    expect(onRunFitAnalysis).not.toHaveBeenCalled();
+  });
+
+  // Without force, "Re-analyze" would return the very cache already on screen and look broken.
+  test("re-analyzing an already-displayed result forces a recompute", async () => {
+    const onRunFitAnalysis = vi.fn().mockResolvedValue({
+      id: "f2",
+      fitScore: 88,
+      missingKeywords: [],
+      suggestedBullets: [],
+      createdAt: "2026-01-02T00:00:00Z",
+      cached: false,
+    });
+    const user = userEvent.setup();
+    render(
+      <ApplicationDetailView
+        detail={detail}
+        readOnly={false}
+        onRunFitAnalysis={onRunFitAnalysis}
+        initialFitResult={{
+          id: "f1",
+          fitScore: 77,
+          missingKeywords: [],
+          suggestedBullets: [],
+          createdAt: "2026-01-01T00:00:00Z",
+          cached: true,
+        }}
+      />,
+    );
+
+    await user.click(screen.getByText("Re-analyze"));
+
+    expect(onRunFitAnalysis).toHaveBeenCalledWith(true);
+    await waitFor(() => expect(screen.getByText("88")).toBeInTheDocument());
+  });
+
+  // A first run must stay cacheable, or clicking the button on a resume and JD scored earlier
+  // would burn a call to recompute an identical answer.
+  test("a first run does not force, so it can still hit the cache", async () => {
+    const onRunFitAnalysis = vi.fn().mockResolvedValue({
+      id: "f1",
+      fitScore: 60,
+      missingKeywords: [],
+      suggestedBullets: [],
+      createdAt: "2026-01-01T00:00:00Z",
+      cached: true,
+    });
+    const user = userEvent.setup();
+    render(<ApplicationDetailView detail={detail} readOnly={false} onRunFitAnalysis={onRunFitAnalysis} />);
+
+    await user.click(screen.getByText("Run fit analysis"));
+
+    expect(onRunFitAnalysis).toHaveBeenCalledWith(false);
+  });
+
   test("shows an error message if fit analysis fails", async () => {
     const onRunFitAnalysis = vi.fn().mockRejectedValue(new Error("The AI service is temporarily unavailable."));
     const user = userEvent.setup();

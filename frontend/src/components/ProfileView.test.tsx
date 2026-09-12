@@ -90,7 +90,7 @@ describe("ProfileView", () => {
     const { rerender } = render(<ProfileView {...props} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Analyze" }));
-    expect(props.onScoreStrength).toHaveBeenCalled();
+    expect(props.onScoreStrength).toHaveBeenCalledWith(false);
 
     rerender(
       <ProfileView
@@ -99,6 +99,7 @@ describe("ProfileView", () => {
           score: 80,
           categories: [{ name: "Impact & Metrics", score: 60, feedback: "Quantify more bullets." }],
           recommendations: ["Add metrics"],
+          cached: false,
         }}
       />,
     );
@@ -109,6 +110,45 @@ describe("ProfileView", () => {
     expect(screen.getByText("Quantify more bullets.")).toBeInTheDocument();
     expect(screen.getByText("Add metrics")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Re-analyze" })).toBeInTheDocument();
+  });
+
+  // A stored score has to be visually distinguishable from one that just ran, or the user has no
+  // way to know whether clicking cost them a Gemini call.
+  test("marks a stored score as a saved result", () => {
+    render(
+      <ProfileView
+        {...baseProps()}
+        strength={{
+          score: 72,
+          categories: [{ name: "Clarity & Conciseness", score: 65, feedback: "Tight enough." }],
+          recommendations: ["Trim the summary"],
+          cached: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("72")).toBeInTheDocument();
+    expect(screen.getByText("Saved result")).toBeInTheDocument();
+  });
+
+  // Without force, Re-analyze would hand back the same cached score and appear to do nothing.
+  test("re-analyzing an existing score forces a recompute", async () => {
+    const props = baseProps();
+    render(
+      <ProfileView
+        {...props}
+        strength={{
+          score: 72,
+          categories: [{ name: "Clarity & Conciseness", score: 65, feedback: "Tight enough." }],
+          recommendations: ["Trim the summary"],
+          cached: true,
+        }}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Re-analyze" }));
+
+    expect(props.onScoreStrength).toHaveBeenCalledWith(true);
   });
 
   test("shows the AI usage badge when usage data is available", () => {

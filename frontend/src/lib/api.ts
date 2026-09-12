@@ -154,8 +154,23 @@ export function normalizeResumeText(token: string, resumeText: string): Promise<
   return request("/api/users/me/resume/normalize", { method: "POST", token, body: { resumeText } });
 }
 
-export function getResumeStrength(token: string, resumeText: string): Promise<ResumeStrengthResponse> {
-  return request("/api/users/me/resume/strength", { method: "POST", token, body: { resumeText } });
+/** Stored score for the saved resume, or null if there is none or the resume changed since. */
+export async function getCachedResumeStrength(token: string): Promise<ResumeStrengthResponse | null> {
+  const result = await request<ResumeStrengthResponse | undefined>("/api/users/me/resume/strength", { token });
+  return result ?? null;
+}
+
+/** @param force recompute even if the stored hash matches. Only set by an explicit Re-analyze. */
+export function getResumeStrength(
+  token: string,
+  resumeText: string,
+  force = false,
+): Promise<ResumeStrengthResponse> {
+  return request(`/api/users/me/resume/strength${force ? "?force=true" : ""}`, {
+    method: "POST",
+    token,
+    body: { resumeText },
+  });
 }
 
 /** Shared daily budget across fit-analysis, resume normalize, and resume strength. */
@@ -228,8 +243,32 @@ export function deleteNote(token: string, noteId: string): Promise<void> {
 
 // --- Fit analysis ---
 
-export function requestFitAnalysis(token: string, applicationId: string): Promise<FitAnalysisResponse> {
-  return request(`/api/applications/${applicationId}/fit-analysis`, { method: "POST", token });
+/**
+ * Reads the stored analysis without computing one. The endpoint answers 204 when there is no
+ * cached result for the current resume and job description, which `parseResponse` turns into
+ * undefined, so this is safe to call on page load: it can never spend a Gemini call.
+ */
+export async function getFitAnalysis(
+  token: string,
+  applicationId: string,
+): Promise<FitAnalysisResponse | null> {
+  const result = await request<FitAnalysisResponse | undefined>(
+    `/api/applications/${applicationId}/fit-analysis`,
+    { token },
+  );
+  return result ?? null;
+}
+
+/** @param force recompute even if a cached result matches. Only set by an explicit Re-analyze. */
+export function requestFitAnalysis(
+  token: string,
+  applicationId: string,
+  force = false,
+): Promise<FitAnalysisResponse> {
+  return request(`/api/applications/${applicationId}/fit-analysis${force ? "?force=true" : ""}`, {
+    method: "POST",
+    token,
+  });
 }
 
 // --- Stats ---

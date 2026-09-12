@@ -12,6 +12,7 @@ import {
   deleteNote,
   deleteStatusEvent,
   getApplication,
+  getFitAnalysis,
   requestFitAnalysis,
 } from "@/lib/api";
 import { applicationsCacheKey, invalidateCache, statsCacheKey } from "@/lib/requestCache";
@@ -20,7 +21,7 @@ import { useAiUsage } from "@/context/AiUsageContext";
 import { ApplicationDetailView } from "@/components/ApplicationDetailView";
 import { DotGridBackground } from "@/components/DotGridBackground";
 import { Spinner } from "@/components/Spinner";
-import type { ApplicationDetailResponse, ApplicationStatus, InterviewFormat, InterviewType } from "@/lib/types";
+import type { ApplicationDetailResponse, ApplicationStatus, FitAnalysisResponse, InterviewFormat, InterviewType } from "@/lib/types";
 
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -31,6 +32,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   const [detail, setDetail] = useState<ApplicationDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [cachedFit, setCachedFit] = useState<FitAnalysisResponse | null>(null);
 
   useEffect(() => {
     if (!isInitializing && !isAuthenticated) {
@@ -87,15 +89,34 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
     setDetail({ ...detail, notes: [...detail.notes, note] });
   }
 
+  // Read-only and unable to reach Gemini, so loading it on every visit costs nothing and saves
+  // the user a click just to find out an analysis already exists for this resume and JD.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+
+    getFitAnalysis(token, id)
+      .then((stored) => {
+        if (!cancelled && stored) setCachedFit(stored);
+      })
+      .catch(() => {
+        // Nothing cached, or the application has no JD yet. The button covers both.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, id]);
+
   async function handleDeleteNote(noteId: string) {
     if (!token || !detail) return;
     await deleteNote(token, noteId);
     setDetail({ ...detail, notes: detail.notes.filter((n) => n.id !== noteId) });
   }
 
-  async function handleRunFitAnalysis() {
+  async function handleRunFitAnalysis(force: boolean) {
     if (!token) throw new Error("Not authenticated");
-    return requestFitAnalysis(token, id).finally(() => refreshAiUsage());
+    return requestFitAnalysis(token, id, force).finally(() => refreshAiUsage());
   }
 
   async function handleDeleteApplication() {
@@ -141,6 +162,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
           onAddNote={handleAddNote}
           onDeleteNote={handleDeleteNote}
           onRunFitAnalysis={handleRunFitAnalysis}
+          initialFitResult={cachedFit}
         />
       )}
       </div>

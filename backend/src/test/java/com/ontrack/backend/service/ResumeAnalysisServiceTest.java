@@ -7,7 +7,9 @@ import com.ontrack.backend.dto.ResumeStrengthResponse;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.exception.GeminiRateLimitExceededException;
 import com.ontrack.backend.exception.InvalidResumeFileException;
+import com.ontrack.backend.entity.ResumeStrength;
 import com.ontrack.backend.ratelimit.GeminiRateLimiter;
+import com.ontrack.backend.repository.ResumeStrengthRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,10 +19,17 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,12 +44,16 @@ class ResumeAnalysisServiceTest {
     @Mock
     private ResumeFileExtractor resumeFileExtractor;
 
+    @Mock
+    private ResumeStrengthRepository resumeStrengthRepository;
+
     private ResumeAnalysisService resumeAnalysisService;
     private User user;
 
     @BeforeEach
     void setUp() {
-        resumeAnalysisService = new ResumeAnalysisService(geminiClient, geminiRateLimiter, resumeFileExtractor);
+        resumeAnalysisService = new ResumeAnalysisService(
+                geminiClient, geminiRateLimiter, resumeFileExtractor, resumeStrengthRepository);
         user = User.builder().id(UUID.randomUUID()).email("person@example.com").build();
     }
 
@@ -72,6 +85,9 @@ class ResumeAnalysisServiceTest {
 
     @Test
     void scoreStrengthReturnsGeminiScoreCategoriesAndRecommendations() {
+        when(resumeStrengthRepository.findByUserIdAndInputHash(eq(user.getId()), anyString()))
+                .thenReturn(Optional.empty());
+        when(resumeStrengthRepository.save(any(ResumeStrength.class))).thenAnswer(inv -> inv.getArgument(0));
         when(geminiRateLimiter.tryConsume(user.getId())).thenReturn(true);
         when(geminiClient.scoreResumeStrength("resume text"))
                 .thenReturn(new GeminiStrengthResult(
@@ -108,5 +124,87 @@ class ResumeAnalysisServiceTest {
 
         assertThatThrownBy(() -> resumeAnalysisService.uploadAndNormalize(user, file))
                 .isInstanceOf(InvalidResumeFileException.class);
+    }
+
+    // The whole point of V9: scoring the same text twice must not cost a second Gemini call.
+    @Test
+    void scoreStrengthServesAStoredScoreWithoutCallingGemini() {
+        when(resumeStrengthRepository.findByUserIdAndInputHash(eq(user.getId()), anyString()))
+                .thenReturn(Optional.of(storedStrength(82)));
+
+        ResumeStrengthResponse response = resumeAnalysisService.scoreStrength(user, "resume text");
+
+        assertThat(response.score()).isEqualTo(82);
+        assertThat(response.cached()).isTrue();
+        verifyNoInteractions(geminiClient);
+        verify(geminiRateLimiter, never()).tryConsume(any(UUID.class));
+    }
+
+    // Editing the resume changes the hash, so the stored row no longer matches and a fresh score
+    // is computed. This is the same mechanism fit analysis uses.
+    @Test
+    void scoreStrengthRecomputesWhenTheResumeTextHasChanged() {
+        when(resumeStrengthRepository.findByUserIdAndInputHash(eq(user.getId()), anyString()))
+                .thenReturn(Optional.empty());
+        when(geminiRateLimiter.tryConsume(user.getId())).thenReturn(true);
+        when(geminiClient.scoreResumeStrength("edited resume")).thenReturn(
+                new GeminiStrengthResult(70, List.of(new GeminiStrengthResult.CategoryScore("Clarity", 70, "Fine.")),
+                        List.of("Tighten it")));
+        when(resumeStrengthRepository.save(any(ResumeStrength.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ResumeStrengthResponse response = resumeAnalysisService.scoreStrength(user, "edited resume");
+
+        assertThat(response.score()).isEqualTo(70);
+        assertThat(response.cached()).isFalse();
+    }
+
+    // "Re-analyze" has to reach Gemini even though the cache would match, or the button does
+    // nothing visible and the user concludes it is broken.
+    @Test
+    void scoreStrengthWithForceBypassesTheCache() {
+        when(geminiRateLimiter.tryConsume(user.getId())).thenReturn(true);
+        when(geminiClient.scoreResumeStrength("resume text")).thenReturn(
+                new GeminiStrengthResult(91, List.of(new GeminiStrengthResult.CategoryScore("Impact", 91, "Strong.")),
+                        List.of("Ship it")));
+        when(resumeStrengthRepository.save(any(ResumeStrength.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ResumeStrengthResponse response = resumeAnalysisService.scoreStrength(user, "resume text", true);
+
+        assertThat(response.score()).isEqualTo(91);
+        assertThat(response.cached()).isFalse();
+        verify(resumeStrengthRepository, never()).findByUserIdAndInputHash(any(UUID.class), anyString());
+    }
+
+    @Test
+    void findCachedStrengthReturnsEmptyWhenTheUserHasNoResumeYet() {
+        User noResume = User.builder().id(UUID.randomUUID()).email("new@example.com").build();
+
+        assertThat(resumeAnalysisService.findCachedStrength(noResume)).isEmpty();
+        verifyNoInteractions(resumeStrengthRepository);
+    }
+
+    // Page load calls this, so it must never be able to spend a Gemini call.
+    @Test
+    void findCachedStrengthNeverCallsGemini() {
+        User withResume = User.builder().id(UUID.randomUUID()).email("p@example.com").resumeText("saved resume").build();
+        when(resumeStrengthRepository.findByUserIdAndInputHash(eq(withResume.getId()), anyString()))
+                .thenReturn(Optional.of(storedStrength(64)));
+
+        Optional<ResumeStrengthResponse> cached = resumeAnalysisService.findCachedStrength(withResume);
+
+        assertThat(cached).isPresent();
+        assertThat(cached.get().score()).isEqualTo(64);
+        assertThat(cached.get().cached()).isTrue();
+        verifyNoInteractions(geminiClient);
+    }
+
+    private ResumeStrength storedStrength(int score) {
+        return ResumeStrength.builder()
+                .userId(user.getId())
+                .inputHash("hash")
+                .score(score)
+                .categories(List.of(new ResumeStrength.CategoryScore("Impact & Metrics", score, "Stored feedback.")))
+                .recommendations(List.of("Stored recommendation"))
+                .build();
     }
 }
