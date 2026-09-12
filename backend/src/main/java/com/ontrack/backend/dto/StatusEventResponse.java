@@ -11,7 +11,6 @@ import java.util.UUID;
 public record StatusEventResponse(
         UUID id,
         ApplicationStatus status,
-        ApplicationStatus rejectedFromStage,
         Integer interviewRound,
         InterviewType interviewType,
         InterviewFormat interviewFormat,

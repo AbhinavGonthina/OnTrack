@@ -18,7 +18,6 @@ import {
   INTERVIEW_TYPE_LABELS,
   LOGGABLE_STATUSES,
   OFFER_RESPONSE_STATUSES,
-  REJECTABLE_STAGES,
   STATUS_LABELS,
   getStatusColor,
 } from "@/lib/statusLabels";
@@ -39,7 +38,6 @@ interface Props {
   onAddStatusEvent?: (
     status: ApplicationStatus,
     eventDate: string,
-    rejectedFromStage?: ApplicationStatus,
     interviewType?: InterviewType,
     interviewFormat?: InterviewFormat,
   ) => Promise<void>;
@@ -93,7 +91,6 @@ export function ApplicationDetailView({
     setStatusValueTrackedStatus(detail.currentStatus);
     setStatusValue(detail.currentStatus === "OFFER" ? "ACCEPTED" : "OA");
   }
-  const [rejectedFromStage, setRejectedFromStage] = useState<ApplicationStatus>("APPLIED");
   const [interviewType, setInterviewType] = useState<InterviewType>("TECHNICAL");
   const [interviewFormat, setInterviewFormat] = useState<InterviewFormat>("ONLINE");
   const [eventDate, setEventDate] = useState(todayIso());
@@ -140,7 +137,6 @@ export function ApplicationDetailView({
       await onAddStatusEvent(
         statusValue,
         eventDate,
-        statusValue === "REJECTED" ? rejectedFromStage : undefined,
         statusValue === "INTERVIEW" ? interviewType : undefined,
         statusValue === "INTERVIEW" ? interviewFormat : undefined,
       );
@@ -488,11 +484,6 @@ export function ApplicationDetailView({
                         {STATUS_LABELS[event.status]}
                         {event.interviewRound !== null && ` (Round ${event.interviewRound})`}
                       </span>
-                      {event.rejectedFromStage && (
-                        <span className="text-xs text-muted">
-                          from {STATUS_LABELS[event.rejectedFromStage]}
-                        </span>
-                      )}
                     </div>
                     <p className="mt-0.5 text-xs text-muted">
                       {formatDateApplied(event.eventDate)}
@@ -548,22 +539,6 @@ export function ApplicationDetailView({
                     className={FIELD_CLASSNAME_ROOMY}
                   />
                 </label>
-                {statusValue === "REJECTED" && (
-                  <label className={`${FIELD_LABEL} sm:col-span-2`}>
-                    Rejected from
-                    <select
-                      value={rejectedFromStage}
-                      onChange={(e) => setRejectedFromStage(e.target.value as ApplicationStatus)}
-                      className={FIELD_CLASSNAME_ROOMY}
-                    >
-                      {REJECTABLE_STAGES.map((status) => (
-                        <option key={status} value={status}>
-                          {STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
                 {statusValue === "INTERVIEW" && (
                   <>
                     <label className={FIELD_LABEL}>

@@ -216,14 +216,13 @@ export function addStatusEvent(
   id: string,
   status: ApplicationStatus,
   eventDate: string,
-  rejectedFromStage?: ApplicationStatus,
   interviewType?: InterviewType,
   interviewFormat?: InterviewFormat,
 ): Promise<ApplicationResponse> {
   return request(`/api/applications/${id}/status`, {
     method: "POST",
     token,
-    body: { status, eventDate, rejectedFromStage, interviewType, interviewFormat },
+    body: { status, eventDate, interviewType, interviewFormat },
   });
 }
 

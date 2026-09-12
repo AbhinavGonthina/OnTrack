@@ -66,12 +66,11 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   async function handleAddStatusEvent(
     status: ApplicationStatus,
     eventDate: string,
-    rejectedFromStage?: ApplicationStatus,
     interviewType?: InterviewType,
     interviewFormat?: InterviewFormat,
   ) {
     if (!token) return;
-    await addStatusEvent(token, id, status, eventDate, rejectedFromStage, interviewType, interviewFormat);
+    await addStatusEvent(token, id, status, eventDate, interviewType, interviewFormat);
     invalidateCache(applicationsCacheKey(token), statsCacheKey(token));
     setDetail(await getApplication(token, id));
   }

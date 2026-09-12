@@ -136,7 +136,7 @@ class ApplicationServiceTest {
         when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
         when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now());
         ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
 
         assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.OA);
@@ -149,7 +149,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.APPLIED).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.APPLIED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.APPLIED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -161,7 +161,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OA).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -181,7 +181,7 @@ class ApplicationServiceTest {
                 .thenReturn(List.of(phoneScreenEvent));
 
         StatusEventRequest request = new StatusEventRequest(
-                ApplicationStatus.INTERVIEW, null, InterviewType.TECHNICAL, InterviewFormat.ONLINE,
+                ApplicationStatus.INTERVIEW, InterviewType.TECHNICAL, InterviewFormat.ONLINE,
                 LocalDate.of(2026, 1, 5));
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
@@ -204,7 +204,7 @@ class ApplicationServiceTest {
                 .thenReturn(List.of(phoneScreenEvent));
 
         StatusEventRequest request = new StatusEventRequest(
-                ApplicationStatus.INTERVIEW, null, InterviewType.TECHNICAL, InterviewFormat.ONLINE,
+                ApplicationStatus.INTERVIEW, InterviewType.TECHNICAL, InterviewFormat.ONLINE,
                 LocalDate.of(2026, 1, 10));
         ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
 
@@ -212,43 +212,20 @@ class ApplicationServiceTest {
     }
 
     @Test
-    void addStatusEventRejectedWithoutStageThrows() {
+    // A rejection no longer carries its own "from" stage: the event preceding it already is
+    // one, which is what computeSankeyLinks reads via LAG(). Storing it separately let the two
+    // disagree, and the form's APPLIED default meant it often did.
+    void addStatusEventRejectedNeedsNoStage() {
         UUID appId = UUID.randomUUID();
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OA).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
+        when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.REJECTED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.REJECTED, null, null, LocalDate.now());
 
-        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
-                .isInstanceOf(InvalidStatusEventException.class);
-    }
+        applicationService.addStatusEvent(user.getId(), appId, request);
 
-    @Test
-    void addStatusEventRejectedWithInvalidStageThrows() {
-        UUID appId = UUID.randomUUID();
-        // currentStatus must stay non-terminal here (OA) so it's the invalid-rejectedFromStage
-        // check being exercised, not the separate "already reached a final stage" guard.
-        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OA).build();
-        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
-
-        StatusEventRequest request =
-                new StatusEventRequest(ApplicationStatus.REJECTED, ApplicationStatus.OFFER, null, null, LocalDate.now());
-
-        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
-                .isInstanceOf(InvalidStatusEventException.class);
-    }
-
-    @Test
-    void addStatusEventNonRejectedWithStageThrows() {
-        UUID appId = UUID.randomUUID();
-        Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.APPLIED).build();
-        when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
-
-        StatusEventRequest request =
-                new StatusEventRequest(ApplicationStatus.OA, ApplicationStatus.APPLIED, null, null, LocalDate.now());
-
-        assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
-                .isInstanceOf(InvalidStatusEventException.class);
+        assertThat(application.getCurrentStatus()).isEqualTo(ApplicationStatus.REJECTED);
     }
 
     @Test
@@ -258,7 +235,7 @@ class ApplicationServiceTest {
                 Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.PHONE_SCREEN).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -274,7 +251,7 @@ class ApplicationServiceTest {
         when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
 
         StatusEventRequest request = new StatusEventRequest(
-                ApplicationStatus.INTERVIEW, null, InterviewType.TECHNICAL, InterviewFormat.ONLINE, LocalDate.now());
+                ApplicationStatus.INTERVIEW, InterviewType.TECHNICAL, InterviewFormat.ONLINE, LocalDate.now());
         ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
 
         assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.INTERVIEW);
@@ -286,7 +263,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OFFER).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -298,7 +275,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.REJECTED).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -310,7 +287,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.OA).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.INTERVIEW, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.INTERVIEW, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -323,7 +300,7 @@ class ApplicationServiceTest {
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
         StatusEventRequest request =
-                new StatusEventRequest(ApplicationStatus.OA, null, InterviewType.TECHNICAL, null, LocalDate.now());
+                new StatusEventRequest(ApplicationStatus.OA, InterviewType.TECHNICAL, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -339,7 +316,7 @@ class ApplicationServiceTest {
         when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
 
         StatusEventRequest request = new StatusEventRequest(
-                ApplicationStatus.INTERVIEW, null, InterviewType.BEHAVIORAL, InterviewFormat.IN_PERSON, LocalDate.now());
+                ApplicationStatus.INTERVIEW, InterviewType.BEHAVIORAL, InterviewFormat.IN_PERSON, LocalDate.now());
         applicationService.addStatusEvent(user.getId(), appId, request);
 
         org.mockito.ArgumentCaptor<com.ontrack.backend.entity.StatusEvent> captor =
@@ -446,7 +423,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.INTERVIEW).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -458,7 +435,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.APPLIED).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -471,7 +448,7 @@ class ApplicationServiceTest {
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
         StatusEventRequest request =
-                new StatusEventRequest(ApplicationStatus.REJECTED, ApplicationStatus.OA, null, null, LocalDate.now());
+                new StatusEventRequest(ApplicationStatus.REJECTED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -485,7 +462,7 @@ class ApplicationServiceTest {
         when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
         when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, LocalDate.now());
         ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
 
         assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.ACCEPTED);
@@ -499,7 +476,7 @@ class ApplicationServiceTest {
         when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
         when(statusEventRepository.findByApplicationIdOrderByEventDateAscCreatedAtAsc(appId)).thenReturn(List.of());
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, LocalDate.now());
         ApplicationResponse response = applicationService.addStatusEvent(user.getId(), appId, request);
 
         assertThat(response.currentStatus()).isEqualTo(ApplicationStatus.DECLINED);
@@ -511,7 +488,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.ACCEPTED).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.DECLINED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
@@ -523,7 +500,7 @@ class ApplicationServiceTest {
         Application application = Application.builder().id(appId).user(user).currentStatus(ApplicationStatus.DECLINED).build();
         when(applicationRepository.findByIdAndUserId(appId, user.getId())).thenReturn(Optional.of(application));
 
-        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, null, LocalDate.now());
+        StatusEventRequest request = new StatusEventRequest(ApplicationStatus.ACCEPTED, null, null, LocalDate.now());
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);

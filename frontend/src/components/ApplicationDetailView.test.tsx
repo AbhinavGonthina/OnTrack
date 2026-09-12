@@ -105,17 +105,20 @@ describe("ApplicationDetailView", () => {
     expect(onAddStatusEvent.mock.calls[0][2]).toBeUndefined();
   });
 
-  test("selecting REJECTED reveals the rejected-from field and includes it on submit", async () => {
+  // Which stage a rejection came from is whatever event precedes it, which is what the Sankey
+  // has always read via LAG(). Asking for it again let the two disagree, and the dropdown's
+  // APPLIED default meant it often did.
+  test("logging a rejection asks for no extra stage, since the previous event already is one", async () => {
     const onAddStatusEvent = vi.fn().mockResolvedValue(undefined);
     const user = userEvent.setup();
     render(<ApplicationDetailView detail={detail} readOnly={false} onAddStatusEvent={onAddStatusEvent} />);
 
     await user.selectOptions(screen.getByLabelText("New status"), "REJECTED");
-    expect(screen.getByLabelText("Rejected from")).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Rejected from"), "OA");
+    expect(screen.queryByLabelText("Rejected from")).not.toBeInTheDocument();
+
     await user.click(screen.getByText("+ Add update"));
 
-    expect(onAddStatusEvent).toHaveBeenCalledWith("REJECTED", expect.any(String), "OA", undefined, undefined);
+    expect(onAddStatusEvent).toHaveBeenCalledWith("REJECTED", expect.any(String), undefined, undefined);
   });
 
   test("selecting INTERVIEW reveals type/format fields and includes them on submit", async () => {
@@ -133,7 +136,6 @@ describe("ApplicationDetailView", () => {
     expect(onAddStatusEvent).toHaveBeenCalledWith(
       "INTERVIEW",
       expect.any(String),
-      undefined,
       "BEHAVIORAL",
       "IN_PERSON",
     );

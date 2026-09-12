@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,13 +31,6 @@ import java.util.UUID;
 public class ApplicationService {
 
     static final int MAX_APPLICATIONS_PER_USER = 100;
-
-    private static final Set<ApplicationStatus> VALID_REJECTED_FROM_STAGES = EnumSet.of(
-            ApplicationStatus.APPLIED,
-            ApplicationStatus.OA,
-            ApplicationStatus.PHONE_SCREEN,
-            ApplicationStatus.INTERVIEW
-    );
 
     // A new status event's tier must never be lower than the application's current tier -
     // that's the "never backward" rule. Skipping stages forward is fine (real hiring
@@ -161,7 +153,6 @@ public class ApplicationService {
         StatusEvent event = StatusEvent.builder()
                 .application(application)
                 .status(request.status())
-                .rejectedFromStage(request.rejectedFromStage())
                 .interviewRound(interviewRound)
                 .interviewType(request.interviewType())
                 .interviewFormat(request.interviewFormat())
@@ -236,27 +227,18 @@ public class ApplicationService {
         }
 
         if (isOfferResponse) {
-            if (request.rejectedFromStage() != null || request.interviewType() != null || request.interviewFormat() != null) {
+            if (request.interviewType() != null || request.interviewFormat() != null) {
                 throw new InvalidStatusEventException(
-                        "rejectedFromStage/interviewType/interviewFormat may only be set for their own statuses");
+                        "interviewType/interviewFormat may only be set for their own statuses");
             }
         } else if (request.status() == ApplicationStatus.REJECTED) {
-            if (request.rejectedFromStage() == null) {
-                throw new InvalidStatusEventException("rejectedFromStage is required when status is REJECTED");
-            }
-            if (!VALID_REJECTED_FROM_STAGES.contains(request.rejectedFromStage())) {
-                throw new InvalidStatusEventException(
-                        "rejectedFromStage must be one of APPLIED, OA, PHONE_SCREEN, INTERVIEW");
-            }
+            // No "rejected from" to validate: which stage a rejection came from is whatever
+            // event precedes it, which is what the Sankey has always read via LAG().
             if (request.interviewType() != null || request.interviewFormat() != null) {
                 throw new InvalidStatusEventException(
                         "interviewType/interviewFormat may only be set when status is INTERVIEW");
             }
         } else {
-            if (request.rejectedFromStage() != null) {
-                throw new InvalidStatusEventException("rejectedFromStage may only be set when status is REJECTED");
-            }
-
             if (request.status() == ApplicationStatus.INTERVIEW) {
                 if (request.interviewType() == null || request.interviewFormat() == null) {
                     throw new InvalidStatusEventException(
@@ -320,7 +302,6 @@ public class ApplicationService {
         return new StatusEventResponse(
                 event.getId(),
                 event.getStatus(),
-                event.getRejectedFromStage(),
                 event.getInterviewRound(),
                 event.getInterviewType(),
                 event.getInterviewFormat(),

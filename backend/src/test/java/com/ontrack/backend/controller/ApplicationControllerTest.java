@@ -151,7 +151,7 @@ class ApplicationControllerTest {
                 .thenReturn(response);
 
         String body = objectMapper.writeValueAsString(
-                new StatusEventRequest(ApplicationStatus.OA, null, null, null, LocalDate.now()));
+                new StatusEventRequest(ApplicationStatus.OA, null, null, LocalDate.now()));
 
         mockMvc.perform(post("/api/applications/" + appId + "/status")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))

@@ -65,7 +65,6 @@ export interface ApplicationResponse {
 export interface StatusEventResponse {
   id: string;
   status: ApplicationStatus;
-  rejectedFromStage: ApplicationStatus | null;
   interviewRound: number | null;
   interviewType: InterviewType | null;
   interviewFormat: InterviewFormat | null;

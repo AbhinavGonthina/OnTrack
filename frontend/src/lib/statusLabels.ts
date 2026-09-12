@@ -22,9 +22,6 @@ export const STATUS_ORDER: ApplicationStatus[] = [
   "REJECTED",
 ];
 
-/** Stages a rejection can be attributed to - REJECTED itself is never a valid "from" stage. */
-export const REJECTABLE_STAGES: ApplicationStatus[] = ["APPLIED", "OA", "PHONE_SCREEN", "INTERVIEW"];
-
 /** APPLIED is set automatically when an application is created (its date is editable there,
  * via "date applied") - it's never something a user logs again through the status-update
  * form, so it's excluded from these selectable options even though it's still part of the

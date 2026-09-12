@@ -53,10 +53,6 @@ public class StatusEvent {
     @Column(nullable = false, length = 20)
     private ApplicationStatus status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rejected_from_stage", length = 20)
-    private ApplicationStatus rejectedFromStage;
-
     @Column(name = "interview_round")
     private Integer interviewRound;
 

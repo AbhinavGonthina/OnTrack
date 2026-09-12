@@ -9,7 +9,6 @@ import java.time.LocalDate;
 
 public record StatusEventRequest(
         @NotNull ApplicationStatus status,
-        ApplicationStatus rejectedFromStage,
         InterviewType interviewType,
         InterviewFormat interviewFormat,
         @NotNull LocalDate eventDate

@@ -1,0 +1,22 @@
+-- Drop status_events.rejected_from_stage. It duplicated information the event history already
+-- carries, and it was drifting from it.
+--
+-- The Sankey never read this column: computeSankeyLinks derives a rejection's origin with
+-- LAG() over the per-application event chain, so "rejected from OA" was already implied by the
+-- OA event sitting immediately before the REJECTED one. The column's only consumer was a
+-- "from <stage>" label on the timeline.
+--
+-- Keeping it meant two sources of truth for the same fact, and the stored one was the less
+-- reliable of the two: the form defaulted the dropdown to APPLIED, so anyone who logged a
+-- rejection without touching it recorded APPLIED regardless of how far they had actually got.
+-- At the time of writing, production held 8 rejection events and 1 of them disagreed with its
+-- own event history for exactly that reason, showing "from Applied" on a timeline whose
+-- previous event was INTERVIEW. Removing the column makes the chain the single source of truth
+-- and that contradiction impossible.
+--
+-- The tradeoff, accepted deliberately: someone who never logs intermediate stages can no longer
+-- assert "I was rejected after the interview" without also logging the interview. A rejection is
+-- now attributed to the last stage actually recorded, which is the same rule the chart has
+-- always used.
+ALTER TABLE status_events DROP CONSTRAINT IF EXISTS status_events_rejected_from_stage_check;
+ALTER TABLE status_events DROP COLUMN rejected_from_stage;
