@@ -82,6 +82,16 @@ describe("DashboardView", () => {
     expect(cta.closest("a")).toHaveAttribute("href", "/applications/new");
   });
 
+  // Telling someone to add their first application while they are looking at the one they just
+  // added reads as a bug, even though an empty pipeline is correct until a status transition.
+  test("asks for a status update, not a first application, once one exists", () => {
+    render(<DashboardView stats={baseStats} applications={[application]} readOnly={false} />);
+
+    expect(screen.getByText("Log a status update on an application to see how your pipeline flows.")).toBeInTheDocument();
+    expect(screen.queryByText("+ Add First Application")).not.toBeInTheDocument();
+    expect(screen.getByText("Go to applications").closest("a")).toHaveAttribute("href", "/applications");
+  });
+
   test("hides the 'Add First Application' CTA in the empty pipeline state when read-only", () => {
     render(<DashboardView stats={baseStats} applications={[]} readOnly />);
 

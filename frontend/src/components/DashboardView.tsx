@@ -74,7 +74,21 @@ function StatTiles({ stats, compact }: { stats: StatsResponse; compact: boolean 
   );
 }
 
-function PipelineEmptyState({ readOnly, fillHeight = false }: { readOnly: boolean; fillHeight?: boolean }) {
+/**
+ * The Sankey needs a transition between two stages to draw a link, so an account whose only
+ * event is the Applied one every application starts with has nothing to plot yet. That is
+ * correct, but it has to be explained differently depending on why: telling someone to add
+ * their first application when they are looking at the one they just added reads as a bug.
+ */
+function PipelineEmptyState({
+  readOnly,
+  hasApplications,
+  fillHeight = false,
+}: {
+  readOnly: boolean;
+  hasApplications: boolean;
+  fillHeight?: boolean;
+}) {
   return (
     <div
       className={`relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-dashed border-surface-border bg-surface/40 p-10 text-center ${
@@ -85,11 +99,15 @@ function PipelineEmptyState({ readOnly, fillHeight = false }: { readOnly: boolea
       <SankeySkeleton />
       <div className="relative flex flex-col items-center gap-3">
         <Briefcase size={40} className="text-muted/40" />
-        <p className="text-sm text-muted">Add an application and log a status update to see your pipeline here.</p>
+        <p className="text-sm text-muted">
+          {hasApplications
+            ? "Log a status update on an application to see how your pipeline flows."
+            : "Add an application and log a status update to see your pipeline here."}
+        </p>
         {!readOnly && (
-          <Link href="/applications/new">
+          <Link href={hasApplications ? "/applications" : "/applications/new"}>
             <Button variant="secondary" className="mt-2">
-              + Add First Application
+              {hasApplications ? "Go to applications" : "+ Add First Application"}
             </Button>
           </Link>
         )}
@@ -206,7 +224,7 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
             chart well, not to divide up a fixed budget with the Applications card below. */}
         <div className="h-[380px]">
           {stats.sankeyLinks.length === 0 ? (
-            <PipelineEmptyState readOnly={readOnly} fillHeight />
+            <PipelineEmptyState readOnly={readOnly} hasApplications={applications.length > 0} fillHeight />
           ) : (
             <SankeyChart links={stats.sankeyLinks} fillHeight />
           )}
