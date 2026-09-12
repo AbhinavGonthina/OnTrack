@@ -7,6 +7,7 @@ import { parseResumeBlocks } from "@/lib/resumeFormatting";
 import { Button } from "@/components/Button";
 import { AiUsageBadge } from "@/components/AiUsageBadge";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
+import { useSlowAction } from "@/lib/useSlowAction";
 
 type Tab = "formatted" | "raw";
 
@@ -136,6 +137,9 @@ function UploadDropzone({
   isUploading: boolean;
   uploadError: string | null;
 }) {
+  // Render's free tier spins down after ~15 minutes idle, and a cold boot was measured at 155s.
+  // Past a normal wait, say so rather than continuing to claim the file is being extracted.
+  const isWakingBackend = useSlowAction(isUploading);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -169,7 +173,11 @@ function UploadDropzone({
       >
         <UploadCloud size={24} className="text-brand" />
         <p className="text-xs text-muted">
-          {isUploading ? "Extracting & normalizing…" : "Drag a PDF or DOCX here, or click to browse"}
+          {!isUploading
+            ? "Drag a PDF or DOCX here, or click to browse"
+            : isWakingBackend
+              ? "Still working. The server may be waking up, which takes up to two minutes on free hosting."
+              : "Extracting & normalizing…"}
         </p>
         <input
           ref={inputRef}
