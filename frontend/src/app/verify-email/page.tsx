@@ -4,12 +4,12 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Mail, XCircle } from "lucide-react";
-import { resendVerification, verifyEmail } from "@/lib/api";
+import { ApiError, resendVerification, verifyEmail } from "@/lib/api";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/Button";
 import { AuthInput } from "@/components/AuthInput";
 
-type Status = "verifying" | "success" | "error";
+type Status = "verifying" | "success" | "already-verified" | "error";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -33,7 +33,13 @@ function VerifyEmailContent() {
 
     verifyEmail(token)
       .then(() => setStatus("success"))
-      .catch(() => setStatus("error"));
+      .catch((err) => {
+        // 409 means the address was already verified through a different signup attempt. That
+        // is a distinct outcome from a dead link: the account exists and works, this link
+        // just isn't the one that made it, so offering to resend a verification email would
+        // send nothing and say nothing useful.
+        setStatus(err instanceof ApiError && err.status === 409 ? "already-verified" : "error");
+      });
   }, [token]);
 
   async function handleResend() {
@@ -62,6 +68,22 @@ function VerifyEmailContent() {
           </div>
           <h1 className="mt-4 font-display text-2xl font-bold text-foreground">Email verified</h1>
           <p className="mt-2 text-sm text-foreground/70">Your account is active. You can log in now.</p>
+          <Link href="/login">
+            <Button className="mt-6 w-full">Log in</Button>
+          </Link>
+        </>
+      )}
+
+      {status === "already-verified" && (
+        <>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+            <CheckCircle2 size={20} />
+          </div>
+          <h1 className="mt-4 font-display text-2xl font-bold text-foreground">Already verified</h1>
+          <p className="mt-2 text-sm text-foreground/70">
+            This email has already been verified. Log in with the password you set when you
+            verified it.
+          </p>
           <Link href="/login">
             <Button className="mt-6 w-full">Log in</Button>
           </Link>

@@ -1,0 +1,26 @@
+# Pin line endings so the two machines this project is worked on from agree.
+#
+# Without this, behaviour depends on each machine's core.autocrlf, which is a local setting that
+# never travels with a clone. A machine set to `true` checks files out as CRLF while one set to
+# `input` or `false` leaves them LF, and the difference shows up as whole-file phantom diffs that
+# bury the real change.
+#
+# text=auto lets Git decide what is text rather than listing extensions; eol=lf keeps the working
+# tree LF to match what is already stored, which also silences the "LF will be replaced by CRLF"
+# warnings that appear when an editor writes LF into a CRLF working tree.
+* text=auto eol=lf
+
+# Windows batch files are the exception: cmd.exe requires CRLF, and mvnw.cmd is executable.
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+
+# Binary, so Git must never touch the bytes.
+*.png  binary
+*.ico  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary

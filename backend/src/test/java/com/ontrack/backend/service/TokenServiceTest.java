@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,12 +38,10 @@ class TokenServiceTest {
     }
 
     @Test
-    void issueInvalidatesPriorTokensOfThatTypeAndSavesANewOne() {
+    void issueSavesATokenWhoseStoredFormIsAHashOfTheRawValue() {
         User user = User.builder().id(UUID.randomUUID()).email("person@example.com").build();
 
         String rawToken = tokenService.issue(user, TokenType.EMAIL_VERIFICATION);
-
-        verify(authTokenRepository).deleteByUserIdAndTokenType(user.getId(), TokenType.EMAIL_VERIFICATION);
 
         ArgumentCaptor<AuthToken> captor = ArgumentCaptor.forClass(AuthToken.class);
         verify(authTokenRepository).save(captor.capture());
@@ -67,6 +66,29 @@ class TokenServiceTest {
         User result = tokenService.consume("raw-token", TokenType.PASSWORD_RESET);
 
         assertThat(result).isEqualTo(user);
+    }
+
+    // Only one live link per type at a time, and this one matters for security rather than
+    // tidiness: two people can have a signup outstanding on the same unverified address, and
+    // their verification emails look identical in the recipient's inbox. Leaving both live would
+    // make the recipient choose blind, and choosing a stranger's would activate the account with
+    // the stranger's password.
+    @Test
+    void issuingATokenInvalidatesThePriorOnesOfThatType() {
+        User user = User.builder().id(UUID.randomUUID()).email("person@example.com").build();
+
+        tokenService.issue(user, TokenType.EMAIL_VERIFICATION);
+
+        verify(authTokenRepository).deleteByUserIdAndTokenType(user.getId(), TokenType.EMAIL_VERIFICATION);
+    }
+
+    @Test
+    void issuingAPasswordResetTokenInvalidatesThePriorOnes() {
+        User user = User.builder().id(UUID.randomUUID()).email("person@example.com").build();
+
+        tokenService.issue(user, TokenType.PASSWORD_RESET);
+
+        verify(authTokenRepository).deleteByUserIdAndTokenType(user.getId(), TokenType.PASSWORD_RESET);
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.ontrack.backend.dto.SignupRequest;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.enums.TokenType;
 import com.ontrack.backend.exception.EmailAlreadyExistsException;
+import com.ontrack.backend.exception.EmailAlreadyVerifiedException;
 import com.ontrack.backend.exception.EmailNotVerifiedException;
 import com.ontrack.backend.exception.EmailRateLimitExceededException;
 import com.ontrack.backend.exception.InvalidCredentialsException;
@@ -64,7 +65,7 @@ class AuthServiceTest {
     @Test
     void signupCreatesUnverifiedUserAndSendsVerificationEmailWithoutIssuingAToken() {
         SignupRequest request = new SignupRequest("new@example.com", "password123");
-        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -81,12 +82,85 @@ class AuthServiceTest {
     }
 
     @Test
-    void signupWithExistingEmailThrows() {
+    void signupWithAnAlreadyVerifiedEmailThrows() {
         SignupRequest request = new SignupRequest("taken@example.com", "password123");
-        when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+        User verified = User.builder()
+                .id(UUID.randomUUID())
+                .email("taken@example.com")
+                .passwordHash("existing-hash")
+                .emailVerified(true)
+                .build();
+        when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(verified));
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(EmailAlreadyExistsException.class);
+        verify(emailService, never()).sendVerificationEmail(anyString(), anyString());
+    }
+
+    // Rejecting a repeat signup on an unverified account strands the user: they can't log in,
+    // and "already exists" never points them at the resend screen.
+    @Test
+    void signupOnAnExistingButUnverifiedEmailResendsTheVerificationLink() {
+        SignupRequest request = new SignupRequest("pending@example.com", "newpassword");
+        User unverified = User.builder()
+                .id(UUID.randomUUID())
+                .email("pending@example.com")
+                .passwordHash("old-hash")
+                .emailVerified(false)
+                .build();
+        when(userRepository.findByEmail("pending@example.com")).thenReturn(Optional.of(unverified));
+        when(emailRateLimiter.tryConsume("pending@example.com")).thenReturn(true);
+        when(passwordEncoder.encode("newpassword")).thenReturn("new-hash");
+        when(tokenService.issue(any(User.class), eq(TokenType.EMAIL_VERIFICATION))).thenReturn("fresh-token");
+
+        MessageResponse response = authService.signup(request);
+
+        assertThat(response.message()).isNotBlank();
+        verify(emailService).sendVerificationEmail("pending@example.com", "fresh-token");
+    }
+
+    // The newest attempt takes over the password. Without this the user verifies and then
+    // cannot log in with the password they just typed.
+    @Test
+    void signupOnAnUnverifiedEmailAdoptsTheNewestPassword() {
+        SignupRequest request = new SignupRequest("pending@example.com", "newpassword");
+        User unverified = User.builder()
+                .id(UUID.randomUUID())
+                .email("pending@example.com")
+                .passwordHash("first-attempt-hash")
+                .emailVerified(false)
+                .build();
+        when(userRepository.findByEmail("pending@example.com")).thenReturn(Optional.of(unverified));
+        when(emailRateLimiter.tryConsume("pending@example.com")).thenReturn(true);
+        when(passwordEncoder.encode("newpassword")).thenReturn("second-attempt-hash");
+        when(tokenService.issue(any(User.class), eq(TokenType.EMAIL_VERIFICATION))).thenReturn("fresh-token");
+
+        authService.signup(request);
+
+        assertThat(unverified.getPasswordHash()).isEqualTo("second-attempt-hash");
+        verify(userRepository).save(unverified);
+    }
+
+    // A straggling verification link (a password reset can verify the account out from under
+    // one) must not be treated as a successful verification. It returns no session and leaves
+    // the account untouched, so a link can never be a way *into* an account, only a way to
+    // activate one.
+    @Test
+    void verifyingAnAlreadyVerifiedAccountIsRejectedAndChangesNothing() {
+        User alreadyVerified = User.builder()
+                .id(UUID.randomUUID())
+                .email("contested@example.com")
+                .passwordHash("owners-hash")
+                .emailVerified(true)
+                .build();
+        when(tokenService.consume("straggler-link", TokenType.EMAIL_VERIFICATION)).thenReturn(alreadyVerified);
+
+        assertThatThrownBy(() -> authService.verifyEmail("straggler-link"))
+                .isInstanceOf(EmailAlreadyVerifiedException.class);
+
+        assertThat(alreadyVerified.getPasswordHash()).isEqualTo("owners-hash");
+        verify(userRepository, never()).save(any(User.class));
+        verify(jwtService, never()).generateToken(any(UUID.class), anyString());
     }
 
     @Test

@@ -35,7 +35,17 @@ public class TokenService {
         this.passwordResetExpiryMinutes = passwordResetExpiryMinutes;
     }
 
-    /** Invalidates the user's prior un-consumed tokens of this type, then issues and returns a new raw token. */
+    /**
+     * Invalidates the user's prior un-consumed tokens of this type, then issues and returns a new
+     * raw token.
+     *
+     * <p>Only ever leaving one live link per type is a security property, not just tidiness. Two
+     * people can have a signup outstanding on the same unverified address, and their verification
+     * emails are indistinguishable in the recipient's inbox. If both links stayed live, the
+     * recipient would be picking between them blind, and picking the stranger's would activate
+     * the account with the stranger's password. Killing the earlier link means the most recent
+     * attempt, which is the one the real mailbox owner just made, is the only one that can work.
+     */
     @Transactional
     public String issue(User user, TokenType type) {
         authTokenRepository.deleteByUserIdAndTokenType(user.getId(), type);

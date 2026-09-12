@@ -8,6 +8,7 @@ import com.ontrack.backend.email.EmailDeliveryException;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.enums.TokenType;
 import com.ontrack.backend.exception.EmailAlreadyExistsException;
+import com.ontrack.backend.exception.EmailAlreadyVerifiedException;
 import com.ontrack.backend.exception.EmailNotVerifiedException;
 import com.ontrack.backend.exception.EmailRateLimitExceededException;
 import com.ontrack.backend.exception.InvalidCredentialsException;
@@ -52,9 +53,14 @@ public class AuthService {
         this.emailRateLimiter = emailRateLimiter;
     }
 
+    @Transactional
     public MessageResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new EmailAlreadyExistsException(request.email());
+        User existing = userRepository.findByEmail(request.email()).orElse(null);
+        if (existing != null) {
+            if (existing.isEmailVerified()) {
+                throw new EmailAlreadyExistsException(request.email());
+            }
+            return resendVerificationForUnverifiedSignup(existing, request.password());
         }
         User user = User.builder()
                 .email(request.email())
@@ -68,6 +74,36 @@ public class AuthService {
         // strand the user with an existing-but-unusable account they can't re-signup with.
         // "Resend verification email" is the recovery path once delivery is working again.
         trySend(() -> emailService.sendVerificationEmail(savedUser.getEmail(), rawToken));
+
+        return new MessageResponse("Account created. Check your email to verify your address before logging in.");
+    }
+
+    /**
+     * Signing up again with an address that exists but was never verified re-sends the link
+     * instead of failing. Rejecting it stranded people: the account can't be logged into, and
+     * "already exists" gives no hint that the recovery path is the resend-verification screen.
+     *
+     * <p>Rate limited per email by the same limiter the resend and forgot-password endpoints
+     * use, so this can't be hit in a loop to flood someone's inbox.
+     *
+     * <p>The newest attempt wins outright: it takes over the password, and issuing its token
+     * invalidates every earlier verification link. That ordering is deliberate. Anyone can start
+     * a signup for an address they don't own, and the resulting emails are indistinguishable in
+     * the real owner's inbox, so leaving both links live would make the owner choose blind and
+     * let a stranger's link activate the account with a stranger's password. Because the link is
+     * only ever delivered to the address itself, "most recent attempt" is the closest available
+     * proxy for "the person actually reading this mailbox", and the loser is left with a dead
+     * link rather than a foothold.
+     */
+    private MessageResponse resendVerificationForUnverifiedSignup(User user, String password) {
+        if (!emailRateLimiter.tryConsume(user.getEmail())) {
+            throw new EmailRateLimitExceededException();
+        }
+        user.setPasswordHash(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        String rawToken = tokenService.issue(user, TokenType.EMAIL_VERIFICATION);
+        trySend(() -> emailService.sendVerificationEmail(user.getEmail(), rawToken));
 
         return new MessageResponse("Account created. Check your email to verify your address before logging in.");
     }
@@ -88,6 +124,15 @@ public class AuthService {
     @Transactional
     public MessageResponse verifyEmail(String rawToken) {
         User user = tokenService.consume(rawToken, TokenType.EMAIL_VERIFICATION);
+
+        // Already verified means this link is a straggler, most likely because a password reset
+        // verified the account out from under it (resetPassword sets emailVerified too). Report
+        // it rather than silently succeeding, and return no session either way: verifyEmail must
+        // never be a way into an account, only a way to activate one.
+        if (user.isEmailVerified()) {
+            throw new EmailAlreadyVerifiedException();
+        }
+
         user.setEmailVerified(true);
         userRepository.save(user);
         return new MessageResponse("Email verified. You can now log in.");
