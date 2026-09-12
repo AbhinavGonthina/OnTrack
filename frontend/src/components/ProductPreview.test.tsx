@@ -10,20 +10,9 @@ class MockIntersectionObserver {
   disconnect = vi.fn();
 }
 
-function mockSystemTheme(prefersDark: boolean) {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockReturnValue({
-      matches: prefersDark,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }),
-  );
-}
-
-function renderPreview() {
+function renderPreview(initialTheme: "light" | "dark" = "dark") {
   render(
-    <ThemeProvider>
+    <ThemeProvider initialTheme={initialTheme}>
       <ProductPreview />
     </ThemeProvider>,
   );
@@ -40,8 +29,7 @@ describe("ProductPreview", () => {
   });
 
   test("layers all three feature screenshots, each with a descriptive alt", async () => {
-    mockSystemTheme(true);
-    renderPreview();
+    renderPreview("dark");
 
     const images = await screen.findAllByRole("img");
     expect(images).toHaveLength(3);
@@ -50,9 +38,8 @@ describe("ProductPreview", () => {
     expect(screen.getByAltText(/fit scored 88/i)).toBeInTheDocument();
   });
 
-  test("uses the dark variant of every layer when the system prefers dark", async () => {
-    mockSystemTheme(true);
-    renderPreview();
+  test("uses the dark variant of every layer on the dark theme", async () => {
+    renderPreview("dark");
 
     const images = await screen.findAllByRole("img");
     await waitFor(() => {
@@ -62,9 +49,8 @@ describe("ProductPreview", () => {
     });
   });
 
-  test("swaps every layer to its light variant once the system prefers light", async () => {
-    mockSystemTheme(false);
-    renderPreview();
+  test("swaps every layer to its light variant on the light theme", async () => {
+    renderPreview("light");
 
     const images = await screen.findAllByRole("img");
     await waitFor(() => {

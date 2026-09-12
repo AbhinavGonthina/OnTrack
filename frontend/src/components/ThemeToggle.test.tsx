@@ -1,58 +1,51 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "vitest";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeToggle } from "./ThemeToggle";
 import { ThemeProvider } from "../context/ThemeContext";
+import { THEME_COOKIE } from "../lib/theme";
 
-function mockSystemTheme(prefersDark: boolean) {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockReturnValue({
-      matches: prefersDark,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }),
+function renderToggle(initialTheme: "light" | "dark") {
+  return render(
+    <ThemeProvider initialTheme={initialTheme}>
+      <ThemeToggle />
+    </ThemeProvider>,
   );
+}
+
+function themeCookie(): string | undefined {
+  return document.cookie
+    .split("; ")
+    .find((part) => part.startsWith(`${THEME_COOKIE}=`))
+    ?.split("=")[1];
 }
 
 describe("ThemeToggle", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
     document.documentElement.removeAttribute("data-theme");
+    document.cookie = `${THEME_COOKIE}=; path=/; max-age=0`;
   });
 
-  test("shows a moon (switch to dark) when the system prefers light", async () => {
-    mockSystemTheme(false);
-    const { container } = render(
-      <ThemeProvider>
-        <ThemeToggle />
-      </ThemeProvider>,
-    );
+  // The icon advertises the destination, not the current state.
+  test("shows a moon to offer dark while on light", () => {
+    const { container } = renderToggle("light");
 
-    await waitFor(() => expect(container.querySelector(".lucide-moon")).toBeInTheDocument());
+    expect(container.querySelector(".lucide-moon")).toBeInTheDocument();
     expect(container.querySelector(".lucide-sun")).not.toBeInTheDocument();
   });
 
-  test("shows a sun (switch to light) when the system prefers dark", async () => {
-    mockSystemTheme(true);
-    const { container } = render(
-      <ThemeProvider>
-        <ThemeToggle />
-      </ThemeProvider>,
-    );
+  test("shows a sun to offer light while on dark", () => {
+    const { container } = renderToggle("dark");
 
-    await waitFor(() => expect(container.querySelector(".lucide-sun")).toBeInTheDocument());
+    expect(container.querySelector(".lucide-sun")).toBeInTheDocument();
+    expect(container.querySelector(".lucide-moon")).not.toBeInTheDocument();
   });
 
-  test("clicking stamps the opposite theme onto the document and swaps the icon", async () => {
-    mockSystemTheme(false);
+  // The attribute has to change on click rather than waiting for the next server render, or the
+  // toggle would appear to do nothing until a refresh.
+  test("stamps the opposite theme onto the document immediately and swaps the icon", async () => {
     const user = userEvent.setup();
-    const { container } = render(
-      <ThemeProvider>
-        <ThemeToggle />
-      </ThemeProvider>,
-    );
-    await waitFor(() => expect(container.querySelector(".lucide-moon")).toBeInTheDocument());
+    const { container } = renderToggle("light");
 
     await user.click(screen.getByRole("button", { name: "Toggle color theme" }));
 
@@ -63,5 +56,18 @@ describe("ThemeToggle", () => {
 
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(container.querySelector(".lucide-moon")).toBeInTheDocument();
+  });
+
+  // The whole point: without the cookie the choice dies on refresh, and localStorage is ruled
+  // out by SPEC.md.
+  test("writes the choice to a cookie so it survives a refresh", async () => {
+    const user = userEvent.setup();
+    renderToggle("dark");
+
+    await user.click(screen.getByRole("button", { name: "Toggle color theme" }));
+    expect(themeCookie()).toBe("light");
+
+    await user.click(screen.getByRole("button", { name: "Toggle color theme" }));
+    expect(themeCookie()).toBe("dark");
   });
 });

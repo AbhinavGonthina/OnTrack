@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AiUsageProvider } from "@/context/AiUsageContext";
@@ -6,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { BackendWakeProvider } from "@/context/BackendWakeContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { TITLE_TEMPLATE } from "@/lib/metadata";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import { AppNav } from "@/components/AppNav";
 import { NavigationProgressBar } from "@/components/NavigationProgressBar";
 
@@ -39,14 +41,21 @@ export const metadata: Metadata = {
     "A job application tracker built for SWE/CS job searches, with status-pipeline analytics and an AI-powered resume/JD fit check.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+// Reading the theme cookie here, on the server, is what makes the choice survive a refresh
+// without a flash: data-theme is already correct in the first byte of HTML, so the browser
+// never paints the wrong palette and then corrects itself. The cost is that this makes the
+// route dynamic, which is fine for an app whose pages are almost all authenticated anyway.
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
     <html
       lang="en"
+      data-theme={theme}
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
           <AuthProvider>
             <AiUsageProvider>
               <BackendWakeProvider>
