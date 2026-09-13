@@ -10,6 +10,7 @@ import { TITLE_TEMPLATE } from "@/lib/metadata";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import { AppNav } from "@/components/AppNav";
 import { NavigationProgressBar } from "@/components/NavigationProgressBar";
+import { WebAnalytics } from "@/components/WebAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,6 +63,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <NavigationProgressBar />
                 <AppNav />
                 {children}
+                <WebAnalytics />
               </BackendWakeProvider>
             </AiUsageProvider>
           </AuthProvider>

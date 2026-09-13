@@ -31,16 +31,28 @@ function generatePieces(): ConfettiPiece[] {
   }));
 }
 
-export function OfferCelebration({ onDone }: { onDone: () => void }) {
+/**
+ * @param autoDismissMs how long to wait before dismissing itself. Defaulted rather than
+ *   hardcoded purely so tests can take the timer out of play: on real timers a click test races
+ *   this, and calling onDone twice under load made the suite flake. Fake timers are not an
+ *   option here, since the confetti animation and the portal both hang on a frozen clock.
+ */
+export function OfferCelebration({
+  onDone,
+  autoDismissMs = AUTO_DISMISS_MS,
+}: {
+  onDone: () => void;
+  autoDismissMs?: number;
+}) {
   // A useState lazy initializer (not useMemo) - it's the one React-sanctioned place to run
   // one-time impure logic like Math.random() during render, since it's guaranteed to run
   // only once for this component instance, never re-evaluated on a later render.
   const [pieces] = useState<ConfettiPiece[]>(generatePieces);
 
   useEffect(() => {
-    const timer = setTimeout(onDone, AUTO_DISMISS_MS);
+    const timer = setTimeout(onDone, autoDismissMs);
     return () => clearTimeout(timer);
-  }, [onDone]);
+  }, [onDone, autoDismissMs]);
 
   return createPortal(
     <>
