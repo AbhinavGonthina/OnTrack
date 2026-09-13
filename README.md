@@ -1,10 +1,10 @@
 # OnTrack
 
-A full-stack job application tracker built for SWE and CS job searches. It combines an event-sourced status pipeline, SQL-driven funnel analytics with a Sankey visualization, and a Gemini-powered resume and job-description fit check, all on top of a JWT-authenticated CRUD backend.
+A full-stack job application tracker website built for general CS job searches. Features include a dashboard containing an application status pipeline and application statistics, application manager, and a Gemini-powered resume and job-description fit check.
 
-**Live demo:** [ontrack.abhinavgonthina.me](https://ontrack.abhinavgonthina.me). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account.
+**Live demo:** [ontrack.abhinavgonthina.me](https://ontrack.abhinavgonthina.me). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account!
 
-> The backend runs on Render's free tier, which spins down after 15 minutes idle. First load after a nap takes up to two and a half minutes to wake back up. The UI says so plainly and keeps you busy with a 100-question CS and SWE interview quiz while it boots. That is a deliberate trade for a demo link that costs nothing and stays live indefinitely, not an oversight.
+> The way the backend is hosted right now, it spins down after 15 minutes idle. First load after a nap might take up to two and a half minutes to wake back up. The UI includes this detail, and will keep you occupied with a 100-question CS and SWE interview quiz while it boots.
 
 ## Screenshots
 
@@ -34,14 +34,9 @@ A full-stack job application tracker built for SWE and CS job searches. It combi
 - **Upload a resume as PDF or DOCX**, have it normalized into clean text, and score its strength across four fixed categories. Strength scores are cached against the resume text, so re-scoring unchanged text is free.
 - **Try it with zero setup** through a public, read-only demo with 12 seeded applications and no signup.
 
-## Why it is built this way
+## Why it is built
 
-This project exists to demonstrate backend engineering, not to be a wrapper around an AI API. The fit analysis is one feature among several. The CRUD, the event-sourced status model, and the SQL analytics are all meant to stand on their own in a technical interview.
-
-- **Event-sourced status pipeline.** Status changes are appended as immutable `StatusEvent` rows rather than overwritten in place. The full history survives, funnel analytics can be recomputed at any time, and "how many applications ever reached OA" is an honest query instead of an assumption. It also means a rejection needs no separate "rejected from" field: the event before it already is the stage it came from.
-- **SQL where an ORM would not reach.** The Sankey needs a `LAG()` window function to compare each status event with the previous one per application, which JPQL cannot express. `StatsService` uses `NamedParameterJdbcTemplate` with raw SQL for exactly this, while the rest of the app uses Spring Data JPA where a repository is the right tool.
-- **Cost and abuse protection treated as a feature.** General API rate limiting (Bucket4j, 60 requests per minute per user or IP) is separate from a dedicated Gemini limiter (20 calls per user per day) that is only consulted on an actual cache miss. Both the Gemini cap and the per-email send cap live in Postgres rather than in memory, because a limit that resets every time a free-tier container spins down is not a limit. Every AI result is cached on a SHA-256 of its inputs, so repeat views cost nothing.
-- **No credentials in browser storage.** The JWT lives in React context only, with an httpOnly refresh cookie the frontend can never read. A hard refresh re-validates against the server rather than trusting anything the page could have tampered with.
+I created this project as a way to track my own job search. I wanted to create a hub where I can track the overall progression of my job search without having to manually calculate anything or us more than one source to do so. In r/NEU (Northeastern's reddit), often times people will post the results of their internship/co-op search by means of a sankey diagram - https://en.wikipedia.org/wiki/Sankey_diagram. This web app combines that with the basic CRUD features that someone would want to keep track of their application, and also incorporates an integrated AI review aspect in case you want quick tips on how to tweak your resume for a specific job description/a better general resume.
 
 ## Tech stack
 
@@ -63,8 +58,6 @@ frontend/   Next.js app. All AI and database access goes through the
 backend/    Spring Boot API: auth, CRUD, rate limiting, Gemini proxy,
             SQL analytics
 ```
-
-The Gemini API key never reaches the frontend. Every AI call is proxied through the backend, which is also where the rate limiting and caching live. Demo mode never makes a live Gemini call. It serves pre-seeded `FitAnalysis` rows whose input hashes are computed in Postgres to match the runtime Java hash exactly, so they flow through the same cache-hit path a real cached result would.
 
 ## Running it locally
 
