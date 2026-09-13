@@ -62,7 +62,7 @@ Behind the CRUD there are a handful of things I deliberately spent time on.
 
 **Email:** Resend, for verification, password reset and problem reports.
 
-**Testing:** JUnit 5 with Mockito and MockMvc on the backend (177 tests), Vitest with React Testing Library on the frontend (201 tests).
+**Testing:** JUnit 5 with Mockito and MockMvc on the backend, Vitest with React Testing Library on the frontend.
 
 ## Architecture
 
