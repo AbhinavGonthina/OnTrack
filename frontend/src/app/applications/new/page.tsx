@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -12,16 +12,11 @@ import { DotGridBackground } from "@/components/DotGridBackground";
 
 export default function NewApplicationPage() {
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing } = useAuth();
+  const { token } = useAuth();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   async function handleSubmit(input: ApplicationInput) {
     if (!token) return;
@@ -36,10 +31,6 @@ export default function NewApplicationPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

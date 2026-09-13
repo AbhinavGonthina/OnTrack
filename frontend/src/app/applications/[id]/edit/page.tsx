@@ -14,17 +14,12 @@ import { Spinner } from "@/components/Spinner";
 export default function EditApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { token, logout } = useAuth();
 
   const [initial, setInitial] = useState<ApplicationInput | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -68,10 +63,6 @@ export default function EditApplicationPage({ params }: { params: Promise<{ id: 
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

@@ -26,7 +26,7 @@ function errorMessage(err: unknown): string {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { token, logout } = useAuth();
   const { refresh: refreshAiUsage } = useAiUsage();
 
   const [resumeText, setResumeText] = useState("");
@@ -48,11 +48,6 @@ export default function ProfilePage() {
   const [isScoringStrength, setIsScoringStrength] = useState(false);
   const [strengthError, setStrengthError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -161,10 +156,6 @@ export default function ProfilePage() {
       setIsScoringStrength(false);
       refreshAiUsage();
     }
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

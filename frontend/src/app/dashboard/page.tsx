@@ -15,19 +15,12 @@ import type { ApplicationResponse, StatsResponse } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { token, logout } = useAuth();
 
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [applications, setApplications] = useState<ApplicationResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // isInitializing covers the brief window while a page-refresh session check is still in
-    // flight - redirecting before it resolves would bounce an actually-still-logged-in user.
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -56,10 +49,6 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [token, logout, router]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <main className="relative isolate flex w-full flex-col py-6">

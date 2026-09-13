@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { RequireAuth } from "@/components/RequireAuth";
 import { TITLE_TEMPLATE } from "@/lib/metadata";
 
 // Re-declares the template because this segment has child routes (/new, /[id], /[id]/edit)
@@ -11,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function ApplicationsLayout({ children }: LayoutProps<"/applications">) {
-  return children;
+  return <RequireAuth>{children}</RequireAuth>;
 }

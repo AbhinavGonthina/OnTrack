@@ -13,17 +13,12 @@ import type { ApplicationResponse } from "@/lib/types";
 
 export default function ApplicationsPage() {
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { token, logout } = useAuth();
 
   const [applications, setApplications] = useState<ApplicationResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -61,10 +56,6 @@ export default function ApplicationsPage() {
     } finally {
       setDeletingId(null);
     }
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

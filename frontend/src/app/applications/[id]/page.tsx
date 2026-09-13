@@ -26,7 +26,7 @@ import type { ApplicationDetailResponse, ApplicationStatus, FitAnalysisResponse,
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { token, isAuthenticated, isInitializing, logout } = useAuth();
+  const { token, logout } = useAuth();
   const { refresh: refreshAiUsage } = useAiUsage();
 
   const [detail, setDetail] = useState<ApplicationDetailResponse | null>(null);
@@ -34,11 +34,6 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   const [isDeleting, setIsDeleting] = useState(false);
   const [cachedFit, setCachedFit] = useState<FitAnalysisResponse | null>(null);
 
-  useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/");
-    }
-  }, [isInitializing, isAuthenticated, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -130,10 +125,6 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
       setIsDeleting(false);
     }
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
