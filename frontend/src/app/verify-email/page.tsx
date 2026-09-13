@@ -104,6 +104,7 @@ function VerifyEmailContent() {
               icon={Mail}
               label="Email"
               type="email"
+              autoComplete="username"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

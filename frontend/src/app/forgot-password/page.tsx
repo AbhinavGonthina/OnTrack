@@ -57,6 +57,7 @@ export default function ForgotPasswordPage() {
               icon={Mail}
               label="Email"
               type="email"
+              autoComplete="username"
               placeholder="you@example.com"
               required
               value={email}

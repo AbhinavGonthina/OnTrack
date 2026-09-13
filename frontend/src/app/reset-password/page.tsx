@@ -52,6 +52,7 @@ function ResetPasswordContent() {
           icon={Lock}
           label="New password"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           required
           minLength={8}
@@ -62,6 +63,7 @@ function ResetPasswordContent() {
           icon={Lock}
           label="Confirm new password"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           required
           minLength={8}

@@ -94,6 +94,7 @@ export default function SignupPage() {
               icon={Mail}
               label="Email"
               type="email"
+              autoComplete="username"
               placeholder="you@example.com"
               required
               value={email}
@@ -104,6 +105,7 @@ export default function SignupPage() {
                 icon={Lock}
                 label="Password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 required
                 minLength={8}

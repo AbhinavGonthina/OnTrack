@@ -89,6 +89,7 @@ export default function LoginPage() {
               icon={Mail}
               label="Email"
               type="email"
+              autoComplete="username"
               placeholder="you@example.com"
               required
               value={email}
@@ -99,6 +100,7 @@ export default function LoginPage() {
                 icon={Lock}
                 label="Password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 required
                 value={password}
