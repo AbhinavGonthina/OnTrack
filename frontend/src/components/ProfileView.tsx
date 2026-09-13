@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type DragEvent } from "react";
-import { AlertCircle, CheckCircle2, Gauge, Sparkles, UploadCloud } from "lucide-react";
+import { AlertCircle, CheckCircle2, Gauge, Loader2, Sparkles, UploadCloud } from "lucide-react";
 import type { ResumeStrengthResponse } from "@/lib/types";
 import { parseResumeBlocks } from "@/lib/resumeFormatting";
 import { Button } from "@/components/Button";
@@ -181,7 +181,11 @@ function UploadDropzone({
             : "border-surface-border bg-foreground/[0.03] hover:bg-foreground/[0.06]"
         } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
       >
-        <UploadCloud size={24} className="text-brand" />
+        {isUploading ? (
+          <Loader2 size={24} aria-hidden className="animate-spin text-brand" />
+        ) : (
+          <UploadCloud size={24} className="text-brand" />
+        )}
         <p className="text-xs text-muted">
           {!isUploading
             ? "Drag a PDF or DOCX here, or click to browse"

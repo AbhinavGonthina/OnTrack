@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { cachedFetch, invalidateCache, profileCacheKey } from "@/lib/requestCache";
 import { useAuth } from "@/context/AuthContext";
+import { useUnsavedChangesWarning } from "@/lib/useUnsavedChangesWarning";
 import { useAiUsage } from "@/context/AiUsageContext";
 import { PageContainer } from "@/components/PageContainer";
 import { Spinner } from "@/components/Spinner";
@@ -35,6 +36,12 @@ export default function ProfilePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
+  // The save badge alone is easy to walk past, and the resume is the one thing here that
+  // isn't recoverable: leave with it unsaved and the edit is simply gone.
+  useUnsavedChangesWarning(
+    resumeText !== savedResumeText,
+    "You have unsaved changes to your resume. Leave without saving?",
+  );
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
