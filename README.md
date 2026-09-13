@@ -36,23 +36,21 @@ A full-stack job application tracker website built for general CS job searches. 
 
 ## Why it is built
 
-I created this project as a way to track my own job search. I wanted to create a hub where I can track the overall progression of my job search without having to manually calculate anything or us more than one source to do so. In r/NEU (Northeastern's reddit), often times people will post the results of their internship/co-op search by means of a sankey diagram - https://en.wikipedia.org/wiki/Sankey_diagram. This web app combines that with the basic CRUD features that someone would want to keep track of their application, and also incorporates an integrated AI review aspect in case you want quick tips on how to tweak your resume for a specific job description/a better general resume.
+I created this project as a way to track my own job search. I wanted a hub where I could see the overall progression without having to manually calculate anything or use more than one source to do so. On r/NEU (Northeastern's Reddit), people often post the results of their internship and co-op search as a [Sankey diagram](https://en.wikipedia.org/wiki/Sankey_diagram). This web app combines that with the basic CRUD features someone would want for keeping track of their applications, and adds an integrated AI review in case you want quick tips on tweaking your resume for a specific job description, or on improving it in general.
 
 ## Technical details
 
-Behind the CRUD there are a handful of things I deliberately spent time on, and they are the parts I would actually want to talk through in an interview.
+Behind the CRUD there are a handful of things I deliberately spent time on.
 
-**Event-sourced status pipeline.** Status changes are appended as immutable `StatusEvent` rows instead of overwriting a single column. The full history survives, the funnel can be recomputed at any time, and "how many applications ever reached OA" becomes a real query rather than a guess. It also means a rejection needs no separate "rejected from" field, because the event sitting before it already is the stage it came from.
+**Event-sourced status pipeline.** Status changes are appended as immutable `StatusEvent` rows instead of overwriting a single column. The full history survives and the Sankey funnel can be recomputed at any time, making the technical implementation of the dashboard useful and possible to query.
 
-**SQL where an ORM would not reach.** The Sankey needs a `LAG()` window function to compare each status event with the one before it per application, which JPQL cannot express. `StatsService` drops down to `NamedParameterJdbcTemplate` with raw SQL for exactly that, while everything else uses Spring Data JPA where a repository is the right tool.
+**SQL assisting with diagram generation.** The Sankey needs a `LAG()` window function to compare each status event with the one before it per application. `StatsService` drops down to `NamedParameterJdbcTemplate` with raw SQL for exactly that.
 
-**Rate limiting at three levels.** A Bucket4j filter caps general API traffic at 60 requests per minute per user, falling back to IP when the caller is not signed in. Gemini calls get their own budget of 20 per user per day, checked only on a genuine cache miss so re-reading a cached result costs nothing. Outbound email is capped at 5 per address per hour, so nobody can point the signup or password reset forms at a stranger's inbox and flood it. The Gemini and email counters live in Postgres rather than memory, because a limit that resets every time a free tier container spins down is not really a limit.
+**Rate limiting at three levels.** A Bucket4j filter caps general API traffic, falling back to IP when the caller is not signed in. Gemini calls also get their own budget of 20 per user per day, checked only on a genuine cache miss so re-reading a cached result costs nothing. Outbound email is also capped at 5 per address per hour, so nobody can point the signup or password reset forms at a stranger's inbox and flood it. The Gemini and email counters live in Postgres rather than memory even though memory would be much quicker because a limit that resets every time the backend spins down is not really a limit (this is the way I am hosting the backend).
 
-**Caching every AI result.** Fit analyses are keyed on a SHA-256 of the resume and job description together, resume strength on a hash of the resume by itself. Change nothing and you pay nothing. Change a single word and it recomputes, because the hash stops matching.
+**Caching every AI result.** Fit analyses are keyed on a SHA-256 of the resume and job description together, resume strength on a hash of the resume by itself. Change nothing and you don't use another AI call. Change a single word and it recomputes, because the hash stops matching.
 
 **Demo mode that cannot cost money.** The seeded demo user's fit analyses have their input hashes computed in Postgres with `pgcrypto`, so they match the runtime Java hash exactly. Demo traffic flows through the ordinary cache hit path and can never trigger a live Gemini call, without a single special case anywhere in the service layer.
-
-**Auth that keeps nothing sensitive in the browser.** The JWT lives in React context only. Restoring a session after a refresh works off an httpOnly cookie that JavaScript can never read, so the page holds nothing worth stealing and nothing it could tamper with. The Gemini API key stays server side and every AI call is proxied through the backend, which is also where the caching and rate limiting live.
 
 ## Tech stack
 
