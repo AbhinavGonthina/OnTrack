@@ -117,7 +117,7 @@ export default function LoginPage() {
                 {resent && <p className="mt-1 text-foreground/70">Sent. Check your inbox.</p>}
               </div>
             )}
-            <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+            <Button type="submit" loading={isSubmitting} className="mt-2 w-full">
               {isSubmitting ? "Logging in…" : "Log In"}
             </Button>
           </form>
