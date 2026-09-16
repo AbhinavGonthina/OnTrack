@@ -11,11 +11,12 @@ import { WakingUpNoticeContent } from "@/components/WakingUpNotice";
  * Gates a page on being signed in, and shows something while it works out whether you are.
  *
  * <p>Every guarded page used to inline this, and all of them rendered `null` until the session
- * check resolved. That check is an HTTP call to Render, which spins down after about 15 minutes
- * idle, so typing /dashboard while signed out produced a blank white page for as long as the
- * container took to boot (measured at 155 seconds on 2026-09-12) before the redirect fired. A
- * blank page is indistinguishable from a broken one, and the redirect it was waiting on was
- * never going to need the backend's answer in the first place for a visitor with no session.
+ * check resolved. That check is an HTTP call to Render. An uptime monitor keeps the instance
+ * warm now, but a deploy or restart still cold-boots it, and typing /dashboard while signed out
+ * produced a blank white page for as long as that boot took (measured at 155 seconds on
+ * 2026-09-12) before the redirect fired. A blank page is indistinguishable from a broken one,
+ * and the redirect it was waiting on was never going to need the backend's answer in the first
+ * place for a visitor with no session.
  *
  * <p>So: a spinner immediately, the cold-start explanation once the wait stops looking normal,
  * and the redirect the moment we actually know there's no session.

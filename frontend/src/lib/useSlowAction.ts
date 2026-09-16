@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
  * explanation.
  *
  * <p>The app already handles cold starts on the way in, via `ColdStartGate` and
- * `BackendWakeContext`, but nothing covered an action started from *inside* the app. Render's
- * free tier spins the backend down after about 15 minutes idle, so leaving a page open and then
- * doing something holds the request open while the container boots. That boot was measured at
- * **155 seconds** on 2026-09-12, against roughly 2 seconds for the same request once warm.
+ * `BackendWakeContext`, but nothing covered an action started from *inside* the app. An uptime
+ * monitor keeps the backend warm, so this is now a fallback rather than an everyday path: a
+ * deploy or a restart still cold-boots the container, and doing something right then holds the
+ * request open while it starts. That boot was measured at **155 seconds** on 2026-09-12, against
+ * roughly 2 seconds for the same request once warm.
  *
  * <p>A spinner alone reads as "broken" after that long, and a specific label like "Extracting &
  * normalizing…" reads as a lie, because no extracting is happening: the server does not exist

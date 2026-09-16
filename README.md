@@ -4,7 +4,7 @@ A full-stack job application tracker website built for general CS job searches. 
 
 **Live demo:** [ontrack.abhinavgonthina.me](https://ontrack.abhinavgonthina.me). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account!
 
-> The way the backend is hosted right now, it spins down after 15 minutes idle. First load after a nap might take up to two and a half minutes to wake back up. The UI includes this detail, and will keep you occupied with a 100-question CS and SWE interview quiz while it boots.
+> The backend runs on a single small free-tier instance, kept warm by an uptime monitor, so it normally responds right away. A fresh deploy or a restart still means a cold boot, which takes a couple of minutes on that hardware. The UI says so plainly when it happens and keeps you occupied with a 100-question CS and SWE interview quiz while it starts.
 
 ## Screenshots
 

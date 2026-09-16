@@ -147,8 +147,8 @@ function UploadDropzone({
   isUploading: boolean;
   uploadError: string | null;
 }) {
-  // Render's free tier spins down after ~15 minutes idle, and a cold boot was measured at 155s.
-  // Past a normal wait, say so rather than continuing to claim the file is being extracted.
+  // An uptime monitor keeps Render warm, but a deploy or restart still cold-boots, and that boot
+  // was measured at 155s. Past a normal wait, say so rather than claiming the file is extracting.
   const isWakingBackend = useSlowAction(isUploading);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -190,7 +190,7 @@ function UploadDropzone({
           {!isUploading
             ? "Drag a PDF or DOCX here, or click to browse"
             : isWakingBackend
-              ? "Still working. The server may be waking up, which takes up to two minutes on free hosting."
+              ? "Still working. The server may be starting up, which takes a couple of minutes on free hosting."
               : "Extracting & normalizing…"}
         </p>
         <input
