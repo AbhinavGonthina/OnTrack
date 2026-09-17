@@ -239,7 +239,7 @@ export function ApplicationDetailView({
             rather than sitting level with the role title. */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="min-w-0 break-words font-display text-2xl font-bold tracking-tight text-foreground">
               {detail.role} · {detail.company}
             </h1>
             <StatusBadge status={detail.currentStatus} />
@@ -292,7 +292,7 @@ export function ApplicationDetailView({
                     column: same approach as Profile's preview card and the Dashboard's
                     applications list, so the card's box size doesn't depend on content
                     length. The card itself stays fully reachable - only the body scrolls. */}
-                <p className="mt-3 max-h-96 overflow-y-auto border-t border-surface-border pt-3 text-sm whitespace-pre-wrap text-foreground/70">
+                <p className="mt-3 max-h-96 overflow-y-auto border-t border-surface-border pt-3 text-sm break-words whitespace-pre-wrap text-foreground/70">
                   {detail.jobDescriptionText}
                 </p>
               </details>
@@ -343,7 +343,7 @@ export function ApplicationDetailView({
                       >
                         <div className="min-w-0">
                           <p className="text-xs text-muted">{formatNoteTimestamp(note.createdAt)}</p>
-                          <p className="mt-0.5 whitespace-pre-wrap text-foreground">{note.text}</p>
+                          <p className="mt-0.5 break-words whitespace-pre-wrap text-foreground">{note.text}</p>
                         </div>
                         {onDeleteNote && (
                           <button

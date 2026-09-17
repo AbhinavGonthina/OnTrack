@@ -26,10 +26,16 @@ public class AuthController {
 
     private final AuthService authService;
     private final long jwtExpirationMs;
+    /** Blank means a host-only cookie. See SessionCookie for why this also decides SameSite. */
+    private final String sessionCookieDomain;
 
-    public AuthController(AuthService authService, @Value("${app.jwt.expiration-ms}") long jwtExpirationMs) {
+    public AuthController(
+            AuthService authService,
+            @Value("${app.jwt.expiration-ms}") long jwtExpirationMs,
+            @Value("${app.auth.session-cookie-domain:}") String sessionCookieDomain) {
         this.authService = authService;
         this.jwtExpirationMs = jwtExpirationMs;
+        this.sessionCookieDomain = sessionCookieDomain;
     }
 
     @PostMapping("/signup")
@@ -41,14 +47,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, SessionCookie.issue(response.token(), jwtExpirationMs).toString())
+                .header(HttpHeaders.SET_COOKIE, SessionCookie.issue(response.token(), jwtExpirationMs, sessionCookieDomain).toString())
                 .body(response);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, SessionCookie.clear().toString())
+                .header(HttpHeaders.SET_COOKIE, SessionCookie.clear(sessionCookieDomain).toString())
                 .build();
     }
 
