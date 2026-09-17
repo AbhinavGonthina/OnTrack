@@ -2,7 +2,7 @@ import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApplicationsTable } from "./ApplicationsTable";
-import { formatDateApplied } from "../lib/dates";
+import { formatDateApplied, todayLocalIso } from "../lib/dates";
 import type { ApplicationResponse, ApplicationStatus } from "../lib/types";
 
 const push = vi.fn();
@@ -61,6 +61,39 @@ describe("formatDateApplied", () => {
 
   test("passes through anything that isn't a parseable date", () => {
     expect(formatDateApplied("not-a-date")).toBe("not-a-date");
+  });
+});
+
+describe("todayLocalIso", () => {
+  // The bug this replaced: new Date().toISOString() converts to UTC first, so applying at
+  // 9:32pm Eastern on the 16th produced "2026-09-17" because that instant is already 01:32 UTC
+  // on the 17th. Asserting against the local getters is the whole point.
+  test("returns the local calendar date, not the UTC one", () => {
+    vi.useFakeTimers();
+    // 2026-09-17T01:32:00Z is 2026-09-16 21:32 Eastern.
+    vi.setSystemTime(new Date("2026-09-17T01:32:00Z"));
+
+    const now = new Date();
+    const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+      now.getDate(),
+    ).padStart(2, "0")}`;
+
+    expect(todayLocalIso()).toBe(expected);
+    // And it must never just echo the UTC slice when the two disagree.
+    if (expected !== "2026-09-17") {
+      expect(todayLocalIso()).not.toBe("2026-09-17");
+    }
+
+    vi.useRealTimers();
+  });
+
+  test("zero-pads single-digit months and days", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 5, 12, 0, 0));
+
+    expect(todayLocalIso()).toBe("2026-01-05");
+
+    vi.useRealTimers();
   });
 });
 

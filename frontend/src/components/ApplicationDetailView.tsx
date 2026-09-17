@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronRight, FileText, Pencil, Sparkles, StickyNote, Trash2 } from "lucide-react";
+import { ChevronRight, ExternalLink, FileText, Pencil, Sparkles, StickyNote, Trash2 } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import type {
@@ -22,7 +22,7 @@ import {
   getStatusColor,
 } from "@/lib/statusLabels";
 import { FIELD_CLASSNAME_ROOMY } from "@/lib/inputStyles";
-import { formatDateApplied, formatNoteTimestamp } from "@/lib/dates";
+import { formatDateApplied, formatNoteTimestamp, todayLocalIso } from "@/lib/dates";
 import { Button } from "@/components/Button";
 import { StatusBadge } from "@/components/Badge";
 import { OfferCelebration } from "@/components/OfferCelebration";
@@ -52,8 +52,24 @@ interface Props {
   initialFitResult?: FitAnalysisResponse | null;
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+/**
+ * Shortens a URL for display: drops the scheme and any "www.", and trims a long path.
+ *
+ * ATS links routinely run past 200 characters of tracking query string, which would either blow
+ * out the card or truncate to something meaningless. Showing the host plus a little path is what
+ * actually tells you where the link goes. The href always keeps the full URL.
+ */
+function displayUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.replace(/^www\./, "");
+    const path = url.pathname === "/" ? "" : url.pathname;
+    const shown = `${host}${path}`;
+    return shown.length > 48 ? `${shown.slice(0, 47)}…` : shown;
+  } catch {
+    // Stored values are validated server-side, so this is only reachable for legacy rows.
+    return raw;
+  }
 }
 
 const CARD = "card p-6";
@@ -93,7 +109,7 @@ export function ApplicationDetailView({
   }
   const [interviewType, setInterviewType] = useState<InterviewType>("TECHNICAL");
   const [interviewFormat, setInterviewFormat] = useState<InterviewFormat>("ONLINE");
-  const [eventDate, setEventDate] = useState(todayIso());
+  const [eventDate, setEventDate] = useState(todayLocalIso());
   const [isSubmittingStatus, setIsSubmittingStatus] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [deletingStatusEventId, setDeletingStatusEventId] = useState<string | null>(null);
@@ -460,6 +476,26 @@ export function ApplicationDetailView({
 
         {/* ---- Right: timeline + notes ---- */}
         <div className="space-y-6 lg:col-span-5">
+          {/* Above the timeline, per the layout this page settled on: it is reference material you
+              reach for while logging an update, not part of the history itself. Rendered only when
+              set, so applications without a link show no empty card. */}
+          {detail.applicationUrl && (
+            <section className={CARD}>
+              <h2 className={SECTION_TITLE}>Application link</h2>
+              <a
+                href={detail.applicationUrl}
+                target="_blank"
+                // noreferrer as well as noopener: this is a user-supplied third-party URL, and
+                // there is no reason to leak which application of theirs they clicked from.
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-2 text-sm text-brand hover:underline"
+              >
+                <ExternalLink size={15} aria-hidden className="shrink-0" />
+                <span className="truncate">{displayUrl(detail.applicationUrl)}</span>
+              </a>
+            </section>
+          )}
+
           <section className={CARD}>
             <h2 className={SECTION_TITLE}>Status timeline</h2>
             {/* An explicit line inset by top-3/bottom-3 so it starts and ends at the first and

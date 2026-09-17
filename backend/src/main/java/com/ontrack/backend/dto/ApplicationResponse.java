@@ -11,6 +11,7 @@ public record ApplicationResponse(
         String company,
         String role,
         String jobDescriptionText,
+        String applicationUrl,
         LocalDate dateApplied,
         ApplicationStatus currentStatus,
         Instant createdAt,

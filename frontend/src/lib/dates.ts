@@ -16,6 +16,22 @@ export function formatDateApplied(iso: string): string {
 }
 
 /**
+ * Today's date in the user's own timezone, as "YYYY-MM-DD" for a date input's default value.
+ *
+ * Deliberately not `new Date().toISOString().slice(0, 10)`, which is what this replaced. That
+ * converts to UTC first, so anywhere west of Greenwich the date flips forward after local
+ * evening: applying at 9:32pm Eastern on the 16th produced "2026-09-17", because that instant
+ * is already 01:32 UTC on the 17th. Reading the local getters avoids the conversion entirely.
+ */
+export function todayLocalIso(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Formats a full ISO timestamp ("2026-01-28T14:05:00Z") for display next to a note.
  *
  * Unlike formatDateApplied this can safely use `new Date()`: a full timestamp carries its own

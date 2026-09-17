@@ -50,6 +50,10 @@ public class Application {
     @Column(name = "job_description_text", columnDefinition = "TEXT")
     private String jobDescriptionText;
 
+    /** Optional link to the original posting. Validated to http/https before it is stored. */
+    @Column(name = "application_url", length = 2048)
+    private String applicationUrl;
+
     @Column(name = "date_applied", nullable = false)
     private LocalDate dateApplied;
 

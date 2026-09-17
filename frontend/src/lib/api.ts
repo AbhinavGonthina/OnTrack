@@ -184,6 +184,7 @@ export interface ApplicationInput {
   company: string;
   role: string;
   jobDescriptionText: string;
+  applicationUrl: string;
   dateApplied: string;
 }
 

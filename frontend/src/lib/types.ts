@@ -56,6 +56,7 @@ export interface ApplicationResponse {
   company: string;
   role: string;
   jobDescriptionText: string | null;
+  applicationUrl: string | null;
   dateApplied: string;
   currentStatus: ApplicationStatus;
   createdAt: string;

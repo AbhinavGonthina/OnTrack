@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/Button";
 import { FIELD_CLASSNAME_ROOMY } from "@/lib/inputStyles";
+import { todayLocalIso } from "@/lib/dates";
 import type { ApplicationInput } from "@/lib/api";
 
 interface Props {
@@ -36,13 +37,14 @@ export function ApplicationForm({
   const [company, setCompany] = useState(initial?.company ?? "");
   const [role, setRole] = useState(initial?.role ?? "");
   const [jobDescriptionText, setJobDescriptionText] = useState(initial?.jobDescriptionText ?? "");
+  const [applicationUrl, setApplicationUrl] = useState(initial?.applicationUrl ?? "");
   const [dateApplied, setDateApplied] = useState(
-    initial?.dateApplied ?? new Date().toISOString().slice(0, 10),
+    initial?.dateApplied ?? todayLocalIso(),
   );
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    onSubmit({ company, role, jobDescriptionText, dateApplied });
+    onSubmit({ company, role, jobDescriptionText, applicationUrl, dateApplied });
   }
 
   return (
@@ -72,6 +74,24 @@ export function ApplicationForm({
           />
         </label>
       </div>
+
+      <label className={LABEL}>
+        Application link
+        <input
+          // type="url" rather than text so mobile keyboards offer the right layout, but with no
+          // `required` and no pattern: the backend assumes https for a scheme-less host, and
+          // browser URL validation would reject the "boards.greenhouse.io/..." people paste.
+          type="url"
+          inputMode="url"
+          placeholder="https://boards.greenhouse.io/acme/jobs/123"
+          value={applicationUrl}
+          onChange={(e) => setApplicationUrl(e.target.value)}
+          className={FIELD_CLASSNAME_ROOMY}
+        />
+        <span className="text-xs font-normal text-muted">
+          Optional. A link back to the posting or the employer&apos;s portal.
+        </span>
+      </label>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className={LABEL}>

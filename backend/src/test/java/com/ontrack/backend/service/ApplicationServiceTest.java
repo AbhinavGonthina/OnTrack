@@ -11,6 +11,7 @@ import com.ontrack.backend.enums.ApplicationStatus;
 import com.ontrack.backend.enums.InterviewFormat;
 import com.ontrack.backend.enums.InterviewType;
 import com.ontrack.backend.exception.ApplicationLimitExceededException;
+import com.ontrack.backend.exception.InvalidApplicationUrlException;
 import com.ontrack.backend.exception.ApplicationNotFoundException;
 import com.ontrack.backend.exception.InvalidStatusEventException;
 import com.ontrack.backend.exception.StatusEventNotFoundException;
@@ -57,7 +58,7 @@ class ApplicationServiceTest {
 
     @Test
     void createSavesApplicationAndInitialStatusEvent() {
-        ApplicationRequest request = new ApplicationRequest("Acme", "SWE Intern", "JD text", LocalDate.of(2026, 1, 1));
+        ApplicationRequest request = new ApplicationRequest("Acme", "SWE Intern", "JD text", null, LocalDate.of(2026, 1, 1));
         when(applicationRepository.countByUserId(user.getId())).thenReturn(0L);
         when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> {
             Application app = inv.getArgument(0);
@@ -74,7 +75,7 @@ class ApplicationServiceTest {
 
     @Test
     void createThrowsWhenAtApplicationLimit() {
-        ApplicationRequest request = new ApplicationRequest("Acme", "SWE Intern", "JD", LocalDate.now());
+        ApplicationRequest request = new ApplicationRequest("Acme", "SWE Intern", "JD", null, LocalDate.now());
         when(applicationRepository.countByUserId(user.getId())).thenReturn(100L);
 
         assertThatThrownBy(() -> applicationService.create(user, request))
@@ -504,5 +505,57 @@ class ApplicationServiceTest {
 
         assertThatThrownBy(() -> applicationService.addStatusEvent(user.getId(), appId, request))
                 .isInstanceOf(InvalidStatusEventException.class);
+    }
+
+    // The link is rendered as an anchor href in the UI, so a javascript: or data: scheme would be
+    // stored XSS against whoever clicks their own saved link. Only http and https may be stored.
+    @Test
+    void createRejectsAnApplicationUrlThatIsNotHttpOrHttps() {
+        for (String hostile : new String[] {
+                "javascript:alert(document.cookie)",
+                "data:text/html,<script>alert(1)</script>",
+                "file:///etc/passwd",
+        }) {
+            ApplicationRequest request =
+                    new ApplicationRequest("Acme", "SWE Intern", "JD", hostile, LocalDate.now());
+            when(applicationRepository.countByUserId(user.getId())).thenReturn(0L);
+
+            assertThatThrownBy(() -> applicationService.create(user, request))
+                    .as("scheme %s must be rejected", hostile)
+                    .isInstanceOf(InvalidApplicationUrlException.class);
+        }
+    }
+
+    // People paste "boards.greenhouse.io/acme/jobs/123" without a scheme; failing on that would
+    // just be annoying, so it is assumed to be https rather than rejected.
+    @Test
+    void createAssumesHttpsWhenTheUrlHasNoScheme() {
+        ApplicationRequest request = new ApplicationRequest(
+                "Acme", "SWE Intern", "JD", "boards.greenhouse.io/acme/jobs/123", LocalDate.now());
+        when(applicationRepository.countByUserId(user.getId())).thenReturn(0L);
+        when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> {
+            Application app = inv.getArgument(0);
+            app.setId(UUID.randomUUID());
+            return app;
+        });
+
+        ApplicationResponse response = applicationService.create(user, request);
+
+        assertThat(response.applicationUrl()).isEqualTo("https://boards.greenhouse.io/acme/jobs/123");
+    }
+
+    // Blank must clear the field rather than storing "", so an emptied input round-trips as absent.
+    @Test
+    void createStoresNullForABlankApplicationUrl() {
+        ApplicationRequest request =
+                new ApplicationRequest("Acme", "SWE Intern", "JD", "   ", LocalDate.now());
+        when(applicationRepository.countByUserId(user.getId())).thenReturn(0L);
+        when(applicationRepository.save(any(Application.class))).thenAnswer(inv -> {
+            Application app = inv.getArgument(0);
+            app.setId(UUID.randomUUID());
+            return app;
+        });
+
+        assertThat(applicationService.create(user, request).applicationUrl()).isNull();
     }
 }

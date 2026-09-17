@@ -12,6 +12,7 @@ public record ApplicationDetailResponse(
         String company,
         String role,
         String jobDescriptionText,
+        String applicationUrl,
         LocalDate dateApplied,
         ApplicationStatus currentStatus,
         Instant createdAt,

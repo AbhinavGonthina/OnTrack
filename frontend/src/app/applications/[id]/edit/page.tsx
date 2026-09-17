@@ -32,6 +32,7 @@ export default function EditApplicationPage({ params }: { params: Promise<{ id: 
           company: detail.company,
           role: detail.role,
           jobDescriptionText: detail.jobDescriptionText ?? "",
+          applicationUrl: detail.applicationUrl ?? "",
           dateApplied: detail.dateApplied,
         });
       })

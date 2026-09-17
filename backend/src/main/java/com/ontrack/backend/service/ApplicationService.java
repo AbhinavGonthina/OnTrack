@@ -12,6 +12,7 @@ import com.ontrack.backend.entity.StatusEvent;
 import com.ontrack.backend.entity.User;
 import com.ontrack.backend.enums.ApplicationStatus;
 import com.ontrack.backend.exception.ApplicationLimitExceededException;
+import com.ontrack.backend.exception.InvalidApplicationUrlException;
 import com.ontrack.backend.exception.ApplicationNotFoundException;
 import com.ontrack.backend.exception.InvalidStatusEventException;
 import com.ontrack.backend.exception.StatusEventNotFoundException;
@@ -21,6 +22,8 @@ import com.ontrack.backend.repository.StatusEventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +83,7 @@ public class ApplicationService {
                 .company(request.company())
                 .role(request.role())
                 .jobDescriptionText(request.jobDescriptionText())
+                .applicationUrl(normalizeApplicationUrl(request.applicationUrl()))
                 .dateApplied(request.dateApplied())
                 .currentStatus(ApplicationStatus.APPLIED)
                 .build();
@@ -113,6 +117,7 @@ public class ApplicationService {
                 application.getCompany(),
                 application.getRole(),
                 application.getJobDescriptionText(),
+                application.getApplicationUrl(),
                 application.getDateApplied(),
                 application.getCurrentStatus(),
                 application.getCreatedAt(),
@@ -128,6 +133,7 @@ public class ApplicationService {
         application.setCompany(request.company());
         application.setRole(request.role());
         application.setJobDescriptionText(request.jobDescriptionText());
+        application.setApplicationUrl(normalizeApplicationUrl(request.applicationUrl()));
         application.setDateApplied(request.dateApplied());
         application = applicationRepository.save(application);
         return toResponse(application);
@@ -285,12 +291,47 @@ public class ApplicationService {
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
     }
 
+    /**
+     * Normalizes an optional posting link, or rejects it.
+     *
+     * <p>Blank becomes null so an emptied field clears the value rather than storing "".
+     *
+     * <p>The scheme check is the security-relevant part: this value is rendered as an anchor's
+     * href in the UI, so accepting {@code javascript:} or {@code data:} would turn the field into
+     * stored XSS against the person who clicks their own saved link. Only http and https pass.
+     * A bare "company.com/apply" is treated as https rather than rejected, since that is what
+     * people paste and failing on it would just be annoying.
+     */
+    private String normalizeApplicationUrl(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        String candidate = trimmed.matches("(?i)^[a-z][a-z0-9+.-]*:.*") ? trimmed : "https://" + trimmed;
+
+        URI uri;
+        try {
+            uri = new URI(candidate);
+        } catch (URISyntaxException e) {
+            throw new InvalidApplicationUrlException();
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+            throw new InvalidApplicationUrlException();
+        }
+        if (uri.getHost() == null || uri.getHost().isBlank()) {
+            throw new InvalidApplicationUrlException();
+        }
+        return candidate;
+    }
+
     private ApplicationResponse toResponse(Application application) {
         return new ApplicationResponse(
                 application.getId(),
                 application.getCompany(),
                 application.getRole(),
                 application.getJobDescriptionText(),
+                application.getApplicationUrl(),
                 application.getDateApplied(),
                 application.getCurrentStatus(),
                 application.getCreatedAt(),

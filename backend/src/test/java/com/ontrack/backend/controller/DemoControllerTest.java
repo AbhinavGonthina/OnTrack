@@ -67,7 +67,7 @@ class DemoControllerTest {
     @Test
     void listApplicationsWorksWithoutAuthentication() throws Exception {
         ApplicationResponse response = new ApplicationResponse(
-                UUID.randomUUID(), "Nebula Systems", "SWE Intern", "JD", LocalDate.now(),
+                UUID.randomUUID(), "Nebula Systems", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.REJECTED, null, null);
         when(applicationService.listForUser(demoUser.getId())).thenReturn(List.of(response));
 

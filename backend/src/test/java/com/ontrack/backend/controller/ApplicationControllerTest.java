@@ -67,7 +67,7 @@ class ApplicationControllerTest {
     @Test
     void listReturnsUsersApplications() throws Exception {
         ApplicationResponse response = new ApplicationResponse(
-                UUID.randomUUID(), "Acme", "SWE Intern", "JD", LocalDate.now(),
+                UUID.randomUUID(), "Acme", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.APPLIED, null, null);
         when(applicationService.listForUser(user.getId())).thenReturn(List.of(response));
 
@@ -79,12 +79,12 @@ class ApplicationControllerTest {
     @Test
     void createWithValidBodyReturns201() throws Exception {
         ApplicationResponse response = new ApplicationResponse(
-                UUID.randomUUID(), "Acme", "SWE Intern", "JD", LocalDate.now(),
+                UUID.randomUUID(), "Acme", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.APPLIED, null, null);
         when(applicationService.create(eq(user), any(ApplicationRequest.class))).thenReturn(response);
 
         String body = objectMapper.writeValueAsString(
-                new ApplicationRequest("Acme", "SWE Intern", "JD", LocalDate.now()));
+                new ApplicationRequest("Acme", "SWE Intern", "JD", null, LocalDate.now()));
 
         mockMvc.perform(post("/api/applications")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
@@ -97,7 +97,7 @@ class ApplicationControllerTest {
 
     @Test
     void createWithBlankCompanyReturns400() throws Exception {
-        String body = objectMapper.writeValueAsString(new ApplicationRequest("", "SWE Intern", "JD", LocalDate.now()));
+        String body = objectMapper.writeValueAsString(new ApplicationRequest("", "SWE Intern", "JD", null, LocalDate.now()));
 
         mockMvc.perform(post("/api/applications")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
@@ -121,7 +121,7 @@ class ApplicationControllerTest {
     void detailReturnsApplicationWithEventsAndNotes() throws Exception {
         UUID appId = UUID.randomUUID();
         ApplicationDetailResponse detail = new ApplicationDetailResponse(
-                appId, "Acme", "SWE Intern", "JD", LocalDate.now(),
+                appId, "Acme", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.APPLIED, null, null, List.of(), List.of());
         when(applicationService.getDetail(user.getId(), appId)).thenReturn(detail);
 
@@ -145,7 +145,7 @@ class ApplicationControllerTest {
     void addStatusEventReturnsUpdatedApplication() throws Exception {
         UUID appId = UUID.randomUUID();
         ApplicationResponse response = new ApplicationResponse(
-                appId, "Acme", "SWE Intern", "JD", LocalDate.now(),
+                appId, "Acme", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.OA, null, null);
         when(applicationService.addStatusEvent(eq(user.getId()), eq(appId), any(StatusEventRequest.class)))
                 .thenReturn(response);
@@ -167,7 +167,7 @@ class ApplicationControllerTest {
         UUID appId = UUID.randomUUID();
         UUID eventId = UUID.randomUUID();
         ApplicationResponse response = new ApplicationResponse(
-                appId, "Acme", "SWE Intern", "JD", LocalDate.now(),
+                appId, "Acme", "SWE Intern", "JD", null, LocalDate.now(),
                 ApplicationStatus.OA, null, null);
         when(applicationService.deleteStatusEvent(user.getId(), appId, eventId)).thenReturn(response);
 
