@@ -13,6 +13,7 @@ import com.ontrack.backend.repository.ResumeStrengthRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
@@ -173,6 +174,23 @@ class ResumeAnalysisServiceTest {
         assertThat(response.score()).isEqualTo(91);
         assertThat(response.cached()).isFalse();
         verify(resumeStrengthRepository, never()).findByUserIdAndInputHash(any(UUID.class), anyString());
+    }
+
+    // Re-scoring overwrites the user's existing row via merge, which never runs @PrePersist. If the
+    // service leaves createdAt null, the merge copies that null onto a NOT NULL column and every
+    // re-score after the first fails with a 500 (seen in production on 2026-10-12).
+    @Test
+    void scoreStrengthSetsCreatedAtItselfSoAnOverwriteNeverWritesNull() {
+        when(geminiRateLimiter.tryConsume(user.getId())).thenReturn(true);
+        when(geminiClient.scoreResumeStrength("resume text")).thenReturn(
+                new GeminiStrengthResult(91, List.of(new GeminiStrengthResult.CategoryScore("Impact", 91, "Strong.")),
+                        List.of("Ship it")));
+        ArgumentCaptor<ResumeStrength> saved = ArgumentCaptor.forClass(ResumeStrength.class);
+        when(resumeStrengthRepository.save(saved.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+        resumeAnalysisService.scoreStrength(user, "resume text", true);
+
+        assertThat(saved.getValue().getCreatedAt()).isNotNull();
     }
 
     @Test

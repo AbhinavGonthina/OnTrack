@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,10 +102,13 @@ public class ResumeAnalysisService {
         GeminiStrengthResult result = geminiClient.scoreResumeStrength(resumeText);
 
         // Keyed on user id, so this overwrites any previous score rather than accumulating one
-        // row per revision. See V9 for why history isn't kept.
+        // row per revision. See V9 for why history isn't kept. createdAt is set here, not left to
+        // the entity's @PrePersist: an overwrite is a merge, which skips @PrePersist and would copy
+        // a null onto the existing row's NOT NULL column (every re-score after the first was a 500).
         ResumeStrength saved = resumeStrengthRepository.save(ResumeStrength.builder()
                 .userId(user.getId())
                 .inputHash(inputHash)
+                .createdAt(Instant.now())
                 .score(result.score())
                 .categories(result.categories().stream()
                         .map(c -> new ResumeStrength.CategoryScore(c.name(), c.score(), c.feedback()))
