@@ -24,9 +24,9 @@ class SessionCookieTest {
     // is why a refresh signed users out on a phone.
     @Test
     void becomesDomainScopedAndSameSiteLaxOnceADomainIsConfigured() {
-        ResponseCookie cookie = SessionCookie.issue("jwt", 86_400_000L, ".abhinavgonthina.me");
+        ResponseCookie cookie = SessionCookie.issue("jwt", 86_400_000L, ".abhinavgonthina.dev");
 
-        assertThat(cookie.getDomain()).isEqualTo(".abhinavgonthina.me");
+        assertThat(cookie.getDomain()).isEqualTo(".abhinavgonthina.dev");
         assertThat(cookie.getSameSite()).isEqualTo("Lax");
     }
 
@@ -34,8 +34,8 @@ class SessionCookieTest {
     // different cookie and leaves the original in place, so logout would not actually log out.
     @Test
     void clearMirrorsTheIssuedCookieAttributesAndExpiresImmediately() {
-        ResponseCookie issued = SessionCookie.issue("jwt", 86_400_000L, ".abhinavgonthina.me");
-        ResponseCookie cleared = SessionCookie.clear(".abhinavgonthina.me");
+        ResponseCookie issued = SessionCookie.issue("jwt", 86_400_000L, ".abhinavgonthina.dev");
+        ResponseCookie cleared = SessionCookie.clear(".abhinavgonthina.dev");
 
         assertThat(cleared.getName()).isEqualTo(issued.getName());
         assertThat(cleared.getDomain()).isEqualTo(issued.getDomain());

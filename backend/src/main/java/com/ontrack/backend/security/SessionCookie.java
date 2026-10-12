@@ -12,7 +12,7 @@ import java.time.Duration;
  * HTTPS deployments, so one setting covers both without a config flag.
  *
  * <p><b>The domain decides SameSite, deliberately.</b> When the frontend and API sit on different
- * registrable domains (ontrack.abhinavgonthina.me calling ontrack-e5r3.onrender.com) this is a
+ * registrable domains (ontrack.abhinavgonthina.dev calling ontrack-e5r3.onrender.com) this is a
  * third-party cookie, which needs {@code SameSite=None} to be sent at all and which mobile Safari
  * blocks regardless. That is why a refresh signed you out on a phone but not on desktop Chrome.
  * Serving the API from a sibling subdomain instead makes it first-party, and then

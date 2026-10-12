@@ -2,7 +2,7 @@
 
 A full-stack job application tracker website built for general CS job searches. Features include a dashboard containing an application status pipeline and application statistics, application manager, and a Gemini-powered resume and job-description fit check.
 
-**Live demo:** [ontrack.abhinavgonthina.me](https://ontrack.abhinavgonthina.me). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account!
+**Live demo:** [ontrack.abhinavgonthina.dev](https://ontrack.abhinavgonthina.dev). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account!
 
 > The backend runs on a single small free-tier instance, kept warm by an uptime monitor, so it normally responds right away. A fresh deploy or a restart still means a cold boot, which takes a couple of minutes on that hardware. The UI says so plainly when it happens and keeps you occupied with a 100-question CS and SWE interview quiz while it starts.
 
