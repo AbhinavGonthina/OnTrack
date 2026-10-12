@@ -51,7 +51,7 @@ public final class SessionCookie {
                 .secure(true)
                 .sameSite(sameSite ? "Lax" : "None")
                 .path("/");
-        // Host-only when unset, which is what localhost and the current onrender.com host need.
+        // Host-only when unset, which is what localhost and a bare onrender.com host need.
         return sameSite ? builder.domain(domain) : builder;
     }
 }
