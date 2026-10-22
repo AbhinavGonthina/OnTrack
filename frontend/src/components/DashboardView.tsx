@@ -270,7 +270,7 @@ export function DashboardView({ stats, applications, readOnly }: Props) {
           {stats.sankeyLinks.length === 0 ? (
             <PipelineEmptyState readOnly={readOnly} hasApplications={applications.length > 0} fillHeight />
           ) : (
-            <SankeyChart links={stats.sankeyLinks} fillHeight />
+            <SankeyChart links={stats.sankeyLinks} totalApplications={stats.totalApplications} fillHeight />
           )}
         </div>
 

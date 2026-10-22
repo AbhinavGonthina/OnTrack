@@ -21,9 +21,11 @@ interface Props {
    * layout, where the parent wraps this in an explicit fixed-height box (e.g. h-[380px])
    * so the chart's actual pixel height stays predictable regardless of viewport size. */
   fillHeight?: boolean;
+  /** Shown above the Applied node. Optional so the chart still renders on its own without it. */
+  totalApplications?: number;
 }
 
-function SankeyNode({ x, y, width, height, payload }: NodeProps) {
+function SankeyNode({ x, y, width, height, payload, totalApplications }: NodeProps & { totalApplications?: number }) {
   const name = payload.name as string;
   const color = getNodeColor(name);
   const label = getNodeLabel(name);
@@ -50,6 +52,40 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
   // one - it was silently placing every terminal label on the left, jammed against the bar.
   const labelOnRight = name !== "APPLIED";
 
+  // "How many have I sent?" is the first question anyone asks of this chart, so the total sits in
+  // front of a stacked "Total / Applied" label at a larger size than the per-ribbon counts. It is
+  // the account's application count, not this node's value: the node only measures flow *out* of
+  // Applied, so applications still waiting at Applied have no link and would silently go uncounted.
+  //
+  // A foreignObject rather than SVG text: the number has to sit flush against a two-line label
+  // whose width depends on the font, and SVG text can't measure a sibling to position against it.
+  // Flexbox right-aligns the pair against the bar without hardcoding any text widths.
+  if (name === "APPLIED" && totalApplications !== undefined) {
+    const boxWidth = 104;
+    const boxHeight = 40;
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />
+        <foreignObject x={x - 12 - boxWidth} y={y + height / 2 - boxHeight / 2} width={boxWidth} height={boxHeight}>
+          {/* Same white fill and fixed dark outline as the per-ribbon counts below, so the total
+              reads as one of the chart's numbers in both themes. The CSS equivalent of their SVG
+              stroke + paintOrder="stroke": text-stroke is centered on the glyph edge, and
+              paint-order puts the fill on top so only the outer half of the stroke shows. */}
+          <div
+            className="flex h-full items-center justify-end gap-1.5 text-white"
+            style={{ WebkitTextStroke: "3px #18181b", paintOrder: "stroke fill" }}
+          >
+            <span className="text-2xl font-bold leading-none">{totalApplications}</span>
+            <span className="flex flex-col text-xs font-semibold leading-tight">
+              <span>Total</span>
+              <span>{label}</span>
+            </span>
+          </div>
+        </foreignObject>
+      </g>
+    );
+  }
+
   return (
     <g>
       <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />
@@ -71,7 +107,7 @@ function buildLinkPath(props: LinkProps): string {
   return `M${sourceX},${sourceY} C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`;
 }
 
-export function SankeyChart({ links, fillHeight = false }: Props) {
+export function SankeyChart({ links, fillHeight = false, totalApplications }: Props) {
   const { theme } = useTheme();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -110,7 +146,7 @@ export function SankeyChart({ links, fillHeight = false }: Props) {
           <ResponsiveContainer width="100%" height={fillHeight ? "100%" : 320} debounce={150}>
             <Sankey
               data={data}
-              node={SankeyNode}
+              node={(nodeProps: NodeProps) => <SankeyNode {...nodeProps} totalApplications={totalApplications} />}
               link={(linkProps: LinkProps) => {
                 const targetName = linkProps.payload.target.name as string;
                 const color = getNodeColor(targetName);
