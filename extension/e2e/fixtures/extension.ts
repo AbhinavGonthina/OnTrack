@@ -33,6 +33,50 @@ export interface LaunchOptions {
   args?: string[];
 }
 
+/**
+ * Maps a page URL to the Chrome tab id the extension sees. Only the service
+ * worker can ask this, and `chrome` is declared locally because the e2e
+ * tsconfig has no ambient extension types: this code is a string shipped into
+ * the worker, not code that runs under Node.
+ */
+interface ChromeTabsGlobal {
+  chrome: {
+    tabs: {
+      query(info: Record<string, never>): Promise<
+        Array<{ id?: number; url?: string }>
+      >;
+    };
+  };
+}
+
+export async function findTabId(worker: Worker, url: string): Promise<number> {
+  return worker.evaluate(async (target: string) => {
+    // Reached through globalThis rather than a bare `chrome`, because this
+    // function body is serialized into the service worker and the e2e
+    // tsconfig has no ambient extension types to resolve it against.
+    const api = globalThis as unknown as ChromeTabsGlobal;
+    const tabs = await api.chrome.tabs.query({});
+    return tabs.find((candidate) => candidate.url === target)?.id ?? -1;
+  }, url);
+}
+
+interface ChromeStorageGlobal {
+  chrome: { storage: { session: { clear(): Promise<void> } } };
+}
+
+/**
+ * Empties chrome.storage.session between tests. The popup deliberately keeps
+ * an unsaved draft there so closing it loses nothing, which means one test's
+ * draft would otherwise be restored into the next one and change the state it
+ * starts in.
+ */
+export async function clearSessionStorage(worker: Worker): Promise<void> {
+  await worker.evaluate(async () => {
+    const api = globalThis as unknown as ChromeStorageGlobal;
+    await api.chrome.storage.session.clear();
+  });
+}
+
 export interface LoadedExtension {
   context: BrowserContext;
   worker: Worker;

@@ -1,0 +1,24 @@
+<!doctype html>
+<!--
+  A page no reader can make sense of: an unhydrated single page app shell.
+  No structured data, no recognizable board, an empty title, no h1, and far
+  too little prose for the heuristic reader to call a description.
+
+  The empty title matters. An earlier version of this fixture was titled
+  "Opportunities", and the heuristic reader duly offered that as the role,
+  which put the popup in the Partial state instead of Unreadable. That is
+  correct behaviour for the reader, so the fixture had to change rather than
+  the reader.
+
+  Drives the Unreadable state and the AI consent screen in the e2e suite.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>This site requires JavaScript.</noscript>
+  </body>
+</html>
