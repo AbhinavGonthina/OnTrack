@@ -116,7 +116,7 @@ export const jsonLdReader = {
   name: "jsonld",
 
   // Worth trying on anything.
-  matches: () => true,
+  matches: (_url: URL) => true,
 
   read(doc: Document, url: URL): ReaderResult | null {
     const nodes = findJobPostingNodes(doc);
