@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/render-icons.mjs",
     "build:e2e": "wxt build --mode development",
-    "e2e:production": "playwright test e2e/session-cookie-production.spec.ts"
+    "e2e:production": "playwright test e2e/session-cookie-production.spec.ts",
+    "build:smoke": "wxt build --mode smoke"
   },
   "dependencies": {
     "react": "^19.2.0",

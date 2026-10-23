@@ -32,6 +32,20 @@ const DEV_ONLY_HOSTS = [
   "https://app.ontrack.test/*",
 ];
 
+/**
+ * Only for `wxt build --mode smoke`, which the live smoke test loads.
+ *
+ * In normal use the toolbar click grants activeTab for that one tab, which is
+ * what lets the worker read the tab's URL and inject the extractor. The smoke
+ * test drives the popup as a page instead of clicking the real toolbar icon,
+ * so that grant never happens and chrome.tabs reports no URL at all. This
+ * stands in for the grant so the readers can be exercised against live sites.
+ *
+ * Never shipped: the output goes to .output/chrome-mv3-smoke and
+ * test/manifest.test.ts asserts the production build has nothing like it.
+ */
+const SMOKE_ONLY_HOSTS = ["<all_urls>"];
+
 export default defineConfig({
   srcDir: "src",
   entrypointsDir: "entrypoints",
@@ -53,6 +67,7 @@ export default defineConfig({
       "https://api.abhinavgonthina.dev/*",
       ...BOARD_API_HOSTS,
       ...(mode === "production" ? [] : DEV_ONLY_HOSTS),
+      ...(mode === "smoke" ? SMOKE_ONLY_HOSTS : []),
     ],
     // action.default_title (the toolbar tooltip) comes from the <title> in
     // entrypoints/popup/index.html; WXT overwrites anything set here.

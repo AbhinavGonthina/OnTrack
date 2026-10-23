@@ -86,7 +86,15 @@ function decodeEntities(input: string): string {
 function walk(node: Node, out: string[]): void {
   if (node.nodeType === 3 /* TEXT_NODE */) {
     const text = node.nodeValue ?? "";
-    if (text.trim()) out.push(text.replace(/\s+/g, " "));
+    if (text.trim()) {
+      out.push(text.replace(/\s+/g, " "));
+    } else if (text) {
+      // A whitespace-only node still matters between two inline elements:
+      // "<em>one</em> <a>two</a>" has to stay "one two" rather than becoming
+      // "onetwo". Emitting a single space is safe between blocks too, because
+      // those already emit newlines and tidy() trims each line.
+      out.push(" ");
+    }
     return;
   }
 
@@ -152,9 +160,88 @@ export function truncateAtParagraph(
   return { text: window.slice(0, cut).trim(), truncated: true };
 }
 
-/** Parses an HTML string and converts it, handling escaped markup. */
+/**
+ * Converts markup to text without a DOM.
+ *
+ * The board readers (Greenhouse, Lever, Ashby) run in the service worker,
+ * which has no DOMParser, so the DOM path below cannot be used there. This
+ * caught a real bug: the Greenhouse and Lever readers threw on every live
+ * posting and silently fell back to the page readers, while the unit tests
+ * passed because jsdom does provide DOMParser.
+ *
+ * Exported so a test can assert it agrees with the DOM implementation rather
+ * than hoping it does.
+ */
+export function htmlToTextWithoutDom(html: string): string {
+  if (!html) return "";
+
+  // Structure is marked with control characters first, so that whitespace can
+  // then be collapsed everywhere without destroying it. This mirrors what the
+  // DOM walk does: it collapses runs of whitespace inside each text node, and
+  // skips whitespace-only nodes between elements entirely.
+  const BR = "\u0001";
+  const ITEM = "\u0002";
+  const BLOCK_BREAK = "\u0003";
+
+  let text = unescapeHtmlEntities(html);
+
+  text = text.replace(/<!--[\s\S]*?-->/g, "");
+
+  // Dropped along with their contents.
+  for (const tag of IGNORED) {
+    const name = tag.toLowerCase();
+    text = text.replace(
+      new RegExp(`<${name}\\b[^>]*>[\\s\\S]*?<\\/${name}\\s*>`, "gi"),
+      "",
+    );
+    text = text.replace(new RegExp(`<${name}\\b[^>]*\\/?>`, "gi"), "");
+  }
+
+  text = text.replace(/<br\s*\/?>/gi, BR);
+  text = text.replace(/<li\b[^>]*>/gi, ITEM);
+  text = text.replace(/<\/li\s*>/gi, "");
+
+  for (const tag of BLOCK) {
+    const name = tag.toLowerCase();
+    text = text.replace(new RegExp(`<${name}\\b[^>]*>`, "gi"), BLOCK_BREAK);
+    text = text.replace(new RegExp(`<\\/${name}\\s*>`, "gi"), BLOCK_BREAK);
+  }
+
+  // Everything left is inline: drop the tag, keep the text.
+  text = text.replace(/<[^>]+>/g, "");
+
+  // Entities that were themselves encoded in the markup.
+  text = unescapeHtmlEntities(text);
+
+  // Now that no real line structure is expressed as whitespace, collapse it.
+  // The control characters are the structure placeholders set above, excluded
+  // here so collapsing cannot eat them. They are deliberate: no real job
+  // description contains U+0001 to U+0003, so they cannot collide with the
+  // page's own text the way a string sentinel could.
+  // eslint-disable-next-line no-control-regex
+  text = text.replace(/[^\S\u0001\u0002\u0003]+|\r?\n/g, " ");
+
+  text = text
+    .split(BLOCK_BREAK)
+    .join("\n\n")
+    .split(ITEM)
+    .join("\n- ")
+    .split(BR)
+    .join("\n");
+
+  return tidy(text);
+}
+
+/**
+ * Parses an HTML string and converts it, handling escaped markup.
+ *
+ * Uses DOMParser where there is one (the popup and the injected extractor)
+ * and the DOM-free path in the service worker.
+ */
 export function htmlToText(html: string): string {
   if (!html) return "";
+  if (typeof DOMParser === "undefined") return htmlToTextWithoutDom(html);
+
   const unescaped = unescapeHtmlEntities(html);
   const doc = new DOMParser().parseFromString(unescaped, "text/html");
   return elementToText(doc.body);

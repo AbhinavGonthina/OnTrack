@@ -31,6 +31,8 @@ export interface LaunchOptions {
    * --host-resolver-rules and --ignore-certificate-errors here.
    */
   args?: string[];
+  /** Overrides which built output to load; the live smoke test uses this. */
+  extensionPath?: string;
 }
 
 /**
@@ -94,6 +96,7 @@ export async function launchWithExtension(
   options: LaunchOptions = {},
 ): Promise<LoadedExtension> {
   const userDataDir = await mkdtemp(join(tmpdir(), "ontrack-ext-"));
+  const extensionPath = options.extensionPath ?? EXTENSION_PATH;
 
   const context = await chromium.launchPersistentContext(userDataDir, {
     // Extensions do not load in Chromium's headless shell, so these tests need
@@ -101,8 +104,8 @@ export async function launchWithExtension(
     // to channel "chromium" with this flag set).
     headless: false,
     args: [
-      `--disable-extensions-except=${EXTENSION_PATH}`,
-      `--load-extension=${EXTENSION_PATH}`,
+      `--disable-extensions-except=${extensionPath}`,
+      `--load-extension=${extensionPath}`,
       "--no-first-run",
       "--no-default-browser-check",
       ...(options.args ?? []),

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   htmlToText,
+  htmlToTextWithoutDom,
   truncateAtParagraph,
   unescapeHtmlEntities,
 } from "../src/extract/htmlToText";
+import { loadFixture } from "./helpers";
 import { MAX_DESCRIPTION_CHARS } from "../src/config";
 
 describe("htmlToText", () => {
@@ -129,5 +131,69 @@ describe("truncateAtParagraph", () => {
     const result = truncateAtParagraph("x".repeat(25_000));
     expect(result.truncated).toBe(true);
     expect(result.text.length).toBeLessThanOrEqual(20_000);
+  });
+});
+
+/**
+ * The board readers run in the service worker, which has no DOMParser. That
+ * is not a hypothetical: before htmlToTextWithoutDom existed, the Greenhouse
+ * and Lever readers threw on every live posting and silently fell back to the
+ * page readers, while this suite stayed green because jsdom provides
+ * DOMParser. These tests compare the two implementations directly so the
+ * worker path cannot drift away from the one the popup uses.
+ */
+describe("htmlToTextWithoutDom agrees with the DOM implementation", () => {
+  const cases: Array<[string, string]> = [
+    ["paragraphs", "<p>First para.</p><p>Second para.</p>"],
+    ["bullets", "<p>You will:</p><ul><li>Ship code</li><li>Review code</li></ul>"],
+    ["line breaks", "Line one<br>Line two<br/>Line three"],
+    ["nested markup", "<div><section><p>Deep <strong>bold</strong> text.</p></section></div>"],
+    ["inline tags are dropped but their text kept", "<p>An <em>emphasised</em> <a href='#'>link</a>.</p>"],
+    ["scripts and styles", "<div>Real</div><script>var x=1;</script><style>.a{}</style>"],
+    ["a form", "<div>About</div><form><label>Name</label><input/></form>"],
+    ["buttons", "<p>Text</p><button>Apply now</button>"],
+    ["entities", "<p>a &amp; b &lt; c &nbsp;d</p>"],
+    ["escaped html, the Greenhouse shape", "&lt;p&gt;Build things.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Ship&lt;/li&gt;&lt;/ul&gt;"],
+    ["headings", "<h2>Responsibilities</h2><p>Do the work.</p>"],
+    ["a table", "<table><tr><td>One</td></tr><tr><td>Two</td></tr></table>"],
+    ["blank input", ""],
+    ["plain text", "Just a sentence."],
+    ["bare li run, the Lever lists[] shape", "<li>One</li>\n<li>Two</li>"],
+    ["comments", "<p>Before</p><!-- hidden --><p>After</p>"],
+  ];
+
+  for (const [name, html] of cases) {
+    it(name, () => {
+      expect(htmlToTextWithoutDom(html)).toBe(htmlToText(html));
+    });
+  }
+
+  it("agrees on a real Greenhouse description", () => {
+    const job = JSON.parse(
+      loadFixture("greenhouse/figma-compliance-engineer.json"),
+    ) as { content: string };
+
+    expect(htmlToTextWithoutDom(job.content)).toBe(htmlToText(job.content));
+    expect(htmlToTextWithoutDom(job.content).length).toBeGreaterThan(300);
+  });
+
+  it("agrees on a real Lever list block", () => {
+    const posting = JSON.parse(
+      loadFixture("lever/palantir-swe-new-grad.json"),
+    ) as { lists: Array<{ content: string }> };
+
+    for (const list of posting.lists) {
+      expect(htmlToTextWithoutDom(list.content)).toBe(htmlToText(list.content));
+    }
+  });
+
+  it("produces bullets for a real Lever list rather than nothing", () => {
+    const posting = JSON.parse(
+      loadFixture("lever/palantir-swe-new-grad.json"),
+    ) as { lists: Array<{ content: string }> };
+
+    const text = htmlToTextWithoutDom(posting.lists[0]!.content);
+    expect(text).toContain("- ");
+    expect(text).not.toContain("<li>");
   });
 });

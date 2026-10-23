@@ -39,8 +39,14 @@ export const BOARD_READERS: BoardReader[] = [
  * Order matters: structured data, then site-specific DOM, then guesswork.
  */
 export const PAGE_READERS: Reader[] = [
-  jsonLdReader,
+  // Workday first, even though it reads the page: its CXS endpoint is a site
+  // API (Section 7, order 1), it just happens to be same-origin so it is
+  // fetched from inside the page rather than the worker. Running it after
+  // JSON-LD measurably hurt: a real NVIDIA posting carries JSON-LD whose
+  // hiringOrganization is the local legal entity, so JSON-LD won and the saved
+  // company became "VN01 NVIDIA Vietnam Company Limited" instead of "Nvidia".
   workdayReader,
+  jsonLdReader,
   linkedInReader,
   heuristicReader,
 ];
