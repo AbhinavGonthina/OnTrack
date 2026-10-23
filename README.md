@@ -34,6 +34,59 @@ A full-stack job application tracker website built for general CS job searches. 
 - **Upload a resume as PDF or DOCX**, have it normalized into clean text, and score its strength across four fixed categories. Strength scores are cached against the resume text, so re-scoring unchanged text is free.
 - **Try it with zero setup** through a public, read-only demo with 12 seeded applications and no signup.
 
+## Browser extension
+
+![The OnTrack popup on a job posting](docs/screenshots/extension-popup.png)
+
+A Chrome and Firefox extension that logs the job posting you are looking at
+straight into your account. Open a posting, click the OnTrack icon, and the
+popup comes up with the company, role, job description, link and today's date
+already filled in. Edit anything, press Save, and the application is created at
+status Applied.
+
+It is a logging tool and nothing else. It never fills in or submits forms on
+job sites, never runs on a page unless you click the icon, and never sends page
+content anywhere except your own OnTrack backend.
+
+**Supported sites.** Greenhouse, Lever and Ashby are read through their public
+board APIs; Workday through the tenant's own JSON endpoint from inside the
+page; LinkedIn through the rendered page. Any site that publishes a schema.org
+`JobPosting` works without a dedicated reader, which covers most of the long
+tail. Readers run best first and merge field by field, so a board API that
+knows the role but not the company still gets the company from the page. When
+nothing can read a page, the popup offers to fill it in by hand or, only if you
+agree and only after showing the cost, to spend one of your daily AI calls
+having Gemini read it.
+
+**Sign-in uses your existing OnTrack session and stores nothing.** No token, no
+API key, no cookie value is written to extension storage. The service worker
+sends `credentials: "include"` and the browser attaches the same session cookie
+the web app already set. The only thing kept is an unsaved draft, in memory
+backed session storage, so signing in or waiting out a cold start does not lose
+what you were about to save.
+
+**Installing it unpacked:**
+
+```bash
+cd extension
+npm install
+npm run build
+```
+
+Then open `chrome://extensions`, turn on Developer mode, choose Load unpacked,
+and pick `extension/.output/chrome-mv3`. Firefox builds with
+`npm run build:firefox`.
+
+> **Deploying it:** the extension calls the API from an origin of
+> `chrome-extension://<id>`, and Spring rejects an unknown `Origin` with a 403
+> before the request reaches a controller. The unpacked build's ID is pinned by
+> a key in the manifest, so the backend needs
+> `chrome-extension://immfkodocchgncopfbmieneelgplgfai` in
+> `CORS_ALLOWED_ORIGINS`. A store published build is assigned a different ID by
+> the store, which has to be added there too.
+
+See [`extension/README.md`](extension/README.md) for the developer setup.
+
 ## Why it is built
 
 I created this project as a way to track my own job search. I wanted a hub where I could see the overall progression without having to manually calculate anything or use more than one source to do so. On r/NEU (Northeastern's Reddit), people often post the results of their internship and co-op search as a [Sankey diagram](https://en.wikipedia.org/wiki/Sankey_diagram). This web app combines that with the basic CRUD features someone would want for keeping track of their applications, and adds an integrated AI review in case you want quick tips on tweaking your resume for a specific job description, or on improving it in general.

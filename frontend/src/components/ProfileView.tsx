@@ -6,6 +6,7 @@ import type { ResumeStrengthResponse } from "@/lib/types";
 import { parseResumeBlocks } from "@/lib/resumeFormatting";
 import { Button } from "@/components/Button";
 import { AiUsageBadge } from "@/components/AiUsageBadge";
+import { BrowserExtensionCard } from "@/components/BrowserExtensionCard";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
 import { useSlowAction } from "@/lib/useSlowAction";
 
@@ -304,6 +305,8 @@ export function ProfileView({
         />
 
         <UploadDropzone onUpload={onUpload} isUploading={isUploading} uploadError={uploadError} />
+
+        <BrowserExtensionCard />
       </div>
 
       <div className="col-span-12 flex flex-col gap-3 md:col-span-8">
