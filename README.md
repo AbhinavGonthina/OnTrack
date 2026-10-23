@@ -1,6 +1,6 @@
 # OnTrack
 
-A full-stack job application tracker website built for general CS job searches. Features include a dashboard containing an application status pipeline and application statistics, application manager, and a Gemini-powered resume and job-description fit check.
+A full-stack job application tracker website built for general CS job searches. Features include a dashboard containing an application status pipeline and application statistics, application manager, a Gemini-powered resume and job-description fit check, and a browser extension that logs a job straight from its posting.
 
 **Live demo:** [ontrack.abhinavgonthina.dev](https://ontrack.abhinavgonthina.dev). Click "Try Demo" for a read-only tour with seeded data, or sign up for your own account!
 
@@ -103,6 +103,8 @@ Behind the CRUD there are a handful of things I deliberately spent time on.
 
 **Caching every AI result.** Fit analyses are keyed on a SHA-256 of the resume and job description together, resume strength on a hash of the resume by itself. Change nothing and you don't use another AI call. Change a single word and it recomputes, because the hash stops matching.
 
+**A browser extension that stores no credentials.** The extension authenticates by riding the session cookie the web app already set, sending `credentials: "include"` from its service worker, so there is no token, key or cookie value in extension storage at all. That rests on a claim about the browser rather than about my code, so it is proven by an automated test that drives a real Chromium with the extension loaded, in both the localhost and the production cookie shape (`SameSite=Lax` on a shared parent domain, API and app on sibling subdomains). Extraction runs as an ordered pipeline of readers that merge field by field rather than first-match-wins, because the board APIs and the page know different things: Ashby's API carries no company name at all, so the role and description come from the API and the company from the page.
+
 **Demo mode that cannot cost money.** The seeded demo user's fit analyses have their input hashes computed in Postgres with `pgcrypto`, so they match the runtime Java hash exactly. Demo traffic flows through the ordinary cache hit path and can never trigger a live Gemini call, without a single special case anywhere in the service layer.
 
 ## Tech stack
@@ -113,9 +115,11 @@ Behind the CRUD there are a handful of things I deliberately spent time on.
 
 **AI:** Google Gemini (`gemini-3.5-flash-lite`, pinned rather than a `-latest` alias) through Spring's `RestClient`, using structured JSON output and SHA-256 input-hash caching.
 
+**Browser extension:** WXT (Vite based) with React 19 and Tailwind v4, built for Chrome MV3 and Firefox. Minimal permissions: `activeTab`, `scripting`, `storage` and four host entries, with no `<all_urls>` and no persistent content script.
+
 **Email:** Resend, for verification, password reset and problem reports.
 
-**Testing:** JUnit 5 with Mockito and MockMvc on the backend, Vitest with React Testing Library on the frontend.
+**Testing:** JUnit 5 with Mockito and MockMvc on the backend, Vitest with React Testing Library on the frontend, and Vitest plus Playwright for the extension, whose end-to-end suite drives a real Chromium with the built extension against a local backend on Docker Postgres.
 
 ## Architecture
 
@@ -124,7 +128,12 @@ frontend/   Next.js app. All AI and database access goes through the
             backend API, never directly from the browser
 backend/    Spring Boot API: auth, CRUD, rate limiting, Gemini proxy,
             SQL analytics
+extension/  Chrome and Firefox extension, its own npm project. Reads the
+            job page and calls the same API as the web app, reusing the
+            same session cookie
 ```
+
+There is no root `package.json` and no workspace tooling: `frontend/` and `extension/` each have their own dependencies and lockfile, and `backend/` is Maven.
 
 ## Running it locally
 
@@ -145,3 +154,13 @@ npm run dev
 ```
 
 The frontend expects the backend at `NEXT_PUBLIC_API_URL`, which defaults to `http://localhost:8080`.
+
+**Browser extension:**
+
+```bash
+cd extension
+npm install
+npm run build
+```
+
+Load `extension/.output/chrome-mv3` through `chrome://extensions` with Developer mode on. A development build pointed at a local backend is `npm run build:e2e`. See [`extension/README.md`](extension/README.md) for the test setup, the manifest key, and the CORS origin a deployment needs.
