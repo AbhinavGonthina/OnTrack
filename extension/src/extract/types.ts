@@ -50,6 +50,26 @@ export interface Reader {
   read(doc: Document, url: URL): Promise<ReaderResult | null> | ReaderResult | null;
 }
 
+/**
+ * Fetches and parses JSON, resolving to null on any failure (non-200, network
+ * error, unparseable body). Injected rather than calling fetch directly so the
+ * board readers can be unit tested against saved API responses.
+ */
+export type FetchJson = (url: string) => Promise<unknown | null>;
+
+/**
+ * A reader that gets its data from a board's public API rather than the page.
+ * These run in the service worker, which is where the host permissions for
+ * boards-api.greenhouse.io, api.lever.co and api.ashbyhq.com live. Structured
+ * JSON beats scraping rendered HTML, so these run first (Section 7, order 1).
+ */
+export interface BoardReader {
+  name: ExtractionSource;
+  /** True when this board owns the URL. Cheap, no network. */
+  matches(url: URL): boolean;
+  read(url: URL, fetchJson: FetchJson): Promise<ReaderResult | null>;
+}
+
 /** Text the AI fallback would be given, collected while the extractor runs so
  *  the popup never has to re-inject a script to get it. */
 export interface PageSnapshot {
