@@ -24,9 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,6 +72,39 @@ public class ApplicationService {
         return applicationRepository.findByUserId(userId).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    /**
+     * Finds an application this user already logged for the same posting, so the browser
+     * extension can offer to open it instead of silently creating a second copy.
+     *
+     * <p>Matching is on the canonical form of the link rather than the stored string, because
+     * the same posting is reached by many URLs: with tracking parameters, from the
+     * confirmation page after applying, or through a LinkedIn search result. See
+     * {@link ApplicationUrlCanonicalizer}.
+     *
+     * <p>Comparing in memory is deliberate. The per-user cap is 100 applications, so this is at
+     * most 100 string comparisons on a list already loaded for the dashboard, and the
+     * alternative (a canonical column) would need a migration plus a backfill of existing rows
+     * to buy nothing at this size.
+     *
+     * @return the earliest matching application, or empty when this posting is new
+     */
+    public Optional<ApplicationResponse> findByCanonicalUrl(UUID userId, String url) {
+        String target = ApplicationUrlCanonicalizer.canonicalize(url);
+        if (target.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return applicationRepository.findByUserId(userId).stream()
+                .filter(application -> application.getApplicationUrl() != null)
+                .filter(application -> target.equalsIgnoreCase(
+                        ApplicationUrlCanonicalizer.canonicalize(application.getApplicationUrl())))
+                // Oldest first, so re-saving shows the original rather than a later duplicate.
+                .min(Comparator.comparing(
+                        Application::getCreatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::toResponse);
     }
 
     @Transactional

@@ -1,10 +1,12 @@
 package com.ontrack.backend.controller;
 
 import com.ontrack.backend.dto.ApplicationDetailResponse;
+import com.ontrack.backend.dto.ApplicationLookupResponse;
 import com.ontrack.backend.dto.ApplicationRequest;
 import com.ontrack.backend.dto.ApplicationResponse;
 import com.ontrack.backend.dto.StatusEventRequest;
 import com.ontrack.backend.entity.User;
+import com.ontrack.backend.exception.InvalidApplicationUrlException;
 import com.ontrack.backend.service.ApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -42,6 +45,30 @@ public class ApplicationController {
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.create(user, request));
+    }
+
+    /**
+     * Has this user already logged this posting? Used by the browser extension before it
+     * offers to save, so the same job is not logged twice by accident.
+     *
+     * <p>A miss returns 200 with {@code {"match": null}} rather than 404: this is asked on
+     * every popup open and the common answer is "no", which is not an error and should not
+     * look like one in the console or the logs.
+     *
+     * <p>Declared before {@code /{id}} for readability. Spring resolves a literal path segment
+     * ahead of a template regardless of declaration order, so "lookup" is never parsed as a
+     * UUID, and {@code lookupIsNotParsedAsAnApplicationId} in the controller test pins that
+     * down rather than trusting it.
+     */
+    @GetMapping("/lookup")
+    public ApplicationLookupResponse lookup(
+            @AuthenticationPrincipal User user,
+            @RequestParam String url) {
+        if (url == null || url.isBlank()) {
+            throw new InvalidApplicationUrlException();
+        }
+        return new ApplicationLookupResponse(
+                applicationService.findByCanonicalUrl(user.getId(), url).orElse(null));
     }
 
     @GetMapping("/{id}")
