@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -51,9 +52,24 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Splits app.cors.allowed-origins on commas, trimming each entry and dropping blanks.
+     * Without the trim, a CORS_ALLOWED_ORIGINS value written the natural way, with a space
+     * after each comma, produces origins like " https://example.com" that match nothing and
+     * fail every preflight with a 403 that says only "Invalid CORS request". This list is
+     * about to grow a chrome-extension:// origin for the browser extension, so the value is
+     * going to get long enough that a stray space is easy to introduce.
+     */
+    static List<String> parseAllowedOrigins(String raw) {
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+    }
+
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        config.setAllowedOrigins(parseAllowedOrigins(allowedOrigins));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
