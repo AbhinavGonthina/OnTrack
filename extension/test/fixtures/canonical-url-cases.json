@@ -1,0 +1,131 @@
+{
+  "comment": [
+    "Shared contract for URL canonicalization (build spec Section 7.4).",
+    "Read by extension/test/canonicalUrl.test.ts and by",
+    "backend/src/test/java/com/ontrack/backend/service/ApplicationUrlCanonicalizerTest.java",
+    "so the TypeScript and Java implementations cannot drift apart.",
+    "Adding a case here makes both suites assert it."
+  ],
+  "cases": [
+    {
+      "name": "lowercases the scheme and host but leaves the path case alone",
+      "input": "HTTPS://Boards.Greenhouse.IO/Acme/Jobs/4512345",
+      "expected": "https://boards.greenhouse.io/Acme/Jobs/4512345"
+    },
+    {
+      "name": "drops the fragment",
+      "input": "https://boards.greenhouse.io/acme/jobs/4512345#app",
+      "expected": "https://boards.greenhouse.io/acme/jobs/4512345"
+    },
+    {
+      "name": "drops a trailing slash",
+      "input": "https://jobs.lever.co/acme/8f2b1c3d-1111-2222-3333-444455556666/",
+      "expected": "https://jobs.lever.co/acme/8f2b1c3d-1111-2222-3333-444455556666"
+    },
+    {
+      "name": "keeps the root path's slash",
+      "input": "https://jobs.lever.co/",
+      "expected": "https://jobs.lever.co/"
+    },
+    {
+      "name": "drops every utm_ parameter",
+      "input": "https://boards.greenhouse.io/acme/jobs/4512345?utm_source=linkedin&utm_medium=cpc&utm_campaign=q4",
+      "expected": "https://boards.greenhouse.io/acme/jobs/4512345"
+    },
+    {
+      "name": "drops the named tracking parameters",
+      "input": "https://jobs.lever.co/acme/8f2b1c3d?lever-source=Indeed&lever-origin=applied&ref=abc&src=x&trk=y&gclid=z&fbclid=w",
+      "expected": "https://jobs.lever.co/acme/8f2b1c3d"
+    },
+    {
+      "name": "drops gh_src but keeps gh_jid",
+      "input": "https://acme.com/careers?gh_jid=4512345&gh_src=abcdef",
+      "expected": "https://acme.com/careers?gh_jid=4512345"
+    },
+    {
+      "name": "keeps a non-tracking query parameter",
+      "input": "https://acme.com/careers?gh_jid=4512345&location=remote",
+      "expected": "https://acme.com/careers?gh_jid=4512345&location=remote"
+    },
+    {
+      "name": "collapses Lever's apply suffix back to the posting",
+      "input": "https://jobs.lever.co/acme/8f2b1c3d/apply",
+      "expected": "https://jobs.lever.co/acme/8f2b1c3d"
+    },
+    {
+      "name": "collapses Lever's thanks suffix back to the posting",
+      "input": "https://jobs.lever.co/acme/8f2b1c3d/thanks",
+      "expected": "https://jobs.lever.co/acme/8f2b1c3d"
+    },
+    {
+      "name": "collapses Ashby's application suffix back to the posting",
+      "input": "https://jobs.ashbyhq.com/acme/0a1b2c3d-4e5f-6789-abcd-ef0123456789/application",
+      "expected": "https://jobs.ashbyhq.com/acme/0a1b2c3d-4e5f-6789-abcd-ef0123456789"
+    },
+    {
+      "name": "collapses Greenhouse's confirmation suffix back to the posting",
+      "input": "https://boards.greenhouse.io/acme/jobs/4512345/confirmation",
+      "expected": "https://boards.greenhouse.io/acme/jobs/4512345"
+    },
+    {
+      "name": "rewrites a LinkedIn job view URL to its canonical form",
+      "input": "https://www.linkedin.com/jobs/view/3912345678/?alternateChannel=search&refId=abc&trackingId=xyz",
+      "expected": "https://www.linkedin.com/jobs/view/3912345678/"
+    },
+    {
+      "name": "rewrites a LinkedIn search URL using currentJobId",
+      "input": "https://www.linkedin.com/jobs/search/?currentJobId=3912345678&keywords=software%20engineer",
+      "expected": "https://www.linkedin.com/jobs/view/3912345678/"
+    },
+    {
+      "name": "rewrites a LinkedIn slug URL to the bare id",
+      "input": "https://www.linkedin.com/jobs/view/software-engineer-at-acme-3912345678",
+      "expected": "https://www.linkedin.com/jobs/view/3912345678/"
+    },
+    {
+      "name": "normalizes a LinkedIn country subdomain to www",
+      "input": "https://uk.linkedin.com/jobs/view/3912345678",
+      "expected": "https://www.linkedin.com/jobs/view/3912345678/"
+    },
+    {
+      "name": "keeps currentJobId on a non-LinkedIn host",
+      "input": "https://careers.acme.com/search?currentJobId=99",
+      "expected": "https://careers.acme.com/search?currentJobId=99"
+    },
+    {
+      "name": "adds https to a bare host and path",
+      "input": "boards.greenhouse.io/acme/jobs/4512345",
+      "expected": "https://boards.greenhouse.io/acme/jobs/4512345"
+    },
+    {
+      "name": "trims surrounding whitespace",
+      "input": "   https://boards.greenhouse.io/acme/jobs/4512345   ",
+      "expected": "https://boards.greenhouse.io/acme/jobs/4512345"
+    },
+    {
+      "name": "leaves http alone rather than upgrading it",
+      "input": "http://careers.acme.com/jobs/12",
+      "expected": "http://careers.acme.com/jobs/12"
+    },
+    {
+      "name": "keeps a non-default port",
+      "input": "https://careers.acme.com:8443/jobs/12",
+      "expected": "https://careers.acme.com:8443/jobs/12"
+    },
+    {
+      "name": "combines suffix collapsing with tracking removal",
+      "input": "https://jobs.lever.co/acme/8f2b1c3d/thanks?lever-source=LinkedIn#done",
+      "expected": "https://jobs.lever.co/acme/8f2b1c3d"
+    },
+    {
+      "name": "returns an empty string for an empty input",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "name": "returns unparseable input unchanged",
+      "input": "not a url at all",
+      "expected": "not a url at all"
+    }
+  ]
+}
