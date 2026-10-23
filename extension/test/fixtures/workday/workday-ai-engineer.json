@@ -1,0 +1,89 @@
+{
+  "jobPostingInfo": {
+    "id": "2c83da209e961001680cb9870cc40000",
+    "title": "AI Engineer",
+    "jobDescription": "<p><b>Your work days are brighter here.</b></p><p></p><p>We’re obsessed with making hard work pay off, for our people, our customers, and the world around us. As a Fortune 500 company and a leading AI platform for managing people, money, and agents, we’re shaping the future of work so teams can reach their potential and focus on what matters most. The minute you join, you’ll feel it. Not just in the products we build, but in how we show up for each other. Our culture is rooted in integrity, empathy, and shared enthusiasm. We’re in this together, tackling big challenges with bold ideas and genuine care. We look for curious minds and courageous collaborators who bring sun-drenched optimism and drive. Whether you&#39;re building smarter solutions, supporting customers, or creating a space where everyone belongs, you’ll do meaningful work with Workmates who’ve got your back. In return, we’ll give you the trust to take risks, the tools to grow, the skills to develop and the support of a company invested in you for the long haul. So, if you want to inspire a brighter work day for everyone, including yourself, you’ve found a match in Workday, and we hope to be a match for you too.</p><p></p><p></p><p></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><b>About the Team</b></p>Agent Factory is where Workday’s next chapter gets built. We’re forming small, senior, cross-functional AI teams that bring together product leaders, AI engineers, and full-stack builders to create intelligent agents used by millions of people every day. This is production-grade AI—deeply embedded into Workday’s platform—not research experiments or maintenance work. Teams own problems end to end, collaborate tightly across disciplines, and use the right tools to solve real customer challenges at global scale. You’ll work at the intersection of AI, platform architecture, and human workflows, with the autonomy to shape how agents reason, act, and scale responsibly. High trust, high expectations, and real impact. Engineering, but brighter.<p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><b>About the Role</b></p><p style=\"text-align:inherit\"></p><p>As an AI Engineer in Agent Factory, you’ll design and build the core ML systems behind Workday’s next generation of AI agents. Working within a small, senior, cross-functional pod, you’ll own how models, agent logic, and orchestration layers come together in production—across the full lifecycle from problem framing and data strategy to deployment, monitoring, and continuous improvement. You’ll implement and evolve frameworks for LLM-powered agents, including RAG pipelines, workflow orchestration, evaluation, and feedback loops, ensuring solutions are scalable, observable, and enterprise-ready. This role sits at the intersection of ML and platform engineering: partnering closely with software engineers, product managers, and data scientists to integrate agents deeply into the Workday stack. You’ll stay hands-on with emerging techniques in agentic architectures while applying strong engineering judgment to turn them into systems that are reliable, explainable, and built to operate at global scale.</p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><b>About You</b></p><p style=\"text-align:inherit\"></p><p><b>Basic Qualifications</b></p><ul><li><p>5&#43; years experience as a member of a data science, machine learning / AI engineering, or other relevant software development team building applied machine learning products at scale, including taking products through applied research, design, implementation, production, and production-based evaluation</p></li><li><p>2&#43; years of professional experience in machine learning and deep learning frameworks &amp; toolkits such as Pytorch, TensorFlow</p></li><li><p>3&#43; years of professional experience in building services to host machine learning models in production at scale </p></li><li><p>1&#43; years of demonstrated experience working with large language models (LLMs), text generation models, and/or graph neural network models for real-world use cases</p></li><li><p>3&#43; years of proven experience with cloud computing platforms (e.g. AWS, GCP, etc.)</p></li><li><p>Bachelor’s (Master’s or PhD preferred) degree in engineering, computer science, physics, math or equivalent</p></li></ul><p></p><p><b>Other Qualifications:</b></p><ul><li><p>Stay up to date with advancements in AI, LLMs, RAG, autonomous agents and orchestration frameworks to drive innovation</p></li><li><p>Deep understanding of statistical analysis, unsupervised and supervised machine learning algorithms, and natural language processing for information retrieval and/or recommendation system use cases</p></li><li><p>Professional experience in independently solving ambiguous, open-ended problems and technically leading teams</p></li><li><p>Excellent interpersonal and communication skills, with the ability to build strong relationships across teams and stakeholders</p></li></ul><p style=\"text-align:left\"><br /><b>Workday Pay Transparency Statement</b></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><span>Workday pay ranges vary based on work location. As a part of the total compensation package, this role may be eligible for the Workday Bonus Plan or a role-specific commission/bonus, as well as annual refresh stock grants. Recruiters can share more detail during the hiring process. Each candidate’s compensation offer will be based on multiple factors including, but not limited to, geography, experience, skills, job duties, and business need, among other things. For more information regarding Workday’s comprehensive benefits, please </span><a target=\"_blank\" href=\"http://benefits.workday.com/\">click here</a><span>.</span></p><p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p>Primary Location: CAN.BC.Vancouver<p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p>Primary Location Base Pay Range:  $180,200 CAD - $270,200 CAD<p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p>Primary CAN Base Pay Range: $138,000 - $208,000 CAD<p style=\"text-align:left\"><br /><br /><b>Our Approach to Flexible Work</b><br /> </p><p style=\"text-align:left\"><span>With Flex Work, we’re combining the best of both worlds: in-person time and remote. Our approach enables our teams to deepen connections, maintain a strong community, and do their best work. We know that flexibility can take shape in many ways, so rather than a number of required days in-office each week, we simply </span><b>spend at least half (50%) of our time each quarter in the office or in the field</b><span> with our customers, prospects, and partners (depending on role). This means you&#39;ll have the freedom to create a flexible schedule that caters to your business, team, and personal needs, while being intentional to make the most of time spent together. Those in our remote &#34;home office&#34; roles also have the opportunity to come together in our offices for important moments that matter.</span></p><p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><span>Pursuant to applicable Fair Chance law, Workday will consider for employment qualified applicants with arrest and conviction records.</span></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><span>Workday is an Equal Opportunity Employer including individuals with disabilities and protected veterans.</span></p><br /><p><span style=\"color:#292a2e\">Workday is committed to providing reasonable accommodations for qualified individuals during our application process, in order to perform one or more essential functions of their job, as well as regarding the use of AI tools for employment decision-making to any degree. Please see below for more details including how to request an accommodation as a qualified veteran, due to a disability or for religious reasons, or as otherwise provided under applicable law. </span></p><br /><p><span style=\"color:#292a2e\">Workday prohibits taking adverse action against any candidate or employee for reporting a possible violation of this policy, requesting one or more work accommodations, exercising a privacy right, or cooperating in an investigation in accordance with applicable law. Any employee who retaliates against a candidate or employee for doing so may be subject to disciplinary action, up to and including termination of employment, to the fullest extent allowable under applicable law. </span></p><br /><p><span style=\"color:#292a2e\">If you require a reasonable accommodation, you may email </span><a target=\"_blank\" href=\"mailto:accommodations&#64;workday.com\"><span style=\"color:#1868db\"><u>accommodations&#64;workday.com</u></span></a><span style=\"color:#292a2e\">, as far in advance as possible.</span></p><br /><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><b><span>Are you being referred to one of our roles? If so, ask your connection at Workday about our Employee Referral process!</span></b></p><p>At Workday, we value our candidates’ privacy and data security.  Workday will never ask candidates to apply to jobs through websites that are not Workday Careers. </p><p>  </p><p>Please be aware of sites that may ask for you to input your data in connection with a job posting that appears to be from Workday but is not.</p><p>  </p><p>In addition, Workday will never ask candidates to pay a recruiting fee, or pay for consulting or coaching services, in order to apply for a job at Workday.</p>",
+    "location": "Canada, BC, Vancouver",
+    "postedOn": "Posted 21 Days Ago",
+    "startDate": "2026-10-01",
+    "timeType": "Full Time",
+    "jobReqId": "JR-0109305",
+    "jobPostingId": "AI-Engineer_JR-0109305",
+    "jobPostingSiteId": "Workday",
+    "country": {
+      "descriptor": "Canada",
+      "id": "a30a87ed25634629aa6c3958aa2b91ea"
+    },
+    "canApply": true,
+    "posted": true,
+    "includeResumeParsing": true,
+    "jobRequisitionLocation": {
+      "descriptor": "Canada, BC, Vancouver",
+      "country": {
+        "descriptor": "Canada",
+        "id": "a30a87ed25634629aa6c3958aa2b91ea",
+        "alpha2Code": "CA"
+      }
+    },
+    "remoteType": "Flex",
+    "externalUrl": "https://workday.wd5.myworkdayjobs.com/Workday/job/Canada-BC-Vancouver/AI-Engineer_JR-0109305",
+    "questionnaireId": "ec1d4a8375ea10003bbcdcbfb5da0000",
+    "secondaryQuestionnaireId": "79ff3c25328e10004ff3c8ed24220000"
+  },
+  "hiringOrganization": {
+    "name": "Workday, Inc.",
+    "url": ""
+  },
+  "similarJobs": [
+    {
+      "title": "Senior AI Engineer",
+      "externalPath": "/job/Canada-BC-Vancouver/Senior-AI-Engineer_JR-0109358-1",
+      "timeType": "Full Time",
+      "locationsText": "Canada, BC, Vancouver",
+      "postedOn": "Posted 30+ Days Ago",
+      "startDate": "2026-08-13",
+      "remoteType": "Flex"
+    },
+    {
+      "title": "Sr Associate Machine Learning Engineer",
+      "externalPath": "/job/Canada-BC-Vancouver/Sr-Associate-Machine-Learning-Engineer_JR-0110395",
+      "timeType": "Full Time",
+      "locationsText": "Canada, BC, Vancouver",
+      "postedOn": "Posted 23 Days Ago",
+      "startDate": "2026-09-29",
+      "remoteType": "Flex"
+    },
+    {
+      "title": "Machine Learning Engineer - Financials",
+      "externalPath": "/job/Canada-BC-Vancouver/Machine-Learning-Engineer_JR-0109545-1",
+      "timeType": "Full Time",
+      "locationsText": "Canada, BC, Vancouver",
+      "postedOn": "Posted 30+ Days Ago",
+      "startDate": "2026-09-08",
+      "remoteType": "Flex"
+    },
+    {
+      "title": "Sr AI Engineer",
+      "externalPath": "/job/Canada-BC-Vancouver/Sr-AI-Engineer_JR-0110362",
+      "timeType": "Full Time",
+      "locationsText": "Canada, BC, Vancouver",
+      "postedOn": "Posted Yesterday",
+      "startDate": "2026-10-21",
+      "remoteType": "Flex",
+      "timeLeftToApply": "2 days left to apply",
+      "jobPostingEndDateAsText": "End Date: October 25, 2026"
+    },
+    {
+      "title": "Sr. Machine Learning Engineer",
+      "externalPath": "/job/Canada-BC-Vancouver/Sr-Machine-Learning-Engineer_JR-0110287",
+      "timeType": "Full Time",
+      "locationsText": "2 Locations",
+      "postedOn": "Posted 7 Days Ago",
+      "startDate": "2026-10-15",
+      "remoteType": "Flex",
+      "timeLeftToApply": "7 days left to apply",
+      "jobPostingEndDateAsText": "End Date: October 30, 2026"
+    }
+  ],
+  "userAuthenticated": false
+}

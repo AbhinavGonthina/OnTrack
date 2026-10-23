@@ -47,7 +47,16 @@ export interface Reader {
   name: ExtractionSource;
   /** Cheap check so the pipeline can skip readers that cannot apply. */
   matches(url: URL): boolean;
-  read(doc: Document, url: URL): Promise<ReaderResult | null> | ReaderResult | null;
+  /**
+   * fetchJson is same-origin only and is how the Workday reader reaches that
+   * site's own JSON endpoint from inside the page, which needs no host
+   * permission. Readers that only touch the DOM can ignore it.
+   */
+  read(
+    doc: Document,
+    url: URL,
+    fetchJson: FetchJson,
+  ): Promise<ReaderResult | null> | ReaderResult | null;
 }
 
 /**
