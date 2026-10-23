@@ -22,6 +22,7 @@ import {
   getStatusColor,
 } from "@/lib/statusLabels";
 import { FIELD_CLASSNAME_ROOMY } from "@/lib/inputStyles";
+import { Select } from "@/components/Select";
 import { formatDateApplied, formatNoteTimestamp, todayLocalIso } from "@/lib/dates";
 import { Button } from "@/components/Button";
 import { StatusBadge } from "@/components/Badge";
@@ -552,7 +553,7 @@ export function ApplicationDetailView({
               >
                 <label className={FIELD_LABEL}>
                   New status
-                  <select
+                  <Select
                     value={statusValue}
                     onChange={(e) => setStatusValue(e.target.value as ApplicationStatus)}
                     className={FIELD_CLASSNAME_ROOMY}
@@ -564,7 +565,7 @@ export function ApplicationDetailView({
                         </option>
                       ),
                     )}
-                  </select>
+                  </Select>
                 </label>
                 <label className={FIELD_LABEL}>
                   Date
@@ -579,7 +580,7 @@ export function ApplicationDetailView({
                   <>
                     <label className={FIELD_LABEL}>
                       Interview type
-                      <select
+                      <Select
                         value={interviewType}
                         onChange={(e) => setInterviewType(e.target.value as InterviewType)}
                         className={FIELD_CLASSNAME_ROOMY}
@@ -589,11 +590,11 @@ export function ApplicationDetailView({
                             {INTERVIEW_TYPE_LABELS[type]}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                     <label className={FIELD_LABEL}>
                       Format
-                      <select
+                      <Select
                         value={interviewFormat}
                         onChange={(e) => setInterviewFormat(e.target.value as InterviewFormat)}
                         className={FIELD_CLASSNAME_ROOMY}
@@ -603,7 +604,7 @@ export function ApplicationDetailView({
                             {INTERVIEW_FORMAT_LABELS[format]}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                   </>
                 )}

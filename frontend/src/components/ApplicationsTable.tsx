@@ -9,6 +9,7 @@ import { STATUS_LABELS, STATUS_ORDER } from "@/lib/statusLabels";
 import { StatusBadge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { FIELD_CLASSNAME } from "@/lib/inputStyles";
+import { Select } from "@/components/Select";
 import { formatDateApplied } from "@/lib/dates";
 
 const PAGE_SIZE = 10;
@@ -103,7 +104,7 @@ export function ApplicationsTable({ applications, onDelete, deletingId }: Props)
           />
         </div>
 
-        <select
+        <Select
           value={status}
           onChange={(e) => {
             setStatus(e.target.value as StatusFilter);
@@ -117,7 +118,7 @@ export function ApplicationsTable({ applications, onDelete, deletingId }: Props)
               {option === "ALL" ? "All statuses" : STATUS_LABELS[option]}
             </option>
           ))}
-        </select>
+        </Select>
 
         <Link href="/applications/new" className="sm:ml-auto">
           <Button className={`inline-flex w-full items-center justify-center py-0 sm:w-auto ${CONTROL_HEIGHT}`}>
