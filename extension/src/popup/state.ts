@@ -223,8 +223,11 @@ export function reducer(state: PopupState, action: PopupAction): PopupState {
       return { ...state, phase: "aiConsent" };
 
     case "ai/decline":
-      // Declining costs nothing and must not call anything.
-      return { ...state, phase: "form", source: state.source ?? "manual" };
+      // Declining costs nothing and must not call anything. The source becomes
+      // "manual" rather than keeping whatever reader half-matched: consent is
+      // only ever offered from the unreadable state, so from here on the user
+      // is filling the form in themselves and the caption should say so.
+      return { ...state, phase: "form", source: "manual" };
 
     case "ai/start":
       return { ...state, phase: "aiReading", error: null };

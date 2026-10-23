@@ -30,6 +30,15 @@ export const COPY = {
   aiExhausted: "You've used all of today's AI calls.",
   aiReading: "Reading the page with AI.",
 
+  // The consent step. Nothing is sent until the user picks the confirm button,
+  // and the cost is stated before the choice, not after it.
+  aiConsentTitle:
+    "OnTrack can send this page's text to Google Gemini to read the job details.",
+  aiConsentCost: (remaining: number) =>
+    `This uses 1 of your ${remaining} AI calls left today. Nothing is sent unless you choose to.`,
+  aiConsentConfirm: "Read it with AI",
+  aiConsentDecline: "No thanks, I'll fill it in",
+
   duplicateTitle: "You've already logged this job.",
   openInOnTrack: "Open in OnTrack",
   saveAnotherCopy: "Save another copy",

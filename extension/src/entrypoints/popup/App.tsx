@@ -213,6 +213,38 @@ export function App() {
     }
   }, [state.draft]);
 
+  /**
+   * Only ever reached from the consent screen, so by the time this runs the
+   * user has been told the cost and agreed to it.
+   */
+  const handleAiExtract = useCallback(async () => {
+    if (!state.snapshot) return;
+    dispatch({ type: "ai/start" });
+
+    const response = await send({
+      type: "ai.extract",
+      url: state.snapshot.url,
+      pageTitle: state.snapshot.title,
+      pageText: state.snapshot.text,
+    });
+
+    if (!response.ok) {
+      dispatch({ type: "ai/failed", error: response.error });
+      return;
+    }
+
+    dispatch({
+      type: "ai/done",
+      company: response.data.company,
+      role: response.data.role,
+      description: response.data.jobDescriptionText,
+    });
+
+    // The call is spent either way, so refresh the remaining count.
+    const usage = await send({ type: "ai.usage" });
+    if (usage.ok) dispatch({ type: "aiUsage/loaded", usage: usage.data });
+  }, [state.snapshot]);
+
   const openTab = (url: string) => {
     void browser.tabs.create({ url });
   };
@@ -314,6 +346,40 @@ export function App() {
             >
               {COPY.viewInOnTrack}
             </PrimaryButton>
+          </div>
+        </Body>
+      </main>
+    );
+  }
+
+  if (state.phase === "aiReading") {
+    return (
+      <main>
+        <Header />
+        <Body>
+          <Spinner label={COPY.aiReading} />
+        </Body>
+      </main>
+    );
+  }
+
+  if (state.phase === "aiConsent") {
+    const remaining = state.aiUsage?.remaining ?? 0;
+    return (
+      <main>
+        <Header />
+        <Body>
+          <div className="space-y-3">
+            <p>{COPY.aiConsentTitle}</p>
+            <Caption>{COPY.aiConsentCost(remaining)}</Caption>
+            <PrimaryButton disabled={remaining < 1} onClick={() => void handleAiExtract()}>
+              {COPY.aiConsentConfirm}
+            </PrimaryButton>
+            <div className="text-center">
+              <TextButton onClick={() => dispatch({ type: "ai/decline" })}>
+                {COPY.aiConsentDecline}
+              </TextButton>
+            </div>
           </div>
         </Body>
       </main>

@@ -329,3 +329,96 @@ describe("canSave", () => {
     expect(canSave(reducer(base, { type: "draft/change", field: "role", value: "  " }))).toBe(false);
   });
 });
+
+describe("AI fallback", () => {
+  const unreadable = () =>
+    run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "aiUsage/loaded", usage: { remaining: 3, limit: 20 } },
+    );
+
+  it("the unreadable state knows how many calls are left", () => {
+    expect(unreadable().aiUsage?.remaining).toBe(3);
+  });
+
+  it("asking for AI moves to the consent screen, not straight to a call", () => {
+    const state = reducer(unreadable(), { type: "ai/askConsent" });
+    expect(state.phase).toBe("aiConsent");
+  });
+
+  /**
+   * The point of the consent step. Declining has to leave no trace and cost
+   * nothing; the e2e suite also asserts no request is made.
+   */
+  it("declining returns to the manual form and spends nothing", () => {
+    const declined = reducer(
+      reducer(unreadable(), { type: "ai/askConsent" }),
+      { type: "ai/decline" },
+    );
+
+    expect(declined.phase).toBe("form");
+    expect(declined.source).toBe("manual");
+    expect(declined.aiUsage?.remaining).toBe(3);
+  });
+
+  it("shows the reading state while the call is in flight", () => {
+    const state = reducer(
+      reducer(unreadable(), { type: "ai/askConsent" }),
+      { type: "ai/start" },
+    );
+    expect(state.phase).toBe("aiReading");
+  });
+
+  it("fills the form from the AI result and labels the source", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "ai/askConsent" },
+      { type: "ai/start" },
+      { type: "ai/done", company: "Acme", role: "Engineer", description: "Build things." },
+    );
+
+    expect(state.phase).toBe("form");
+    expect(state.source).toBe("ai");
+    expect(state.draft.company).toBe("Acme");
+    expect(state.draft.role).toBe("Engineer");
+    expect(state.draft.description).toBe("Build things.");
+    expect(canSave(state)).toBe(true);
+  });
+
+  it("keeps a field the AI could not find flagged as missing", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "ai/start" },
+      { type: "ai/done", company: null, role: "Engineer", description: "Text." },
+    );
+
+    expect(state.missing).toEqual(["company"]);
+    expect(canSave(state)).toBe(false);
+  });
+
+  it("a 429 falls back to the manual form carrying the error", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "ai/start" },
+      { type: "ai/failed", error: error({ kind: "rateLimited", status: 429 }) },
+    );
+
+    expect(state.phase).toBe("form");
+    expect(state.error?.kind).toBe("rateLimited");
+  });
+
+  it("a 502 falls back to the manual form carrying the error", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "ai/start" },
+      { type: "ai/failed", error: error({ kind: "aiUnavailable", status: 502 }) },
+    );
+
+    expect(state.phase).toBe("form");
+    expect(state.error?.kind).toBe("aiUnavailable");
+  });
+
+  it("keeps the page snapshot so the AI call has text to send", () => {
+    expect(unreadable().snapshot?.text).toBe("page text");
+  });
+});
