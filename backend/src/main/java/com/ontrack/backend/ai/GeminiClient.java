@@ -83,6 +83,22 @@ public class GeminiClient {
                 .build();
     }
 
+    /**
+     * The browser extension's fallback for a posting none of its readers could parse.
+     * All four fields are required so the model always answers in the same shape; absent
+     * values come back as empty strings and the service turns those into null.
+     */
+    private static final Map<String, Object> JOB_EXTRACT_SCHEMA = Map.of(
+            "type", "OBJECT",
+            "properties", Map.of(
+                    "company", Map.of("type", "STRING"),
+                    "role", Map.of("type", "STRING"),
+                    "jobDescription", Map.of("type", "STRING"),
+                    "confidence", Map.of("type", "STRING")
+            ),
+            "required", List.of("company", "role", "jobDescription", "confidence")
+    );
+
     public GeminiFitResult analyzeFit(String resumeText, String jobDescriptionText) {
         return call(buildFitPrompt(resumeText, jobDescriptionText), FIT_SCHEMA, GeminiFitResult.class);
     }
@@ -93,6 +109,13 @@ public class GeminiClient {
 
     public GeminiStrengthResult scoreResumeStrength(String resumeText) {
         return call(buildStrengthPrompt(resumeText), STRENGTH_SCHEMA, GeminiStrengthResult.class);
+    }
+
+    public GeminiJobExtractResult extractJobPosting(String url, String pageTitle, String pageText) {
+        return call(
+                buildJobExtractPrompt(url, pageTitle, pageText),
+                JOB_EXTRACT_SCHEMA,
+                GeminiJobExtractResult.class);
     }
 
     private <T> T call(String prompt, Map<String, Object> responseSchema, Class<T> resultType) {
@@ -169,6 +192,47 @@ public class GeminiClient {
                 RAW RESUME TEXT:
                 %s
                 """.formatted(rawText);
+    }
+
+    /**
+     * Deliberately strict about inventing things. This runs on a page the readers could not
+     * parse, so the model is working from raw page text that includes navigation, cookie
+     * banners and "similar jobs" blocks. A plausible-looking wrong company name is worse than
+     * an empty field here: the user would save it without noticing, whereas an empty field
+     * visibly asks them to fill it in.
+     */
+    private String buildJobExtractPrompt(String url, String pageTitle, String pageText) {
+        return """
+                You are reading the text of a web page to find the job posting on it. The page \
+                could not be parsed automatically, so you are working from raw extracted text.
+
+                Rules:
+                - Extract only what is actually present on the page. Never invent a company name, \
+                a role title, or description text.
+                - If a field is not present on the page, use an empty string for it. An empty \
+                field is correct and useful; a guess is not.
+                - jobDescription must be the posting's own text, not a summary and not a rewrite. \
+                Remove page navigation, cookie banners, application form fields, "similar jobs" \
+                and "other openings" lists, and site footers. Keep the responsibilities, \
+                requirements and qualifications as they are written.
+                - company is the employer hiring for this role, not the job board the page is \
+                hosted on and not a recruiting agency listed in the footer.
+                - role is the job title alone, without the location, the requisition id or the \
+                company name appended to it.
+                - confidence is "high", "medium" or "low", describing how clearly the page states \
+                the company and the role.
+
+                Respond ONLY with JSON matching the required schema.
+
+                PAGE URL:
+                %s
+
+                PAGE TITLE:
+                %s
+
+                PAGE TEXT:
+                %s
+                """.formatted(url, pageTitle, pageText);
     }
 
     private String buildStrengthPrompt(String resumeText) {
