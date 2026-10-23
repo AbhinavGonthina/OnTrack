@@ -7,8 +7,15 @@ import {
   type Worker,
 } from "@playwright/test";
 
-/** The built Chrome MV3 output that every e2e test loads. */
-export const EXTENSION_PATH = resolve(import.meta.dirname, "../../.output/chrome-mv3");
+/**
+ * The e2e suite loads the development build (npm run build:e2e), which is the
+ * only one with host permissions for localhost. The production build in
+ * .output/chrome-mv3 deliberately lacks them, and test/manifest.test.ts asserts
+ * that.
+ */
+export const EXTENSION_PATH =
+  process.env.E2E_EXTENSION_PATH ??
+  resolve(import.meta.dirname, "../../.output/chrome-mv3-dev");
 
 /**
  * Derived from the manifest key pinned in wxt.config.ts. Chromium computes an
