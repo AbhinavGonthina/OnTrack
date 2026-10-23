@@ -8,6 +8,7 @@ import {
   lookupApplication,
 } from "../api/client";
 import type { ApiResult } from "../api/types";
+import { extractFromTab } from "./extract";
 import type { ExtensionMessage } from "./types";
 
 /** How long the saved check stays on the toolbar icon. */
@@ -36,6 +37,9 @@ export async function handleMessage(
   message: ExtensionMessage,
 ): Promise<ApiResult<unknown>> {
   switch (message.type) {
+    case "job.extract":
+      return { ok: true, data: await extractFromTab(message.tabId) };
+
     case "session.probe":
       return getSession();
 

@@ -160,6 +160,63 @@ export function finalize(
   };
 }
 
+/**
+ * Folds the board API results (fetched in the service worker) together with
+ * what the injected extractor found in the page.
+ *
+ * The two halves run in different places for a reason: the board APIs are
+ * cross-origin and their host permissions belong to the worker, while the page
+ * readers need the live Document. Board results take precedence because
+ * structured data from the board beats anything scraped off the rendered page.
+ */
+export function combineBoardAndPage(
+  boardResults: Array<ReaderResult | null>,
+  pageResult: ExtractionResult,
+  url: URL,
+): ExtractionResult {
+  let accumulator = emptyAccumulator();
+
+  for (const result of boardResults) {
+    accumulator = mergeReaderResult(accumulator, result);
+  }
+
+  // The page result is folded in as just another reader, so it can only fill
+  // gaps the board left, never overwrite them.
+  accumulator = mergeReaderResult(accumulator, {
+    company: pageResult.company,
+    role: pageResult.role,
+    description: pageResult.description,
+    url: pageResult.url,
+    source: pageResult.source,
+    confidence: pageResult.confidence,
+    notes: pageResult.notes,
+  });
+
+  return finalize(accumulator, url);
+}
+
+/**
+ * Runs the board readers that match a URL. Lives here rather than in the
+ * worker so the ordering stays next to the rest of the pipeline.
+ */
+export async function runBoardReaders(
+  url: URL,
+  fetchJson: FetchJson,
+  readers: BoardReader[] = BOARD_READERS,
+): Promise<Array<ReaderResult | null>> {
+  const results: Array<ReaderResult | null> = [];
+  for (const reader of readers) {
+    if (!reader.matches(url)) continue;
+    try {
+      results.push(await reader.read(url, fetchJson));
+    } catch {
+      // A board being down must not stop the page readers' work being used.
+      results.push(null);
+    }
+  }
+  return results;
+}
+
 export interface RunPipelineOptions {
   doc: Document;
   url: URL;

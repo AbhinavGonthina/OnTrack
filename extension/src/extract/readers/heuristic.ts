@@ -33,7 +33,8 @@ export function splitTitle(raw: string): { role: string | null; company: string 
 
   // "Role - Company" / "Role – Company". Only split on the last separator so a
   // hyphenated role survives.
-  const dash = /^(.*)\s+[-–—]\s+([^-–—]+)$/.exec(title);
+  // A character class matching separators in *their* page titles.
+  const dash = /^(.*)\s+[-–—]\s+([^-–—]+)$/.exec(title); // copy-check-ignore: matches their text, does not produce ours
   if (dash?.[1] && dash[2]) {
     return { role: dash[1].trim(), company: dash[2].trim() };
   }

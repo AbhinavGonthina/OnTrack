@@ -49,8 +49,8 @@ const NAMED_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: "'",
   nbsp: "\u00a0",
-  ndash: "–",
-  mdash: "—",
+  ndash: "–", // copy-check-ignore: an entity target, not our copy
+  mdash: "—", // copy-check-ignore: an entity target, not our copy
   rsquo: "’",
   lsquo: "‘",
   ldquo: "“",

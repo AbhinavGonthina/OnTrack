@@ -1,3 +1,4 @@
+import type { ExtractOutcome } from "./extract";
 import type {
   AiUsageResponse,
   ApiResult,
@@ -14,6 +15,7 @@ import type {
  * permissions belong to the worker.
  */
 export type ExtensionMessage =
+  | { type: "job.extract"; tabId: number }
   | { type: "session.probe" }
   | { type: "health.check" }
   | { type: "ai.usage" }
@@ -29,6 +31,7 @@ export type ExtensionMessage =
 
 /** Maps each message to the payload its response carries. */
 export interface MessageResultMap {
+  "job.extract": ExtractOutcome;
   "session.probe": SessionResponse;
   "health.check": { healthy: boolean };
   "ai.usage": AiUsageResponse;
