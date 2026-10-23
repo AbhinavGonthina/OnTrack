@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/*
+ * The same palette as the web app (frontend/src/app/globals.css), trimmed to the
+ * variables the popup actually uses. The popup has no in-app theme toggle, so it
+ * follows the OS colour scheme only, which is why there is no [data-theme] rule
+ * here.
+ */
+:root {
+  color-scheme: light dark;
+  --background: #f9f9f7;
+  --foreground: #0b0b0b;
+  --muted: #6b6a65;
+  --surface: #fcfcfb;
+  --surface-border: rgba(11, 11, 11, 0.18);
+  --brand: #7c3aed;
+  --danger: #b4231f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: #0d0d0d;
+    --foreground: #ffffff;
+    --muted: #a3a29c;
+    --surface: #1a1a19;
+    --surface-border: rgba(255, 255, 255, 0.1);
+    --brand: #a78bfa;
+    --danger: #f87171;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-border: var(--surface-border);
+  --color-brand: var(--brand);
+  --color-danger: var(--danger);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* Chromium sizes a popup to its content, so the width has to be set here.
+     Section 4.1 asks for about 380px. */
+  width: 380px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Visible focus everywhere, per Section 10.3. */
+:where(button, input, textarea, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* The description box is the only scrolling region; keep its scrollbar subtle. */
+textarea {
+  scrollbar-width: thin;
+}

@@ -1,0 +1,16 @@
+node_modules
+.output
+.wxt
+stats.html
+stats-*.json
+
+# The private half of the manifest key pair. The public key is committed in
+# wxt.config.ts so every unpacked build keeps the same extension ID; the private
+# key is only needed to sign a CRX and must never be committed.
+.keys/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright-profile/
