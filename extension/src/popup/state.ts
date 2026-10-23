@@ -68,6 +68,12 @@ export type PopupAction =
   | { type: "lookup/match"; match: ApplicationResponse }
   | { type: "aiUsage/loaded"; usage: AiUsageResponse }
   | { type: "draft/change"; field: keyof Draft; value: string }
+  | {
+      type: "draft/restore";
+      draft: Draft;
+      source: ExtractionSource | null;
+      notes: string[];
+    }
   | { type: "ai/askConsent" }
   | { type: "ai/decline" }
   | { type: "ai/start" }
@@ -216,6 +222,25 @@ export function reducer(state: PopupState, action: PopupAction): PopupState {
         missing: missingFields(draft),
         // Editing a field clears a previous failure's message.
         error: null,
+      };
+    }
+
+    case "draft/restore": {
+      // A restored draft is the user's own edits, so it wins over whatever the
+      // readers produced on this reopen. Phase is left alone: if they are
+      // still signed out or still waiting on a cold start, restoring their
+      // text must not jump them to the form.
+      const phase =
+        state.phase === "signedOut" || state.phase === "waking"
+          ? state.phase
+          : "form";
+      return {
+        ...state,
+        phase,
+        draft: action.draft,
+        source: action.source,
+        notes: action.notes,
+        missing: missingFields(action.draft),
       };
     }
 

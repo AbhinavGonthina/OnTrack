@@ -422,3 +422,74 @@ describe("AI fallback", () => {
     expect(unreadable().snapshot?.text).toBe("page text");
   });
 });
+
+describe("Draft restore across a popup close", () => {
+  const restored = {
+    company: "Acme Edited",
+    role: "Senior Engineer",
+    description: "My own notes.",
+    url: "https://acme.com/j/1",
+    dateApplied: "2026-10-20",
+  };
+
+  it("a restored draft wins over what the readers just produced", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction(), snapshot },
+      { type: "draft/restore", draft: restored, source: "manual", notes: [] },
+    );
+
+    expect(state.draft).toEqual(restored);
+    expect(state.phase).toBe("form");
+  });
+
+  /**
+   * The two states the restore exists for. Putting the user's text back must
+   * not jump them past a sign-in they still have to do, or a cold start that
+   * is still running.
+   */
+  it("does not jump past the signed out state", () => {
+    const state = run(
+      { type: "session/signedOut" },
+      { type: "extraction/done", result: extraction(), snapshot },
+      { type: "draft/restore", draft: restored, source: "manual", notes: [] },
+    );
+
+    expect(state.phase).toBe("signedOut");
+    expect(state.draft.company).toBe("Acme Edited");
+  });
+
+  it("does not jump past the waking state", () => {
+    const state = run(
+      { type: "session/waking" },
+      { type: "extraction/done", result: extraction(), snapshot },
+      { type: "draft/restore", draft: restored, source: "manual", notes: [] },
+    );
+
+    expect(state.phase).toBe("waking");
+    expect(state.draft.role).toBe("Senior Engineer");
+  });
+
+  it("recomputes which fields are still missing", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction(), snapshot },
+      {
+        type: "draft/restore",
+        draft: { ...restored, company: "" },
+        source: "manual",
+        notes: [],
+      },
+    );
+
+    expect(state.missing).toEqual(["company"]);
+    expect(canSave(state)).toBe(false);
+  });
+
+  it("lifts an unreadable page to the form when a draft comes back", () => {
+    const state = run(
+      { type: "extraction/done", result: extraction({ company: null, role: null }), snapshot },
+      { type: "draft/restore", draft: restored, source: "manual", notes: [] },
+    );
+
+    expect(state.phase).toBe("form");
+  });
+});

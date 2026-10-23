@@ -5,6 +5,12 @@ import { APP_URL, MAX_DESCRIPTION_CHARS } from "../../config";
 import { COPY, SOURCE_CAPTION } from "../../copy";
 import { send } from "../../messages/send";
 import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+  type SessionStorageArea,
+} from "../../popup/draftStore";
+import {
   Body,
   Caption,
   ErrorNote,
@@ -26,6 +32,13 @@ import {
 
 /** How often to re-check health while Render cold starts (Section 4.2). */
 const HEALTH_POLL_MS = 5000;
+
+/**
+ * Memory backed and cleared when the browser closes. Deliberately not local
+ * or sync storage: nothing the extension holds is worth persisting to disk,
+ * and a credential must never be written to any of them.
+ */
+const sessionStorage = browser.storage.session as unknown as SessionStorageArea;
 
 /** Turns a structured error into one of the Section 4.2 sentences. */
 function errorMessage(error: ApiError): string {
@@ -136,6 +149,19 @@ export function App() {
         snapshot: payload.snapshot,
       });
 
+      // An unsaved draft for this same posting wins over a fresh read: it is
+      // the user's own typing from before they signed in or waited out a cold
+      // start.
+      const stored = await loadDraft(sessionStorage, payload.result.url);
+      if (!cancelled && stored) {
+        dispatch({
+          type: "draft/restore",
+          draft: stored.draft,
+          source: stored.source,
+          notes: stored.notes,
+        });
+      }
+
       // The duplicate check needs the URL, so it runs after extraction.
       const lookup = await send({
         type: "application.lookup",
@@ -183,6 +209,27 @@ export function App() {
       }
     };
   }, [state.phase]);
+
+  // --- Persist the draft so closing the popup loses nothing. ---
+  useEffect(() => {
+    // Nothing worth keeping before a reader has produced a URL, and nothing
+    // worth keeping once it is saved.
+    if (!state.draft.url) return;
+    if (state.phase === "saved" || state.phase === "checking") return;
+
+    void saveDraft(sessionStorage, state.draft.url, {
+      draft: state.draft,
+      source: state.source,
+      notes: state.notes,
+    });
+  }, [state.draft, state.source, state.notes, state.phase]);
+
+  // A saved job should not be offered back as an unsaved draft.
+  useEffect(() => {
+    if (state.phase === "saved" && state.draft.url) {
+      void clearDraft(sessionStorage, state.draft.url);
+    }
+  }, [state.phase, state.draft.url]);
 
   // Escape closes the popup (Section 10.3).
   useEffect(() => {
