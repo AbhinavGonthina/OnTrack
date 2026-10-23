@@ -58,8 +58,9 @@ npm run build
 Then open `chrome://extensions`, turn on **Developer mode**, choose **Load
 unpacked**, and pick `extension/.output/chrome-mv3`.
 
-For Firefox, `npm run build:firefox` writes to `.output/firefox-mv3`, which you
-load through `about:debugging` as a temporary add-on.
+For Firefox, `npm run build:firefox` writes to `.output/firefox-mv2` (WXT
+targets MV2 for Firefox), which you load through `about:debugging` as a
+temporary add-on.
 
 ### The manifest key and the extension ID
 
