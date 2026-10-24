@@ -76,7 +76,7 @@ class ApplicationServiceTest {
     @Test
     void createThrowsWhenAtApplicationLimit() {
         ApplicationRequest request = new ApplicationRequest("Acme", "SWE Intern", "JD", null, LocalDate.now());
-        when(applicationRepository.countByUserId(user.getId())).thenReturn(100L);
+        when(applicationRepository.countByUserId(user.getId())).thenReturn((long) ApplicationService.MAX_APPLICATIONS_PER_USER);
 
         assertThatThrownBy(() -> applicationService.create(user, request))
                 .isInstanceOf(ApplicationLimitExceededException.class);

@@ -35,7 +35,7 @@ import java.util.UUID;
 @Service
 public class ApplicationService {
 
-    static final int MAX_APPLICATIONS_PER_USER = 100;
+    static final int MAX_APPLICATIONS_PER_USER = 1000;
 
     // A new status event's tier must never be lower than the application's current tier -
     // that's the "never backward" rule. Skipping stages forward is fine (real hiring
@@ -83,8 +83,8 @@ public class ApplicationService {
      * confirmation page after applying, or through a LinkedIn search result. See
      * {@link ApplicationUrlCanonicalizer}.
      *
-     * <p>Comparing in memory is deliberate. The per-user cap is 100 applications, so this is at
-     * most 100 string comparisons on a list already loaded for the dashboard, and the
+     * <p>Comparing in memory is deliberate. The per-user cap is 1000 applications, so this is at
+     * most 1000 string comparisons on a list already loaded for the dashboard, and the
      * alternative (a canonical column) would need a migration plus a backfill of existing rows
      * to buy nothing at this size.
      *

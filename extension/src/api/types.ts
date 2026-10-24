@@ -72,7 +72,7 @@ export type ApiErrorKind =
   | "unauthorized" // 401, show the signed-out state
   | "offline" // fetch rejected, no response at all
   | "waking" // health probe says the backend is still cold starting
-  | "capReached" // 409 from the 100-application cap
+  | "capReached" // 409 from the 1000-application cap
   | "rateLimited" // 429, either the request limiter or the daily AI budget
   | "aiUnavailable" // 502 from Gemini
   | "validation" // 400

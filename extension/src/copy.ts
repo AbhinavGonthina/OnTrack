@@ -64,7 +64,7 @@ export const COPY = {
     `${used.toLocaleString()} of ${limit.toLocaleString()} characters`,
 
   // --- Errors (Section 4.2) ---
-  errorCapReached: "You've reached the maximum of 100 applications.",
+  errorCapReached: "You've reached the maximum of 1000 applications.",
   errorOffline: "Couldn't reach OnTrack. Check your connection and try again.",
   errorAiUnavailable:
     "The AI service is temporarily unavailable. Please try again shortly.",
